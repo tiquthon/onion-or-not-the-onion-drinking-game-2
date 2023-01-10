@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  reverse-proxy:
+    build: reverse-proxy/.
+    ports:
+      - 8000:80
+    networks:
+      - net
+    environment:
+      FRONTEND_HOST: host.docker.internal
+      FRONTEND_PORT: 8081
+      BACKEND_HOST: host.docker.internal
+      BACKEND_PORT: 8080
+
+networks:
+  net: {}

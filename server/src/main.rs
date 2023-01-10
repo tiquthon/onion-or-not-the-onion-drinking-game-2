@@ -25,14 +25,19 @@ async fn ws(req: HttpRequest, body: web::Payload) -> Result<HttpResponse, Error>
     Ok(response)
 }
 
+async fn hello() -> String {
+    "Hello world!".to_owned()
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
+            .route("/", web::get().to(hello))
             .route("/ws", web::get().to(ws))
     })
-    .bind("127.0.0.1:8080")?
+    .bind("0.0.0.0:8080")?
     .run()
     .await
 }
