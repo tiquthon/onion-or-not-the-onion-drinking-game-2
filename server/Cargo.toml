@@ -3,10 +3,10 @@ name = "onion-or-not-the-onion-drinking-game-2-server"
 version = "0.1.0"
 authors = ["Thimo \"Tiquthon\" Neumann <tiquthon@gmail.com>"]
 edition = "2021"
-description = "A web game to play with your friends. Guess, be surprised, drink!"
+description = "A web game to play with your friends. Guess, be surprised, drink! This is the server part."
 readme = "README.md"
 repository = "https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2"
-keywords = ["party", "game", "web", "onion", "drinking"]
+keywords = ["party", "game", "web", "onion", "drinking", "server"]
 publish = false
 
 [lib]
