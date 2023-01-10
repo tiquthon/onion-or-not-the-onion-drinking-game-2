@@ -14,7 +14,7 @@ async fn ws(req: HttpRequest, body: web::Payload) -> Result<HttpResponse, Error>
                         return;
                     }
                 }
-                Message::Text(s) => println!("Got text, {}", s),
+                Message::Text(s) => println!("Got text, {s}"),
                 _ => break,
             }
         }
