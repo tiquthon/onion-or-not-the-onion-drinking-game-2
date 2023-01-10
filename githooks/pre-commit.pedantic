@@ -38,4 +38,6 @@ function check_directory {
 
 check_directory "server"
 
+check_directory "client"
+
 exit 0
