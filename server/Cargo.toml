@@ -17,3 +17,6 @@ name = "onion-or-not-the-onion-drinking-game-2-server"
 path = "src/main.rs"
 
 [dependencies]
+actix-web = "4"
+actix-ws = "0.2"
+futures-util = "0.3"
