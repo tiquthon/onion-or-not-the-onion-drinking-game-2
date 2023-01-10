@@ -1,0 +1,41 @@
+#!/bin/sh
+
+# If any command fails, exit immediately with that command's exit status
+set -euxo pipefail
+
+function check_directory {
+	cwd=$(pwd)
+	
+	cd $1
+
+	if ! cargo test
+	then
+		echo "There are some test issues in $1."
+		exit 1
+	fi
+	
+	if ! cargo clippy --all-targets -- -D warnings
+	then
+		echo "There are some clippy issues in $1."
+		exit 1
+	fi
+	
+	if ! cargo fmt -- --check
+	then
+		echo "There are some code style issues in $1."
+		echo "Run cargo fmt first."
+		exit 1
+	fi
+
+	if ! cargo audit
+	then
+		echo "There are some vulnerabilities in $1."
+		exit 1
+	fi
+	
+	cd $cwd
+}
+
+check_directory "server"
+
+exit 0
