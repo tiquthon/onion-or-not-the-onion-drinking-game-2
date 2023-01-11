@@ -1,0 +1,19 @@
+[package]
+name = "onion-or-not-the-onion-drinking-game-2-reddit-gatherer"
+version = "0.1.0"
+authors = ["Thimo \"Tiquthon\" Neumann <tiquthon@gmail.com>"]
+edition = "2021"
+description = "The gatherer of the game data for the web game Onion Or Not The Onion Drinking Game 2."
+readme = "README.md"
+repository = "https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2"
+keywords = ["party", "game", "web", "onion", "drinking", "reddit", "gatherer"]
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "onion-or-not-the-onion-drinking-game-2-reddit-gatherer"
+path = "src/main.rs"
+
+[dependencies]
