@@ -40,4 +40,6 @@ check_directory "server"
 
 check_directory "client"
 
+check_directory "reddit-gatherer"
+
 exit 0
