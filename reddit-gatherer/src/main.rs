@@ -41,7 +41,10 @@ fn main() {
 
     match subreddit_information {
         Ok(subreddit_information) => {
-            println!("STATUS: Collected {} submissions.", subreddit_information.len());
+            println!(
+                "STATUS: Collected {} submissions.",
+                subreddit_information.len()
+            );
             match File::create(output_file_path) {
                 Ok(output_file) => match ron::ser::to_writer(output_file, &subreddit_information) {
                     Ok(_) => println!("Successfully saved subreddit information."),
@@ -49,7 +52,7 @@ fn main() {
                 },
                 Err(error) => eprintln!("ERROR: Could not open output file ({error})"),
             }
-        },
+        }
         Err(error) => {
             eprintln!("ERROR: {error:?}");
         }
@@ -211,17 +214,17 @@ impl Iterator for SubredditIterator {
                         over_18,
                         thumbnail,
                         preview_image_url: preview
-                            .map(|preview| preview.images
-                                .first()
-                                .ok_or_else(|| {
-                                    anyhow::anyhow!(
+                            .map(|preview| {
+                                preview
+                                    .images
+                                    .first()
+                                    .ok_or_else(|| {
+                                        anyhow::anyhow!(
                                     "Missing image in preview of permalink=\"{permalink}\"."
                                 )
-                                })
-                                .map(|first| first.source
-                                    .url
-                                    .clone())
-                                )
+                                    })
+                                    .map(|first| first.source.url.clone())
+                            })
                             .transpose()?,
                     })
                 })
