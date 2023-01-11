@@ -17,4 +17,11 @@ name = "onion-or-not-the-onion-drinking-game-2-client"
 path = "src/main.rs"
 
 [dependencies]
+fluent-templates = "0.8"
+futures-util = "0.3"
+unic-langid = "0.9"
+
+gloo-console = "0.2"
+gloo-net = "0.2"
+web-sys = { version = "0.3", features = [] }
 yew = { version = "0.20", features = ["csr"] }
