@@ -8,7 +8,7 @@ pub struct R1 {
 
 #[derive(serde::Deserialize)]
 pub struct R2 {
-    pub after: String,
+    pub after: Option<String>,
     pub children: Vec<R3>,
 }
 
@@ -32,7 +32,7 @@ pub struct R4 {
     pub ups: f64,
     pub over_18: bool,
     pub thumbnail: String,
-    pub preview: R5,
+    pub preview: Option<R5>,
 }
 
 #[derive(serde::Deserialize)]

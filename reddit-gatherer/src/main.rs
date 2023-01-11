@@ -40,12 +40,15 @@ fn main() {
     .context("Failed collecting reddit submissions.");
 
     match subreddit_information {
-        Ok(subreddit_information) => match File::create(output_file_path) {
-            Ok(output_file) => match ron::ser::to_writer(output_file, &subreddit_information) {
-                Ok(_) => println!("Successfully saved subreddit information."),
-                Err(error) => eprintln!("ERROR: Could not write to output file ({error})"),
-            },
-            Err(error) => eprintln!("ERROR: Could not open output file ({error})"),
+        Ok(subreddit_information) => {
+            println!("STATUS: Collected {} submissions.", subreddit_information.len());
+            match File::create(output_file_path) {
+                Ok(output_file) => match ron::ser::to_writer(output_file, &subreddit_information) {
+                    Ok(_) => println!("Successfully saved subreddit information."),
+                    Err(error) => eprintln!("ERROR: Could not write to output file ({error})"),
+                },
+                Err(error) => eprintln!("ERROR: Could not open output file ({error})"),
+            }
         },
         Err(error) => {
             eprintln!("ERROR: {error:?}");
@@ -135,6 +138,8 @@ impl Iterator for SubredditIterator {
                 fetch_url.push_str(&format!("&after={after}"));
             }
 
+            println!("STATUS: Fetching {fetch_url}");
+
             let response = match self.client.get(fetch_url.clone()).send() {
                 Ok(response) => {
                     if matches!(response.status(), StatusCode::OK) {
@@ -163,6 +168,10 @@ impl Iterator for SubredditIterator {
             };
 
             let after = response_body.data.after;
+            if after.is_none() {
+                self.reached_end = true;
+            }
+
             let children: anyhow::Result<Vec<RedditSubmissionData>> = response_body
                 .data
                 .children
@@ -202,16 +211,18 @@ impl Iterator for SubredditIterator {
                         over_18,
                         thumbnail,
                         preview_image_url: preview
-                            .images
-                            .first()
-                            .ok_or_else(|| {
-                                anyhow::anyhow!(
+                            .map(|preview| preview.images
+                                .first()
+                                .ok_or_else(|| {
+                                    anyhow::anyhow!(
                                     "Missing image in preview of permalink=\"{permalink}\"."
                                 )
-                            })?
-                            .source
-                            .url
-                            .clone(),
+                                })
+                                .map(|first| first.source
+                                    .url
+                                    .clone())
+                                )
+                            .transpose()?,
                     })
                 })
                 .collect::<Result<_, _>>();
@@ -220,7 +231,7 @@ impl Iterator for SubredditIterator {
                 Err(error) => return Some(Err(error)),
             };
 
-            self.previous_anchor = Some(after);
+            self.previous_anchor = after;
             self.cache.extend(children);
 
             if self.cache.is_empty() {
@@ -251,5 +262,5 @@ struct RedditSubmissionData {
     ups: u64,
     over_18: bool,
     thumbnail: String,
-    preview_image_url: String,
+    preview_image_url: Option<String>,
 }
