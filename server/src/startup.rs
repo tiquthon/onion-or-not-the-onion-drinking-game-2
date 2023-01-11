@@ -1,11 +1,12 @@
 use std::net::TcpListener;
 
 use actix_web::dev::Server;
-use actix_web::{App, HttpServer};
+use actix_web::{web, App, HttpServer};
 
 use tracing_actix_web::TracingLogger;
 
 use crate::configuration::Configuration;
+use crate::routes::websocket::ws;
 
 pub struct Application {
     #[allow(dead_code)]
@@ -31,8 +32,12 @@ impl Application {
 }
 
 async fn run(tcp_listener: TcpListener) -> anyhow::Result<Server> {
-    let server = HttpServer::new(move || App::new().wrap(TracingLogger::default()))
-        .listen(tcp_listener)?
-        .run();
+    let server = HttpServer::new(move || {
+        App::new()
+            .wrap(TracingLogger::default())
+            .route("/ws", web::get().to(ws))
+    })
+    .listen(tcp_listener)?
+    .run();
     Ok(server)
 }
