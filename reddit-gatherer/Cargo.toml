@@ -3,7 +3,7 @@ name = "onion-or-not-the-onion-drinking-game-2-reddit-gatherer"
 version = "0.1.0"
 authors = ["Thimo \"Tiquthon\" Neumann <tiquthon@gmail.com>"]
 edition = "2021"
-description = "The gatherer of the game data for the web game Onion Or Not The Onion Drinking Game 2."
+description = "The gatherer for the game data of the web game Onion Or Not The Onion Drinking Game 2."
 readme = "README.md"
 repository = "https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2"
 keywords = ["party", "game", "web", "onion", "drinking", "reddit", "gatherer"]
@@ -17,3 +17,10 @@ name = "onion-or-not-the-onion-drinking-game-2-reddit-gatherer"
 path = "src/main.rs"
 
 [dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+ron = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+strum = { version = "0.24", features = ["derive"] }
