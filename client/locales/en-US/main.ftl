@@ -1,2 +1,3 @@
-hello-world = Hello World!
-greeting = Hello { $name }!
+game-title = The Onion Or Not The Onion
+game-subtitle = Drinking Game
+test-it-works = It works!
