@@ -51,7 +51,6 @@ pub enum FooterMsg {
 
 #[derive(yew::Properties, PartialEq)]
 pub struct FooterProps {
-    pub langid: LanguageIdentifier,
     #[prop_or_default]
     pub on_change_language_identifier: Callback<LanguageIdentifier>,
 }

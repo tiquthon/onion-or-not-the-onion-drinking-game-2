@@ -4,11 +4,11 @@ use unic_langid::langid;
 
 use yew::prelude::*;
 
-pub mod components;
-
 use components::footer::Footer;
 use components::header::Header;
 use components::locale::Locale;
+
+pub mod components;
 
 pub struct App {
     langid: LanguageIdentifier,
@@ -36,13 +36,13 @@ impl Component for App {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let on_change_language_identifier = ctx.link().callback(AppMsg::ChangeLanguageIdentifier);
         html! {
-            <>
-                <Header langid={self.langid.clone()}/>
+            <ContextProvider<LanguageIdentifier> context={self.langid.clone()}>
+                <Header/>
                 <main>
-                    <p><Locale keyid="test-it-works" langid={self.langid.clone()}/></p>
+                    <p><Locale keyid="test-it-works"/></p>
                 </main>
-                <Footer langid={self.langid.clone()} {on_change_language_identifier}/>
-            </>
+                <Footer {on_change_language_identifier}/>
+            </ContextProvider<LanguageIdentifier>>
         }
     }
 }

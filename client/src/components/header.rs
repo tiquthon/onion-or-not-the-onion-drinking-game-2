@@ -1,31 +1,49 @@
 use fluent_templates::LanguageIdentifier;
 
-use yew::{html, Component, Context, Html};
+use yew::{html, Component, Context, ContextHandle, Html};
 
 use super::locale::{locale_args, Locale};
 
-pub struct Header;
+pub struct Header {
+    langid: LanguageIdentifier,
+    _context_listener: ContextHandle<LanguageIdentifier>,
+}
 
 impl Component for Header {
-    type Message = ();
-    type Properties = HeaderProps;
+    type Message = HeaderMsg;
+    type Properties = ();
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self {}
+    fn create(ctx: &Context<Self>) -> Self {
+        let (langid, context_listener) = ctx
+            .link()
+            .context(ctx.link().callback(HeaderMsg::MessageContextUpdated))
+            .expect("Missing LanguageIdentifier context.");
+        Self {
+            langid,
+            _context_listener: context_listener,
+        }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            HeaderMsg::MessageContextUpdated(langid) => {
+                self.langid = langid;
+                true
+            }
+        }
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <header>
-                <div><Locale keyid="game-title" langid={ctx.props().langid.clone()}/></div>
-                <div><Locale keyid="game-subtitle" langid={ctx.props().langid.clone()}/></div>
-                <div><Locale keyid="hello" langid={ctx.props().langid.clone()} args={locale_args([("name", "Thimo")])}/></div>
+                <div><Locale keyid="game-title"/></div>
+                <div><Locale keyid="game-subtitle"/></div>
+                <div><Locale keyid="hello" args={locale_args([("name", "Thimo")])}/></div>
             </header>
         }
     }
 }
 
-#[derive(yew::Properties, PartialEq)]
-pub struct HeaderProps {
-    pub langid: LanguageIdentifier,
+pub enum HeaderMsg {
+    MessageContextUpdated(LanguageIdentifier),
 }
