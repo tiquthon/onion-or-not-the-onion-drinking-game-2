@@ -79,3 +79,15 @@ where
         .map(|(key, value)| (key.into(), value))
         .collect()
 }
+
+pub fn locale(key: &str, langid: &LanguageIdentifier) -> Option<String> {
+    LOCALES.lookup(langid, key)
+}
+
+pub fn locale_with_args(
+    key: &str,
+    langid: &LanguageIdentifier,
+    args: &HashMap<String, FluentValue<'static>>,
+) -> Option<String> {
+    LOCALES.lookup_with_args(langid, key, args)
+}
