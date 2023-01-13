@@ -38,7 +38,7 @@ impl Component for Header {
             <header>
                 <div><Locale keyid="game-title"/></div>
                 <div><Locale keyid="game-subtitle"/></div>
-                <div><Locale keyid="hello" args={locale_args([("name", "Thimo")])}/></div>
+                <div><Locale keyid="hello" args={locale_args([("name", "Thimo".into())])}/></div>
             </header>
         }
     }

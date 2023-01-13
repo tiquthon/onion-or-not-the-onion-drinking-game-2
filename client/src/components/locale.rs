@@ -60,24 +60,22 @@ pub enum LocaleMsg {
     MessageContextUpdated(LanguageIdentifier),
 }
 
-pub fn locale_args<'a, const N: usize, KEY, VALUE>(
-    args: [(KEY, VALUE); N],
-) -> HashMap<String, FluentValue<'a>>
+pub fn locale_args<const N: usize, KEY>(
+    args: [(KEY, FluentValue); N],
+) -> HashMap<String, FluentValue>
 where
     KEY: Into<String>,
-    VALUE: Into<FluentValue<'a>>,
 {
     args.into_iter()
-        .map(|(key, value)| (key.into(), value.into()))
+        .map(|(key, value)| (key.into(), value))
         .collect()
 }
 
-pub fn locale_args_vec<'a, KEY, VALUE>(args: Vec<(KEY, VALUE)>) -> HashMap<String, FluentValue<'a>>
+pub fn locale_args_vec<KEY>(args: Vec<(KEY, FluentValue)>) -> HashMap<String, FluentValue>
 where
     KEY: Into<String>,
-    VALUE: Into<FluentValue<'a>>,
 {
     args.into_iter()
-        .map(|(key, value)| (key.into(), value.into()))
+        .map(|(key, value)| (key.into(), value))
         .collect()
 }
