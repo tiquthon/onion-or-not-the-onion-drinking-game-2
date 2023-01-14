@@ -8,10 +8,11 @@ pub mod index;
 
 #[derive(Clone, yew_router::Routable, PartialEq)]
 pub enum Route {
-    #[at("/")]
-    Index,
     #[at("/game")]
     Game,
+    #[not_found]
+    #[at("/")]
+    Index,
 }
 
 pub fn route_switch(route: Route) -> Html {
