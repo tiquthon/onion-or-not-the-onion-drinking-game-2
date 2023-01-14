@@ -13,19 +13,22 @@ fluent_templates::static_loader! {
     };
 }
 
-pub struct Locale {
+pub struct LocaleComponent {
     langid: LanguageIdentifier,
     _context_listener: ContextHandle<LanguageIdentifier>,
 }
 
-impl Component for Locale {
-    type Message = LocaleMsg;
+impl Component for LocaleComponent {
+    type Message = LocaleComponentMsg;
     type Properties = LocaleProps;
 
     fn create(ctx: &Context<Self>) -> Self {
         let (langid, context_listener) = ctx
             .link()
-            .context(ctx.link().callback(LocaleMsg::MessageContextUpdated))
+            .context(
+                ctx.link()
+                    .callback(LocaleComponentMsg::MessageContextUpdated),
+            )
             .expect("Missing LanguageIdentifier context.");
         Self {
             langid,
@@ -35,7 +38,7 @@ impl Component for Locale {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            LocaleMsg::MessageContextUpdated(langid) => {
+            LocaleComponentMsg::MessageContextUpdated(langid) => {
                 self.langid = langid;
                 true
             }
@@ -56,7 +59,7 @@ pub struct LocaleProps {
     pub args: HashMap<String, FluentValue<'static>>,
 }
 
-pub enum LocaleMsg {
+pub enum LocaleComponentMsg {
     MessageContextUpdated(LanguageIdentifier),
 }
 

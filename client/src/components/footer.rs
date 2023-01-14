@@ -4,10 +4,10 @@ use yew::{html, Callback, Component, Context, Html};
 
 use super::locale::LOCALES;
 
-pub struct Footer;
+pub struct FooterComponent;
 
-impl Component for Footer {
-    type Message = FooterMsg;
+impl Component for FooterComponent {
+    type Message = FooterComponentMsg;
     type Properties = FooterProps;
 
     fn create(_ctx: &Context<Self>) -> Self {
@@ -16,7 +16,7 @@ impl Component for Footer {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            FooterMsg::ChangeLanguageIdentifier(lid) => {
+            FooterComponentMsg::ChangeLanguageIdentifier(lid) => {
                 ctx.props().on_change_language_identifier.emit(lid);
                 false
             }
@@ -28,7 +28,7 @@ impl Component for Footer {
             .map(|(lid, lid_str)| {
                 let onclick = ctx
                     .link()
-                    .callback(move |_| FooterMsg::ChangeLanguageIdentifier(lid.clone()));
+                    .callback(move |_| FooterComponentMsg::ChangeLanguageIdentifier(lid.clone()));
                 html! {
                     <button type="button" {onclick}>{lid_str}</button>
                 }
@@ -45,7 +45,7 @@ impl Component for Footer {
     }
 }
 
-pub enum FooterMsg {
+pub enum FooterComponentMsg {
     ChangeLanguageIdentifier(LanguageIdentifier),
 }
 

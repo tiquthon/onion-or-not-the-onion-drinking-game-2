@@ -4,18 +4,22 @@ use unic_langid::langid;
 
 use yew::prelude::*;
 
-use components::footer::Footer;
-use components::header::Header;
-use components::locale::{locale, Locale};
+use yew_router::prelude::*;
+
+use crate::components::footer::FooterComponent;
+use crate::components::header::HeaderComponent;
+
+use crate::routes::{route_switch, Route};
 
 pub mod components;
+pub mod routes;
 
-pub struct App {
+pub struct AppComponent {
     langid: LanguageIdentifier,
 }
 
-impl Component for App {
-    type Message = AppMsg;
+impl Component for AppComponent {
+    type Message = AppComponentMsg;
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
@@ -26,7 +30,7 @@ impl Component for App {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            AppMsg::ChangeLanguageIdentifier(lid) => {
+            AppComponentMsg::ChangeLanguageIdentifier(lid) => {
                 self.langid = lid;
                 true
             }
@@ -34,40 +38,21 @@ impl Component for App {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let on_change_language_identifier = ctx.link().callback(AppMsg::ChangeLanguageIdentifier);
+        let on_change_language_identifier = ctx
+            .link()
+            .callback(AppComponentMsg::ChangeLanguageIdentifier);
         html! {
             <ContextProvider<LanguageIdentifier> context={self.langid.clone()}>
-                <Header/>
-                <main>
-                    <p><span style="font-weight: bold;"><Locale keyid="game-name"/></span>{" "}<Locale keyid="game-title-description"/></p>
-                    <form>
-                        <label>
-                            <Locale keyid="game-creation-form-username-label"/>
-                            {": "}
-                            <input type="text" placeholder={locale("game-creation-form-username-placeholder", &self.langid)}/>
-                        </label>
-                        <label>
-                            <Locale keyid="game-creation-form-invite-code-label"/>
-                            {": "}
-                            <input type="text" placeholder={locale("game-creation-form-invite-code-placeholder", &self.langid)}/>
-                        </label>
-                        <p><Locale keyid="game-creation-form-starting-game-explanation"/></p>
-                        <label><input type="checkbox"/>{" "}<Locale keyid="game-creation-form-just-watch-label"/></label>
-                        <label><Locale keyid="game-creation-form-max-questions-label"/>{": "}<input type="text" value="10" placeholder={locale("game-creation-form-max-questions-placeholder", &self.langid)}/></label>
-                        <p><Locale keyid="game-creation-form-max-questions-explanation"/></p>
-                        <label><Locale keyid="game-creation-form-minimum-score-label"/>{": "}<input type="text" placeholder={locale("game-creation-form-minimum-score-placeholder", &self.langid)}/></label>
-                        <p><Locale keyid="game-creation-form-minimum-score-explanation"/></p>
-                        <label><Locale keyid="game-creation-form-timer-wanted-label"/>{": "}<input type="text" placeholder={locale("game-creation-form-timer-wanted-placeholder", &self.langid)}/></label>
-                        <p><Locale keyid="game-creation-form-timer-wanted-explanation"/></p>
-                        <input type="submit" value={locale("game-creation-form-submit-value-create", &self.langid)}/>
-                    </form>
-                </main>
-                <Footer {on_change_language_identifier}/>
+                <HeaderComponent/>
+                <BrowserRouter>
+                    <Switch<Route> render={route_switch}/>
+                </BrowserRouter>
+                <FooterComponent {on_change_language_identifier}/>
             </ContextProvider<LanguageIdentifier>>
         }
     }
 }
 
-pub enum AppMsg {
+pub enum AppComponentMsg {
     ChangeLanguageIdentifier(LanguageIdentifier),
 }

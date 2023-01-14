@@ -2,24 +2,19 @@ use fluent_templates::LanguageIdentifier;
 
 use yew::{html, Component, Context, ContextHandle, Html};
 
-use super::locale::{locale_args, LocaleComponent};
-
-pub struct HeaderComponent {
+pub struct GameComponent {
     langid: LanguageIdentifier,
     _context_listener: ContextHandle<LanguageIdentifier>,
 }
 
-impl Component for HeaderComponent {
-    type Message = HeaderComponentMsg;
+impl Component for GameComponent {
+    type Message = GameComponentMsg;
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
         let (langid, context_listener) = ctx
             .link()
-            .context(
-                ctx.link()
-                    .callback(HeaderComponentMsg::MessageContextUpdated),
-            )
+            .context(ctx.link().callback(GameComponentMsg::MessageContextUpdated))
             .expect("Missing LanguageIdentifier context.");
         Self {
             langid,
@@ -29,7 +24,7 @@ impl Component for HeaderComponent {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            HeaderComponentMsg::MessageContextUpdated(langid) => {
+            GameComponentMsg::MessageContextUpdated(langid) => {
                 self.langid = langid;
                 true
             }
@@ -38,15 +33,13 @@ impl Component for HeaderComponent {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
-            <header>
-                <div><LocaleComponent keyid="game-title"/></div>
-                <div><LocaleComponent keyid="game-subtitle"/></div>
-                <div><LocaleComponent keyid="hello" args={locale_args([("name", "Thimo".into())])}/></div>
-            </header>
+            <main>
+                {"Game"}
+            </main>
         }
     }
 }
 
-pub enum HeaderComponentMsg {
+pub enum GameComponentMsg {
     MessageContextUpdated(LanguageIdentifier),
 }
