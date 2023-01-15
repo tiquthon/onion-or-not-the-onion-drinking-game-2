@@ -36,3 +36,10 @@ game-creation-form-timer-wanted-explanation = Leave Blank if no timer while answ
 
 game-creation-form-submit-value-create = CREATE
 game-creation-form-submit-value-join = JOIN
+
+## Game View
+
+game-view-type-of-player-watcher = Watcher
+game-view-type-of-player-player = Player
+
+game-view-exit-the-game = Exit The Game

@@ -37,3 +37,10 @@ game-creation-form-timer-wanted-explanation = Leer Lassen, wenn kein Timer beim 
 
 game-creation-form-submit-value-create = ERSTELLEN
 game-creation-form-submit-value-join = BEITRETEN
+
+## Game View
+
+game-view-type-of-player-watcher = Zuschauer
+game-view-type-of-player-player = Spieler
+
+game-view-exit-the-game = Das Spiel verlassen

@@ -1,5 +1,6 @@
 use yew::{html, Component, Context, Html};
 
+use crate::components::join_game::JoinGameComponent;
 use crate::components::locale::LocaleComponent;
 
 pub struct LobbyComponent;
@@ -15,17 +16,21 @@ impl Component for LobbyComponent {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <main>
-                <aside>
-                    <LocaleComponent keyid="join-game-header-string-1"/>
-                    {" "}
-                    <span style="font-weight: bold;">{"tkprog.de/onto"}</span>
-                    {" "}
-                    <LocaleComponent keyid="join-game-header-string-2"/>
-                    {" "}
-                    <span style="font-weight: bold;">{"YWQC"}</span>
-                    {" "}
-                    <LocaleComponent keyid="join-game-header-string-3"/>
-                </aside>
+                <JoinGameComponent />
+                <h2>{"PLAYER NAME"}</h2>
+                <p>
+                    <span>{
+                        if true {
+                            html!{ <LocaleComponent keyid="game-view-type-of-player-watcher"/> }
+                        } else {
+                            html!{ <LocaleComponent keyid="game-view-type-of-player-player"/> }
+                        }
+                    }</span>
+                    {" | "}
+                    {"3"}{" / "}{"12"}
+                    {" | "}
+                    <a href=""><LocaleComponent keyid="game-view-exit-the-game"/></a>
+                </p>
             </main>
         }
     }

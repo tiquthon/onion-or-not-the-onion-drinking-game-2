@@ -2,7 +2,7 @@ use fluent_templates::LanguageIdentifier;
 
 use yew::{html, Component, Context, ContextHandle, Html};
 
-use super::locale::{locale_args, LocaleComponent};
+use super::locale::LocaleComponent;
 
 pub struct HeaderComponent {
     langid: LanguageIdentifier,
@@ -41,7 +41,6 @@ impl Component for HeaderComponent {
             <header>
                 <div><LocaleComponent keyid="game-title"/></div>
                 <div><LocaleComponent keyid="game-subtitle"/></div>
-                <div><LocaleComponent keyid="hello" args={locale_args([("name", "Thimo".into())])}/></div>
             </header>
         }
     }
