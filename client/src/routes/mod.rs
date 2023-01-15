@@ -1,19 +1,15 @@
 use yew::{html, Html};
 
-use super::routes::game::GameComponent;
 use super::routes::index::IndexComponent;
-use super::routes::lobby::LobbyComponent;
+use super::routes::play::PlayComponent;
 
-pub mod game;
 pub mod index;
-pub mod lobby;
+pub mod play;
 
 #[derive(Clone, yew_router::Routable, PartialEq)]
 pub enum Route {
-    #[at("/game")]
-    Game,
-    #[at("/lobby")]
-    Lobby,
+    #[at("/play")]
+    Play,
     #[not_found]
     #[at("/")]
     Index,
@@ -21,8 +17,7 @@ pub enum Route {
 
 pub fn route_switch(route: Route) -> Html {
     match route {
-        Route::Game => html! { <GameComponent/> },
-        Route::Lobby => html! { <LobbyComponent/> },
+        Route::Play => html! { <PlayComponent/> },
         Route::Index => html! { <IndexComponent/> },
     }
 }

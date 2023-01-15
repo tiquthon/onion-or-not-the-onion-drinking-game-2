@@ -2,19 +2,23 @@ use fluent_templates::LanguageIdentifier;
 
 use yew::{html, Component, Context, ContextHandle, Html};
 
-pub struct GameComponent {
+pub mod aftermath;
+pub mod game;
+pub mod lobby;
+
+pub struct PlayComponent {
     langid: LanguageIdentifier,
     _context_listener: ContextHandle<LanguageIdentifier>,
 }
 
-impl Component for GameComponent {
-    type Message = GameComponentMsg;
+impl Component for PlayComponent {
+    type Message = PlayComponentMsg;
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
         let (langid, context_listener) = ctx
             .link()
-            .context(ctx.link().callback(GameComponentMsg::MessageContextUpdated))
+            .context(ctx.link().callback(PlayComponentMsg::MessageContextUpdated))
             .expect("Missing LanguageIdentifier context.");
         Self {
             langid,
@@ -24,7 +28,7 @@ impl Component for GameComponent {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            GameComponentMsg::MessageContextUpdated(langid) => {
+            PlayComponentMsg::MessageContextUpdated(langid) => {
                 self.langid = langid;
                 true
             }
@@ -34,12 +38,12 @@ impl Component for GameComponent {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <main>
-                {"Game"}
+                {"Play"}
             </main>
         }
     }
 }
 
-pub enum GameComponentMsg {
+pub enum PlayComponentMsg {
     MessageContextUpdated(LanguageIdentifier),
 }
