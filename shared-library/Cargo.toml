@@ -1,5 +1,5 @@
 [package]
-name = "onion-or-not-the-onion-drinking-game-2-shared-lib"
+name = "onion-or-not-the-onion-drinking-game-2-shared-library"
 version = "0.1.0"
 authors = ["Thimo \"Tiquthon\" Neumann <tiquthon@gmail.com>"]
 edition = "2021"

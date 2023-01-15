@@ -17,14 +17,24 @@ name = "onion-or-not-the-onion-drinking-game-2-client"
 path = "src/main.rs"
 
 [dependencies]
+# ui framework
+yew = { version = "0.20", features = ["csr"] }
+yew-router = "0.17"
+
+# own libraries
+onion-or-not-the-onion-drinking-game-2-shared-library = { path = "../shared-library" }
+
+# web framework
+gloo-net = "0.2"
+web-sys = { version = "0.3", features = [] }
+
+# localisation
 fluent-templates = "0.8"
-futures-util = "0.3"
 unic-langid = "0.9"
 
+# logging
 log = "0.4"
 wasm-logger = "0.2"
 
-gloo-net = "0.2"
-web-sys = { version = "0.3", features = [] }
-yew = { version = "0.20", features = ["csr"] }
-yew-router = "0.17"
+# various
+futures-util = "0.3"

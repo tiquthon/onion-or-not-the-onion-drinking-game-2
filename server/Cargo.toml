@@ -22,6 +22,9 @@ actix-web = "4"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 actix-ws = "0.2"
 
+# own libraries
+onion-or-not-the-onion-drinking-game-2-shared-library = { path = "../shared-library" }
+
 # logging in an async context
 tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }

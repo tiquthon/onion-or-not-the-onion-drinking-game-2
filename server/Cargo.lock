@@ -756,6 +756,7 @@ dependencies = [
  "anyhow",
  "config",
  "futures-util",
+ "onion-or-not-the-onion-drinking-game-2-shared-library",
  "ron",
  "secrecy",
  "serde",
@@ -767,6 +768,10 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
 ]
+
+[[package]]
+name = "onion-or-not-the-onion-drinking-game-2-shared-library"
+version = "0.1.0"
 
 [[package]]
 name = "overload"

@@ -610,12 +610,17 @@ dependencies = [
  "futures-util",
  "gloo-net",
  "log",
+ "onion-or-not-the-onion-drinking-game-2-shared-library",
  "unic-langid",
  "wasm-logger",
  "web-sys",
  "yew",
  "yew-router",
 ]
+
+[[package]]
+name = "onion-or-not-the-onion-drinking-game-2-shared-library"
+version = "0.1.0"
 
 [[package]]
 name = "percent-encoding"

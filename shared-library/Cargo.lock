@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "onion-or-not-the-onion-drinking-game-2-shared-lib"
+name = "onion-or-not-the-onion-drinking-game-2-shared-library"
 version = "0.1.0"
