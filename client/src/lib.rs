@@ -1,12 +1,10 @@
 use fluent_templates::LanguageIdentifier;
 
-use onion_or_not_the_onion_drinking_game_2_shared_library::Game;
-
 use unic_langid::langid;
 
-use yew::prelude::*;
+use yew::{html, Component, Context, ContextProvider, Html};
 
-use yew_router::prelude::*;
+use yew_router::{BrowserRouter, Switch};
 
 use crate::components::footer::FooterComponent;
 use crate::components::header::HeaderComponent;
@@ -18,7 +16,6 @@ pub mod routes;
 
 pub struct AppComponent {
     langid: LanguageIdentifier,
-    game: Option<Game>,
 }
 
 impl Component for AppComponent {
@@ -28,7 +25,6 @@ impl Component for AppComponent {
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
             langid: langid!("en-US"),
-            game: None,
         }
     }
 
@@ -47,13 +43,11 @@ impl Component for AppComponent {
             .callback(AppComponentMsg::ChangeLanguageIdentifier);
         html! {
             <ContextProvider<LanguageIdentifier> context={self.langid.clone()}>
-                <ContextProvider<Option<Game>> context={self.game}>
-                    <HeaderComponent/>
-                    <BrowserRouter>
-                        <Switch<Route> render={route_switch}/>
-                    </BrowserRouter>
-                    <FooterComponent {on_change_language_identifier}/>
-                </ContextProvider<Option<Game>>>
+                <HeaderComponent/>
+                <BrowserRouter>
+                    <Switch<Route> render={route_switch}/>
+                </BrowserRouter>
+                <FooterComponent {on_change_language_identifier}/>
             </ContextProvider<LanguageIdentifier>>
         }
     }

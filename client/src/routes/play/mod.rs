@@ -1,6 +1,8 @@
 use fluent_templates::LanguageIdentifier;
 
-use yew::{html, Component, Context, ContextHandle, Html};
+use onion_or_not_the_onion_drinking_game_2_shared_library::Game;
+
+use yew::{html, Component, Context, ContextHandle, ContextProvider, Html};
 
 pub mod aftermath;
 pub mod game;
@@ -9,6 +11,7 @@ pub mod lobby;
 pub struct PlayComponent {
     langid: LanguageIdentifier,
     _context_listener: ContextHandle<LanguageIdentifier>,
+    game: Game,
 }
 
 impl Component for PlayComponent {
@@ -23,6 +26,7 @@ impl Component for PlayComponent {
         Self {
             langid,
             _context_listener: context_listener,
+            game: Game::default(),
         }
     }
 
@@ -38,7 +42,9 @@ impl Component for PlayComponent {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <main>
-                {"Play"}
+                <ContextProvider<Option<Game>> context={self.game}>
+                    {"Play"}
+                </ContextProvider<Option<Game>>>
             </main>
         }
     }
