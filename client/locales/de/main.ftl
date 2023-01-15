@@ -7,6 +7,12 @@ game-title-description = ist ein Online Spiel, in welchem dein Handy dein Contro
     auf welchem jeder, der auf deiner ganze Party nicht mitspielen will, das Geschehen mitverfolgen
     kann.
 
+join-game-header-string-1 = Tritt dem Spiel auf
+join-game-header-string-2 = mit dem Code
+join-game-header-string-3 = bei!
+
+## Game Creation Form
+
 game-creation-form-username-label = Spielername
 game-creation-form-username-placeholder = { game-creation-form-username-label }
 

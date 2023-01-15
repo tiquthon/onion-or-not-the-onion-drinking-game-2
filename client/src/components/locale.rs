@@ -48,7 +48,13 @@ impl Component for LocaleComponent {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let locale: Option<String> =
             LOCALES.lookup_with_args(&self.langid, &ctx.props().keyid, &ctx.props().args);
-        html! { <>{locale}</> }
+        match locale {
+            None => {
+                log::warn!("Could not find {} in language files.", ctx.props().keyid);
+                Default::default()
+            }
+            Some(locale) => html! { <>{locale}</> },
+        }
     }
 }
 

@@ -6,6 +6,10 @@ game-title-description = is a web game in which your mobile devices are your con
     Just create a lobby and play. Furthermore you can host a screen which provides a view for
     rest of your party which doesn't want to play.
 
+join-game-header-string-1 = Join Game with
+join-game-header-string-2 = and Code
+join-game-header-string-3 = {""}
+
 ## Game Creation Form
 
 game-creation-form-username-label = Playername
