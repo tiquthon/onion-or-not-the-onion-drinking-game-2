@@ -1,6 +1,6 @@
 use fluent_templates::{LanguageIdentifier, Loader};
 
-use yew::{html, Callback, Component, Context, Html};
+use yew::{classes, html, Callback, Component, Context, Html};
 
 use super::locale::LOCALES;
 
@@ -36,10 +36,10 @@ impl Component for FooterComponent {
             .collect();
         html! {
             <footer>
-                <nav>
+                <nav class={classes!("footer-links")}>
                     {locale_change_buttons}
                 </nav>
-                <p>{"\u{00a9} 2023 Thimo \"Tiquthon\" Neumann"}</p>
+                <p class={classes!("footer-copyright")}>{"\u{00a9} 2023 Thimo \"Tiquthon\" Neumann"}</p>
             </footer>
         }
     }

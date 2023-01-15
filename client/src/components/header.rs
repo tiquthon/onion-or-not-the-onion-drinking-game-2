@@ -1,6 +1,6 @@
 use fluent_templates::LanguageIdentifier;
 
-use yew::{html, Component, Context, ContextHandle, Html};
+use yew::{classes, html, Component, Context, ContextHandle, Html};
 
 use super::locale::LocaleComponent;
 
@@ -39,8 +39,8 @@ impl Component for HeaderComponent {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <header>
-                <div><LocaleComponent keyid="game-title"/></div>
-                <div><LocaleComponent keyid="game-subtitle"/></div>
+                <div class={classes!("header-headline")}><LocaleComponent keyid="game-title"/></div>
+                <div class={classes!("header-sub-headline")}><LocaleComponent keyid="game-subtitle"/></div>
             </header>
         }
     }

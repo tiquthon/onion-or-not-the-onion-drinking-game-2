@@ -1,0 +1,304 @@
+/******************************************************************************/
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > >  ROOT VARIABLE DEFINITION  < < < < < < < < < < < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+:root {
+    --celery: #96be50;
+    --white: #ffffff;
+    --boulder: #787878;
+    --siam: #5a6450;
+    --chelsea-cucumber: #78a04b;
+
+    --std-layout-header-fg-color: #333333;
+    --std-layout-header-bg-color: var(--chelsea-cucumber);
+
+    --std-layout-main-fg-color: #333333;
+    --std-layout-main-bg-color: var(--celery);
+
+    --std-layout-footer-fg-color: #eeeeee;
+    --std-layout-footer-bg-color: #648c46;
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > > >  STANDARD LAYOUT CSS   < < < < < < < < < < < < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+* {
+    color: #222222;
+}
+
+.msg-box-success, .msg-box-error, .msg-box-warn, .msg-box-info {
+    padding: 5px;
+    border: 2px solid #000000;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.msg-box-success {
+    color: #007800;
+    background-color: rgb(154, 215, 86);
+    border-color: #004d00;
+}
+
+.msg-box-error {
+    color: rgb(159, 41, 19);
+    background-color: rgb(255, 113, 96);
+    border-color: rgb(121, 26, 12);
+}
+
+.msg-box-warn {
+    color: rgb(128, 94, 34);
+    background-color: rgb(239, 194, 99);
+    border-color: rgb(122, 96, 18);
+}
+
+.msg-box-info {
+    color: rgb(51, 103, 136);
+    background-color: rgb(185, 235, 255);
+    border-color: rgb(47, 103, 135);
+}
+
+input {
+    padding: 7px;
+    border-radius: 5px;
+    border: none;
+}
+
+.btn, input[type=button], input[type=reset], input[type=submit] {
+    border-radius: 5px;
+    border: none;
+    background-color: var(--siam);
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.btn:hover, input[type=button]:hover, input[type=reset]:hover, input[type=submit]:hover{
+    filter: brightness(120%);
+}
+
+.btn:focus, input[type=button]:focus, input[type=reset]:focus, input[type=submit]:focus {
+    filter: brightness(80%);
+}
+
+/* - - - - - - - - - -  HTML FRAME (with html and body)   - - - - - - - - - - */
+
+html {
+    /*
+     * The 'height' definition is needed to stretch the page to the given
+     * view height. With this the footer is being pressed against the bottom
+     * of the page.
+     */
+    height: 100%;
+    width: 100%;
+
+    font-family: Verdana, Geneva, sans-serif;
+}
+
+body {
+    /*
+     * This 'min-height' definition is also needed to stretch the page
+     * to the given view height. With this the footer is being pressed against
+     * the bottom of the page.
+     */
+    min-height: 100%;
+
+    /*
+     * Remove the space at the edges of the body.
+     * This will be added to each sub-component.
+     * This is because otherwise the background-color of the header
+     * does not fill the full width.
+     */
+    margin: 0;
+
+    /*
+     * Define the Grid for the body containing header, main and footer.
+     */
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: min-content 1fr min-content;
+}
+
+/* - - - - - - - - - - - - - - - - - HEADER - - - - - - - - - - - - - - - - - */
+
+body > header {
+    /*
+     * Fit the header into the parents Grid.
+     */
+    grid-column: 1 / span 1;
+    grid-row: 1 / span 1;
+
+    /*
+     * Define the Grid for the header.
+     */
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: min-content;
+
+    /*
+     * Add the removed border from the body to the header:
+     */
+    padding: 10px;
+
+    /*
+     * Set the color.
+     */
+    background-color: var(--std-layout-header-bg-color);
+    color: var(--std-layout-header-fg-color);
+}
+
+.header-headline {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    margin: 0;
+    padding: 0 !important;
+}
+
+.header-sub-headline {
+    text-align: center;
+    font-style: italic;
+    font-size: 1em;
+    margin: 0;
+    padding: 0 !important;
+}
+
+/* - - - - - - - - - - - - - - - - -  MAIN  - - - - - - - - - - - - - - - - - */
+
+body > main {
+    /*
+     * Fit the main area into the headers Grid.
+     */
+    grid-column: 1 / span 1;
+    grid-row: 2 / span 1;
+
+    /*
+     * Add the removed border from the body to the main:
+     */
+    padding: 10px;
+
+    /*
+     * Set the color.
+     */
+    background-color: var(--std-layout-main-bg-color);
+    color: var(--std-layout-main-fg-color);
+}
+
+/* - - - - - - - - - - - - - - - - - FOOTER - - - - - - - - - - - - - - - - - */
+
+body > footer {
+    /*
+     * Fit the footer into the headers Grid.
+     */
+    grid-column: 1 / span 1;
+    grid-row: 3 / span 1;
+
+    /*
+     * Define the Grid for the footer.
+     */
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: min-content min-content;
+    grid-row-gap: 10px;
+
+    /*
+     * Add the removed border from the body to the footer:
+     */
+    padding: 10px 5px 10px 5px;
+
+    /*
+     * Set the color.
+     */
+    background-color: var(--std-layout-footer-bg-color);
+    color: var(--std-layout-footer-fg-color);
+}
+
+.footer-links {
+    /*
+     * Fit the footer links into the footers Grid.
+     */
+    grid-column: 1 / span 1;
+    grid-row: 1 / span 1;
+
+    /*
+     * Center the text for the mobile view
+     */
+    text-align: center;
+
+    /*
+     * Set the color.
+     */
+    color: var(--std-layout-footer-fg-color);
+}
+
+.footer-copyright {
+    /*
+     * Fit the footer copyright into the footers Grid.
+     */
+    grid-column: 1 / span 1;
+    grid-row: 2 / span 1;
+
+    /*
+     * Remove the unnecessary margin
+     */
+    margin: 0;
+
+    /*
+     * Center the text for the mobile view
+     */
+    text-align: center;
+
+    /*
+     * Set the color.
+     */
+    color: var(--std-layout-footer-fg-color);
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
+/* > > > > > > >  Extra small devices (phones, 600px and down)  < < < < < < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+@media only screen and (max-width: 600px) {
+}
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
+/* > > > Small devices (portrait tablets and large phones, 600px and up)  < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+@media only screen and (min-width: 600px) {
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
+/* > > > > > > Medium devices (landscape tablets, 768px and up) < < < < < < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+@media only screen and (min-width: 768px) {
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
+/* > > > > > > > Large devices (laptops/desktops, 992px and up) < < < < < < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+@media only screen and (min-width: 992px) {
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
+/* > >  Extra large devices (large laptops and desktops, 1200px and up)   < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+@media only screen and (min-width: 1200px) {
+}
+
+/******************************************************************************/
