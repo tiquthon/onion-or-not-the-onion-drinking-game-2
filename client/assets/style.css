@@ -67,7 +67,7 @@ input {
     border: none;
 }
 
-.btn, input[type=button], input[type=reset], input[type=submit] {
+.btn, button, input[type=button], input[type=reset], input[type=submit] {
     border-radius: 5px;
     border: none;
     background-color: var(--siam);
@@ -79,12 +79,21 @@ input {
     padding: 10px;
 }
 
-.btn:hover, input[type=button]:hover, input[type=reset]:hover, input[type=submit]:hover{
+.btn:hover, button:hover, input[type=button]:hover, input[type=reset]:hover, input[type=submit]:hover {
     filter: brightness(120%);
 }
 
-.btn:focus, input[type=button]:focus, input[type=reset]:focus, input[type=submit]:focus {
+.btn:focus, button:focus, input[type=button]:focus, input[type=reset]:focus, input[type=submit]:focus {
     filter: brightness(80%);
+}
+
+.btn:disabled, .btn[disabled],
+button:disabled, button[disabled],
+input[type=button]:disabled, input[type=button][disabled],
+input[type=reset]:disabled, input[type=reset][disabled],
+input[type=submit]:disabled, input[type=submit][disabled] {
+    filter: brightness(60%);
+    cursor: default;
 }
 
 /* - - - - - - - - - -  HTML FRAME (with html and body)   - - - - - - - - - - */
@@ -235,6 +244,11 @@ body > footer {
      * Set the color.
      */
     color: var(--std-layout-footer-fg-color);
+}
+
+.footer-links > button {
+    margin-left: 3px;
+    margin-right: 3px;
 }
 
 .footer-copyright {

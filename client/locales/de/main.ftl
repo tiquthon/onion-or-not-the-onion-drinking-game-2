@@ -1,3 +1,6 @@
+language-name = Deutsch
+language-name-en-us = German
+
 game-name = The Onion Oder Nicht The Onion
 
 game-title = { game-name }

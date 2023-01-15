@@ -1,21 +1,38 @@
 use fluent_templates::{LanguageIdentifier, Loader};
 
-use yew::{classes, html, Callback, Component, Context, Html};
+use yew::{classes, html, Callback, Component, Context, ContextHandle, Html};
 
-use super::locale::LOCALES;
+use super::locale::{locale, LOCALES};
 
-pub struct FooterComponent;
+pub struct FooterComponent {
+    langid: LanguageIdentifier,
+    _context_listener: ContextHandle<LanguageIdentifier>,
+}
 
 impl Component for FooterComponent {
     type Message = FooterComponentMsg;
     type Properties = FooterProps;
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self {}
+    fn create(ctx: &Context<Self>) -> Self {
+        let (langid, context_listener) = ctx
+            .link()
+            .context(
+                ctx.link()
+                    .callback(FooterComponentMsg::MessageContextUpdated),
+            )
+            .expect("Missing LanguageIdentifier context.");
+        Self {
+            langid,
+            _context_listener: context_listener,
+        }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
+            FooterComponentMsg::MessageContextUpdated(langid) => {
+                self.langid = langid;
+                true
+            }
             FooterComponentMsg::ChangeLanguageIdentifier(lid) => {
                 ctx.props().on_change_language_identifier.emit(lid);
                 false
@@ -24,13 +41,19 @@ impl Component for FooterComponent {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let locale_change_buttons: Vec<Html> = locales_to_locale_string_tuple()
-            .map(|(lid, lid_str)| {
-                let onclick = ctx
-                    .link()
-                    .callback(move |_| FooterComponentMsg::ChangeLanguageIdentifier(lid.clone()));
+        let locale_change_buttons: Vec<Html> = LOCALES
+            .locales()
+            .map(|language_identifier| {
+                let onclick = ctx.link().callback(move |_| {
+                    FooterComponentMsg::ChangeLanguageIdentifier(language_identifier.clone())
+                });
+                let is_selected = self.langid == *language_identifier;
                 html! {
-                    <button type="button" {onclick}>{lid_str}</button>
+                    <button type="button" disabled={is_selected} {onclick}>
+                        {locale("language-name", language_identifier)}
+                        {" / "}
+                        {locale("language-name-en-us", language_identifier)}
+                    </button>
                 }
             })
             .collect();
@@ -46,6 +69,7 @@ impl Component for FooterComponent {
 }
 
 pub enum FooterComponentMsg {
+    MessageContextUpdated(LanguageIdentifier),
     ChangeLanguageIdentifier(LanguageIdentifier),
 }
 
@@ -53,8 +77,4 @@ pub enum FooterComponentMsg {
 pub struct FooterProps {
     #[prop_or_default]
     pub on_change_language_identifier: Callback<LanguageIdentifier>,
-}
-
-fn locales_to_locale_string_tuple() -> impl Iterator<Item = (LanguageIdentifier, String)> {
-    LOCALES.locales().map(|lid| (lid.clone(), lid.to_string()))
 }
