@@ -1,0 +1,15 @@
+[package]
+name = "onion-or-not-the-onion-drinking-game-2-shared-lib"
+version = "0.1.0"
+authors = ["Thimo \"Tiquthon\" Neumann <tiquthon@gmail.com>"]
+edition = "2021"
+description = "A web game to play with your friends. Guess, be surprised, drink! This is the shared library."
+readme = "README.md"
+repository = "https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2"
+keywords = ["party", "game", "web", "onion", "drinking", "shared", "library"]
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
