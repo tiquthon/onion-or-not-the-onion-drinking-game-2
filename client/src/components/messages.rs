@@ -20,8 +20,7 @@ impl Component for MessagesComponent {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let message_sections: Vec<Html> = ctx
-            .props()
+        let message_sections: Vec<Html> = ctx.props()
             .messages
             .iter()
             .map(|message| {
@@ -38,7 +37,14 @@ impl Component for MessagesComponent {
                 html! {
                     <section class={classes!(class)}>
                         <span>{message.text.clone()}</span>
-                        <span class="msg-box-close" onclick={onclick_close}>{"\u{1F5D9}"}</span>
+                        {
+                            match message.closable {
+                                ClosingCapability::Closable => html! {
+                                    <span class="msg-box-close" onclick={onclick_close}>{"\u{1F5D9}"}</span>
+                                },
+                                ClosingCapability::NonClosable => html! {},
+                            }
+                        }
                     </section>
                 }
             })
