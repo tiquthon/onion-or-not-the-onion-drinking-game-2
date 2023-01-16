@@ -1,4 +1,4 @@
-use yew::{classes, html, AttrValue, Callback, Component, Context, Html};
+use yew::{classes, html, AttrValue, Callback, Classes, Component, Context, Html};
 
 pub struct MessagesComponent;
 
@@ -35,7 +35,7 @@ impl Component for MessagesComponent {
                     .link()
                     .callback(move |_| MessagesComponentMsg::OnClickClose(cloned_message.clone()));
                 html! {
-                    <section class={classes!(class)}>
+                    <section class={classes!(class, ctx.props().class.clone())}>
                         <span>{message.text.clone()}</span>
                         {
                             match message.closable {
@@ -61,6 +61,8 @@ pub enum MessagesComponentMsg {
 
 #[derive(yew::Properties, PartialEq)]
 pub struct MessagesComponentProps {
+    #[prop_or_default]
+    pub class: Classes,
     #[prop_or_default]
     pub messages: Vec<Message>,
     #[prop_or_default]
