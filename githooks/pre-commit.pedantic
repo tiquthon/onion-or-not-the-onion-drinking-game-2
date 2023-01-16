@@ -36,6 +36,8 @@ function check_directory {
 	cd $cwd
 }
 
+check_directory "shared-library"
+
 check_directory "server"
 
 check_directory "client"
