@@ -35,30 +35,40 @@
     border: 2px solid #000000;
     border-radius: 5px;
     font-weight: bold;
+
+    display: grid;
+    grid-template-columns: auto min-content;
+    grid-template-rows: 100%;
 }
 
-.msg-box-success {
+.msg-box-success, .msg-box-success * {
     color: #007800;
     background-color: rgb(154, 215, 86);
     border-color: #004d00;
 }
 
-.msg-box-error {
+.msg-box-error, .msg-box-error * {
     color: rgb(159, 41, 19);
     background-color: rgb(255, 113, 96);
     border-color: rgb(121, 26, 12);
 }
 
-.msg-box-warn {
+.msg-box-warn, .msg-box-warn * {
     color: rgb(128, 94, 34);
     background-color: rgb(239, 194, 99);
     border-color: rgb(122, 96, 18);
 }
 
-.msg-box-info {
+.msg-box-info, .msg-box-info * {
     color: rgb(51, 103, 136);
     background-color: rgb(185, 235, 255);
     border-color: rgb(47, 103, 135);
+}
+
+.msg-box-close {
+    padding-right: 5px;
+
+    cursor: pointer;
 }
 
 input {

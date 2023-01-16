@@ -3,10 +3,12 @@ use fluent_templates::LanguageIdentifier;
 use yew::{html, Component, Context, ContextHandle, Html};
 
 use crate::components::locale::{locale, LocaleComponent};
+use crate::components::messages::{ClosingCapability, Message, MessageLevel, MessagesComponent};
 
 pub struct IndexComponent {
     langid: LanguageIdentifier,
     _context_listener: ContextHandle<LanguageIdentifier>,
+    messages: Vec<Message>,
 }
 
 impl Component for IndexComponent {
@@ -24,6 +26,11 @@ impl Component for IndexComponent {
         Self {
             langid,
             _context_listener: context_listener,
+            messages: vec![Message {
+                text: "This is a test message.".into(),
+                level: MessageLevel::Warn,
+                closable: ClosingCapability::Closable,
+            }],
         }
     }
 
@@ -33,13 +40,21 @@ impl Component for IndexComponent {
                 self.langid = langid;
                 true
             }
+            IndexComponentMsg::MessagesComponentOnMessageClosed(message) => {
+                self.messages.retain(|other| *other != message);
+                true
+            }
         }
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let on_message_closed = ctx
+            .link()
+            .callback(IndexComponentMsg::MessagesComponentOnMessageClosed);
         html! {
             <main>
                 <p><span style="font-weight: bold;"><LocaleComponent keyid="game-name"/></span>{" "}<LocaleComponent keyid="game-title-description"/></p>
+                <MessagesComponent messages={self.messages.clone()} {on_message_closed} />
                 <form>
                     <label>
                         <LocaleComponent keyid="game-creation-form-username-label"/>
@@ -84,4 +99,5 @@ impl Component for IndexComponent {
 
 pub enum IndexComponentMsg {
     MessageContextUpdated(LanguageIdentifier),
+    MessagesComponentOnMessageClosed(Message),
 }
