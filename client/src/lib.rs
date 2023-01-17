@@ -1,4 +1,6 @@
-use fluent_templates::LanguageIdentifier;
+use std::str::FromStr;
+
+use fluent_templates::{LanguageIdentifier, Loader};
 
 use unic_langid::langid;
 
@@ -8,6 +10,7 @@ use yew_router::{BrowserRouter, Switch};
 
 use crate::components::footer::FooterComponent;
 use crate::components::header::HeaderComponent;
+use crate::components::locale::LOCALES;
 
 use crate::routes::{route_switch, Route};
 
@@ -23,9 +26,23 @@ impl Component for AppComponent {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self {
-            langid: langid!("en-US"),
-        }
+        let langid: LanguageIdentifier = web_sys::window()
+            .unwrap()
+            .navigator()
+            .languages()
+            .iter()
+            .filter_map(|language: wasm_bindgen::JsValue| {
+                language
+                    .as_string()
+                    .and_then(|language_string| LanguageIdentifier::from_str(&language_string).ok())
+            })
+            .find(|language_identifier: &LanguageIdentifier| {
+                LOCALES
+                    .locales()
+                    .any(|langid: &LanguageIdentifier| *langid == *language_identifier)
+            })
+            .unwrap_or(langid!("en-US"));
+        Self { langid }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
