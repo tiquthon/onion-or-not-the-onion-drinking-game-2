@@ -1,6 +1,4 @@
-use std::str::FromStr;
-
-use fluent_templates::{LanguageIdentifier, Loader};
+use fluent_templates::LanguageIdentifier;
 
 use unic_langid::langid;
 
@@ -10,7 +8,10 @@ use yew_router::{BrowserRouter, Switch};
 
 use crate::components::footer::FooterComponent;
 use crate::components::header::HeaderComponent;
-use crate::components::locale::LOCALES;
+use crate::components::locale::{
+    load_or_else_browser_select_language_identifier_and_log_warnings,
+    store_language_identifier_to_persistent_storage_and_log_warnings,
+};
 
 use crate::routes::{route_switch, Route};
 
@@ -26,28 +27,16 @@ impl Component for AppComponent {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        let langid: LanguageIdentifier = web_sys::window()
-            .unwrap()
-            .navigator()
-            .languages()
-            .iter()
-            .filter_map(|language: wasm_bindgen::JsValue| {
-                language
-                    .as_string()
-                    .and_then(|language_string| LanguageIdentifier::from_str(&language_string).ok())
-            })
-            .find(|language_identifier: &LanguageIdentifier| {
-                LOCALES
-                    .locales()
-                    .any(|langid: &LanguageIdentifier| *langid == *language_identifier)
-            })
-            .unwrap_or(langid!("en-US"));
-        Self { langid }
+        Self {
+            langid: load_or_else_browser_select_language_identifier_and_log_warnings()
+                .unwrap_or(langid!("en-US")),
+        }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             AppComponentMsg::ChangeLanguageIdentifier(lid) => {
+                store_language_identifier_to_persistent_storage_and_log_warnings(&lid);
                 self.langid = lid;
                 true
             }
