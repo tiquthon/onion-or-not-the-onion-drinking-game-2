@@ -622,6 +622,7 @@ dependencies = [
  "onion-or-not-the-onion-drinking-game-2-shared-library",
  "unic-langid",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "wasm-logger",
  "web-sys",
  "yew",
@@ -631,6 +632,9 @@ dependencies = [
 [[package]]
 name = "onion-or-not-the-onion-drinking-game-2-shared-library"
 version = "0.1.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "percent-encoding"
