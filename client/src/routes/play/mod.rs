@@ -5,6 +5,7 @@ use onion_or_not_the_onion_drinking_game_2_shared_library::Game;
 use yew::{html, Component, Context, ContextHandle, ContextProvider, Html};
 
 pub mod aftermath;
+pub mod connecting;
 pub mod game;
 pub mod lobby;
 
