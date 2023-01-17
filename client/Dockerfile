@@ -3,9 +3,10 @@ FROM lukemathwalker/cargo-chef:latest-rust-1.66 AS chef
 
 FROM chef as planner
 
-COPY . /app/.
+COPY ./shared-library/. /app/shared-library/.
+COPY ./client/. /app/client/.
 
-WORKDIR /app
+WORKDIR /app/client
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -16,20 +17,22 @@ RUN rustup target add wasm32-unknown-unknown
 
 RUN cargo install trunk
 
-COPY --from=planner /app/recipe.json /app/recipe.json
+COPY --from=planner /app/client/recipe.json /app/client/recipe.json
 
-WORKDIR /app
+WORKDIR /app/client
+
+COPY ./shared-library/. /app/shared-library/.
 
 RUN cargo chef cook --release --target wasm32-unknown-unknown --recipe-path recipe.json
 
-COPY . /app/.
+COPY ./client/. /app/client/.
 
 RUN trunk build --release
 
 
 FROM nginx:1.23-alpine
 
-COPY ./docker/default.conf /etc/nginx/conf.d/.
-COPY ./docker/security-headers.conf /etc/nginx/.
+COPY ./client/docker/default.conf /etc/nginx/conf.d/.
+COPY ./client/docker/security-headers.conf /etc/nginx/.
 
-COPY --from=builder /app/dist/* /usr/share/nginx/html/
+COPY --from=builder /app/client/dist/* /usr/share/nginx/html/

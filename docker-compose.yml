@@ -15,13 +15,19 @@ services:
       - "frontend"
       - "backend"
   frontend:
-    build: client/.
+    build:
+      context: .
+      dockerfile: client/Dockerfile
     networks:
       - net
   backend:
-    build: server/.
+    build:
+      context: .
+      dockerfile: server/Dockerfile
     networks:
       - net
+    environment:
+      APP_ENVIRONMENT: production
 
 networks:
   net: {}
