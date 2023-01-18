@@ -1,6 +1,8 @@
 #[derive(Copy, Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Game {
+    // TODO: pub invite_code: String,
     pub game_state: GameState,
+    // TODO: pub players: Vec<Player>,
 }
 
 impl Default for Game {
@@ -17,4 +19,10 @@ pub enum GameState {
     Playing,
     Aftermath,
     None,
+}
+
+pub struct Player {
+    // TODO: pub uuid: Uuid,
+    pub name: String,
+    pub points: u16,
 }

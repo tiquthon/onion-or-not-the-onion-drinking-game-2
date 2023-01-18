@@ -11,6 +11,7 @@ pub enum ClientMessage {
     JoinLobby {
         player_name: String,
         invite_code: String,
+        just_watch: bool,
     },
 }
 
