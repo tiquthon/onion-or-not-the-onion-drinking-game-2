@@ -4,8 +4,6 @@ use unic_langid::langid;
 
 use yew::{html, Component, Context, ContextProvider, Html};
 
-use yew_router::{BrowserRouter, Switch};
-
 use crate::components::footer::FooterComponent;
 use crate::components::header::HeaderComponent;
 use crate::components::locale::{
@@ -13,13 +11,15 @@ use crate::components::locale::{
     store_language_identifier_to_persistent_storage_and_log_warnings,
 };
 
-use crate::routes::{route_switch, Route};
+use crate::routes::index::IndexComponent;
+// TODO: use crate::routes::play::PlayComponent;
 
 pub mod components;
 pub mod routes;
 
 pub struct AppComponent {
     langid: LanguageIdentifier,
+    state: AppState,
 }
 
 impl Component for AppComponent {
@@ -30,6 +30,7 @@ impl Component for AppComponent {
         Self {
             langid: load_or_else_browser_select_language_identifier_and_log_warnings()
                 .unwrap_or(langid!("en-US")),
+            state: AppState::Index,
         }
     }
 
@@ -39,6 +40,16 @@ impl Component for AppComponent {
                 store_language_identifier_to_persistent_storage_and_log_warnings(&lid);
                 self.langid = lid;
                 true
+            }
+            AppComponentMsg::JoinLobby(join_lobby) => {
+                // TODO
+                log::info!("{join_lobby:?}");
+                false
+            }
+            AppComponentMsg::CreateLobby(create_lobby) => {
+                // TODO
+                log::info!("{create_lobby:?}");
+                false
             }
         }
     }
@@ -50,9 +61,20 @@ impl Component for AppComponent {
         html! {
             <ContextProvider<LanguageIdentifier> context={self.langid.clone()}>
                 <HeaderComponent/>
-                <BrowserRouter>
-                    <Switch<Route> render={route_switch}/>
-                </BrowserRouter>
+                {
+                    match &self.state {
+                        AppState::Index => {
+                            let on_join_lobby = ctx.link().callback(AppComponentMsg::JoinLobby);
+                            let on_create_lobby = ctx.link().callback(AppComponentMsg::CreateLobby);
+                            html! {
+                                <IndexComponent {on_join_lobby} {on_create_lobby}/>
+                            }
+                        },
+                        /* TODO: AppState::Play => html! {
+                            <PlayComponent/>
+                        },*/
+                    }
+                }
                 <FooterComponent {on_change_language_identifier}/>
             </ContextProvider<LanguageIdentifier>>
         }
@@ -61,4 +83,12 @@ impl Component for AppComponent {
 
 pub enum AppComponentMsg {
     ChangeLanguageIdentifier(LanguageIdentifier),
+
+    JoinLobby(routes::index::JoinLobby),
+    CreateLobby(routes::index::CreateLobby),
+}
+
+enum AppState {
+    Index,
+    // TODO: Play,
 }

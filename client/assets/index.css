@@ -38,6 +38,11 @@ body > main {
     grid-row: 2 / span 1;
 }
 
+.index-messages > * {
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
 .index-form {
     grid-column: 1 / -1;
     grid-row: 3 / span 1;

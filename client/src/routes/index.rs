@@ -2,7 +2,7 @@ use fluent_templates::LanguageIdentifier;
 
 use web_sys::{HtmlInputElement, SubmitEvent};
 
-use yew::{classes, html, Component, Context, ContextHandle, Html, NodeRef};
+use yew::{classes, html, Callback, Component, Context, ContextHandle, Html, NodeRef};
 
 use crate::components::locale::{locale, LocaleComponent};
 use crate::components::messages::{ClosingCapability, Message, MessageLevel, MessagesComponent};
@@ -20,7 +20,7 @@ pub struct IndexComponent {
 
 impl Component for IndexComponent {
     type Message = IndexComponentMsg;
-    type Properties = ();
+    type Properties = IndexComponentProps;
 
     fn create(ctx: &Context<Self>) -> Self {
         let (langid, context_listener) = ctx
@@ -34,11 +34,7 @@ impl Component for IndexComponent {
             langid,
             _context_listener: context_listener,
 
-            messages: vec![Message {
-                text: "This is a test message.".into(),
-                level: MessageLevel::Warn,
-                closable: ClosingCapability::Closable,
-            }],
+            messages: Vec::new(),
 
             player_name_node_ref: NodeRef::default(),
             invite_code_node_ref: NodeRef::default(),
@@ -50,7 +46,7 @@ impl Component for IndexComponent {
         }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             IndexComponentMsg::MessageContextUpdated(langid) => {
                 self.langid = langid;
@@ -61,9 +57,119 @@ impl Component for IndexComponent {
                 true
             }
             IndexComponentMsg::FormSubmitted => {
-                log::info!("Form submitted");
-                // TODO: callback
-                false
+                let mut error_found = false;
+                let player_name: String = self
+                    .player_name_node_ref
+                    .cast::<HtmlInputElement>()
+                    .unwrap()
+                    .value();
+                if player_name.trim().is_empty() {
+                    log::error!("Missing player name.");
+                    self.messages.push(Message {
+                        // TODO: LOCALIZE
+                        text: "PLAYER NAME EMPTY".into(),
+                        level: MessageLevel::Error,
+                        closable: ClosingCapability::Closable,
+                    });
+                    error_found = true;
+                }
+                match &self.create_lobby_settings_visibility {
+                    CreateLobbySettingsVisibility::Visible {
+                        max_questions_input_node_ref,
+                        minimum_score_input_node_ref,
+                        timer_wanted_input_node_ref,
+                    } => {
+                        fn special_string_parse(input: &NodeRef) -> anyhow::Result<Option<u64>> {
+                            let value: String = input.cast::<HtmlInputElement>().unwrap().value();
+                            let value_str = value.trim();
+                            if value_str.is_empty() {
+                                Ok(None)
+                            } else {
+                                use anyhow::Context;
+                                value_str.parse::<u64>().map(Some).context("")
+                            }
+                        }
+
+                        let count_of_questions_result =
+                            special_string_parse(max_questions_input_node_ref);
+                        let minimum_score_of_questions_result =
+                            special_string_parse(minimum_score_input_node_ref);
+                        let timer_result = special_string_parse(timer_wanted_input_node_ref);
+
+                        if let Err(error) = &count_of_questions_result {
+                            log::error!("Failed parsing count of questions: {error}");
+                            self.messages.push(Message {
+                                // TODO: LOCALIZE
+                                text: "FAILED PARSING COUNT OF QUESTIONS".into(),
+                                level: MessageLevel::Error,
+                                closable: ClosingCapability::Closable,
+                            });
+                            error_found = true;
+                        }
+
+                        if let Err(error) = &minimum_score_of_questions_result {
+                            log::error!("Failed parsing minimum score of questions: {error}");
+                            self.messages.push(Message {
+                                // TODO: LOCALIZE
+                                text: "FAILED PARSING MINIMUM SCORE OF QUESTIONS".into(),
+                                level: MessageLevel::Error,
+                                closable: ClosingCapability::Closable,
+                            });
+                            error_found = true;
+                        }
+
+                        if let Err(error) = &timer_result {
+                            log::error!("Failed parsing timer: {error}");
+                            self.messages.push(Message {
+                                // TODO: LOCALIZE
+                                text: "FAILED PARSING TIMER".into(),
+                                level: MessageLevel::Error,
+                                closable: ClosingCapability::Closable,
+                            });
+                            error_found = true;
+                        }
+
+                        if let (
+                            false,
+                            Ok(count_of_questions),
+                            Ok(minimum_score_of_questions),
+                            Ok(timer),
+                        ) = (
+                            error_found,
+                            count_of_questions_result,
+                            minimum_score_of_questions_result,
+                            timer_result,
+                        ) {
+                            ctx.props().on_create_lobby.emit(CreateLobby {
+                                player_name,
+                                count_of_questions,
+                                minimum_score_of_questions,
+                                timer,
+                            });
+                        }
+                    }
+                    CreateLobbySettingsVisibility::Hidden {
+                        just_watch_checkbox_node_ref,
+                    } => {
+                        let invite_code: String = self
+                            .invite_code_node_ref
+                            .cast::<HtmlInputElement>()
+                            .unwrap()
+                            .value();
+                        let just_watch: bool = just_watch_checkbox_node_ref
+                            .cast::<HtmlInputElement>()
+                            .unwrap()
+                            .checked();
+                        if !error_found {
+                            ctx.props().on_join_lobby.emit(JoinLobby {
+                                player_name,
+                                invite_code,
+                                just_watch,
+                            });
+                        }
+                    }
+                }
+                error_found
             }
             IndexComponentMsg::InviteCodeValueChanged => {
                 let empty_invite_code = self
@@ -79,7 +185,9 @@ impl Component for IndexComponent {
                         timer_wanted_input_node_ref: NodeRef::default(),
                     }
                 } else {
-                    CreateLobbySettingsVisibility::Hidden
+                    CreateLobbySettingsVisibility::Hidden {
+                        just_watch_checkbox_node_ref: NodeRef::default(),
+                    }
                 };
                 true
             }
@@ -123,12 +231,6 @@ impl Component for IndexComponent {
 
                     <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-starting-game-explanation"/></p>
 
-                    <label class={classes!("just-watch-new-game-label")}>
-                        <input type="checkbox"/>
-                        {" "}
-                        <LocaleComponent keyid="game-creation-form-just-watch-label"/>
-                    </label>
-
                     {
                         match &self.create_lobby_settings_visibility {
                             CreateLobbySettingsVisibility::Visible {
@@ -159,14 +261,20 @@ impl Component for IndexComponent {
                                     <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-timer-wanted-explanation"/></p>
                                 </>
                             },
-                            CreateLobbySettingsVisibility::Hidden => html! {},
+                            CreateLobbySettingsVisibility::Hidden { just_watch_checkbox_node_ref } => html! {
+                                <label class={classes!("just-watch-new-game-label")}>
+                                    <input type="checkbox" ref={just_watch_checkbox_node_ref.clone()}/>
+                                    {" "}
+                                    <LocaleComponent keyid="game-creation-form-just-watch-label"/>
+                                </label>
+                            },
                         }
                     }
 
                     <input type="submit" class={classes!("start-or-join-game-button")} value={
                         match &self.create_lobby_settings_visibility {
                             CreateLobbySettingsVisibility::Visible { .. } => locale("game-creation-form-submit-value-create", &self.langid),
-                            CreateLobbySettingsVisibility::Hidden => locale("game-creation-form-submit-value-join", &self.langid),
+                            CreateLobbySettingsVisibility::Hidden { .. } => locale("game-creation-form-submit-value-join", &self.langid),
                         }
                     }/>
                 </form>
@@ -182,11 +290,36 @@ pub enum IndexComponentMsg {
     InviteCodeValueChanged,
 }
 
+#[derive(yew::Properties, PartialEq)]
+pub struct IndexComponentProps {
+    #[prop_or_default]
+    pub on_join_lobby: Callback<JoinLobby>,
+    #[prop_or_default]
+    pub on_create_lobby: Callback<CreateLobby>,
+}
+
+#[derive(Debug)]
+pub struct JoinLobby {
+    pub player_name: String,
+    pub invite_code: String,
+    pub just_watch: bool,
+}
+
+#[derive(Debug)]
+pub struct CreateLobby {
+    pub player_name: String,
+    pub count_of_questions: Option<u64>,
+    pub minimum_score_of_questions: Option<u64>,
+    pub timer: Option<u64>,
+}
+
 enum CreateLobbySettingsVisibility {
     Visible {
         max_questions_input_node_ref: NodeRef,
         minimum_score_input_node_ref: NodeRef,
         timer_wanted_input_node_ref: NodeRef,
     },
-    Hidden,
+    Hidden {
+        just_watch_checkbox_node_ref: NodeRef,
+    },
 }

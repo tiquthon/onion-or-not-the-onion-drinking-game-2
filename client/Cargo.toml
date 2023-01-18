@@ -19,7 +19,6 @@ path = "src/main.rs"
 [dependencies]
 # ui framework
 yew = { version = "0.20", features = ["csr"] }
-yew-router = "0.17"
 
 # own libraries
 onion-or-not-the-onion-drinking-game-2-shared-library = { path = "../shared-library" }

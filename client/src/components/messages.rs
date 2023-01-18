@@ -20,7 +20,7 @@ impl Component for MessagesComponent {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let message_sections: Vec<Html> = ctx.props()
+        let message_sections = ctx.props()
             .messages
             .iter()
             .map(|message| {
@@ -35,7 +35,7 @@ impl Component for MessagesComponent {
                     .link()
                     .callback(move |_| MessagesComponentMsg::OnClickClose(cloned_message.clone()));
                 html! {
-                    <section class={classes!(class, ctx.props().class.clone())}>
+                    <section class={classes!(class)}>
                         <span>{message.text.clone()}</span>
                         {
                             match message.closable {
@@ -48,9 +48,9 @@ impl Component for MessagesComponent {
                     </section>
                 }
             })
-            .collect();
+            .collect::<Html>();
         html! {
-            <>{message_sections}</>
+            <section class={classes!(ctx.props().class.clone())}>{ message_sections }</section>
         }
     }
 }
