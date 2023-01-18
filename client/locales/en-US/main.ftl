@@ -40,6 +40,12 @@ game-creation-form-timer-wanted-explanation = Leave Blank if no timer while answ
 game-creation-form-submit-value-create = CREATE
 game-creation-form-submit-value-join = JOIN
 
+game-creation-form-error-message-player-name-empty = Playername is missing.
+game-creation-form-error-message-invite-code-empty = Invite Code is missing.
+game-creation-form-error-message-max-questions-invalid = Count of Questions could not be parsed.
+game-creation-form-error-message-minimum-score-invalid = Minimum Score of Questions could not be parsed.
+game-creation-form-error-message-timer-wanted-invalid = Timer could not be parsed.
+
 ## Game View
 
 game-view-type-of-player-watcher = Watcher

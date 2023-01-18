@@ -33,16 +33,6 @@ body > main {
     text-align: center;
 }
 
-.index-messages {
-    grid-column: 1 / -1;
-    grid-row: 2 / span 1;
-}
-
-.index-messages > * {
-    margin-top: 3px;
-    margin-bottom: 3px;
-}
-
 .index-form {
     grid-column: 1 / -1;
     grid-row: 3 / span 1;
@@ -60,6 +50,16 @@ body > main {
     font-style: italic;
     text-align: center;
     margin-top: 0;
+}
+
+.index-form-error-paragraph {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 0;
+
+    color: #aa0000;
+
+    font-weight: bold;
 }
 
 .just-watch-new-game-label {
@@ -108,6 +108,10 @@ body > main {
     }
 
     .index-form-description-paragraph {
+        grid-column: 1 / span 2;
+    }
+
+    .index-form-error-paragraph {
         grid-column: 1 / span 2;
     }
 

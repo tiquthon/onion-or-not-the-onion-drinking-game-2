@@ -5,16 +5,17 @@ use web_sys::{HtmlInputElement, SubmitEvent};
 use yew::{classes, html, Callback, Component, Context, ContextHandle, Html, NodeRef};
 
 use crate::components::locale::{locale, LocaleComponent};
-use crate::components::messages::{ClosingCapability, Message, MessageLevel, MessagesComponent};
 
 pub struct IndexComponent {
     langid: LanguageIdentifier,
     _context_listener: ContextHandle<LanguageIdentifier>,
 
-    messages: Vec<Message>,
+    player_name_error_message_langkeyid: Option<String>,
+    invite_code_error_message_langkeyid: Option<String>,
 
     player_name_node_ref: NodeRef,
     invite_code_node_ref: NodeRef,
+
     create_lobby_settings_visibility: CreateLobbySettingsVisibility,
 }
 
@@ -34,15 +35,13 @@ impl Component for IndexComponent {
             langid,
             _context_listener: context_listener,
 
-            messages: Vec::new(),
+            player_name_error_message_langkeyid: None,
+            invite_code_error_message_langkeyid: None,
 
             player_name_node_ref: NodeRef::default(),
             invite_code_node_ref: NodeRef::default(),
-            create_lobby_settings_visibility: CreateLobbySettingsVisibility::Visible {
-                max_questions_input_node_ref: NodeRef::default(),
-                minimum_score_input_node_ref: NodeRef::default(),
-                timer_wanted_input_node_ref: NodeRef::default(),
-            },
+
+            create_lobby_settings_visibility: CreateLobbySettingsVisibility::visible_default(),
         }
     }
 
@@ -52,29 +51,29 @@ impl Component for IndexComponent {
                 self.langid = langid;
                 true
             }
-            IndexComponentMsg::MessagesComponentOnMessageClosed(message) => {
-                self.messages.retain(|other| *other != message);
-                true
-            }
             IndexComponentMsg::FormSubmitted => {
                 let mut error_found = false;
+
                 let player_name: String = self
                     .player_name_node_ref
                     .cast::<HtmlInputElement>()
                     .unwrap()
-                    .value();
-                if player_name.trim().is_empty() {
-                    log::error!("Missing player name.");
-                    self.messages.push(Message {
-                        // TODO: LOCALIZE
-                        text: "PLAYER NAME EMPTY".into(),
-                        level: MessageLevel::Error,
-                        closable: ClosingCapability::Closable,
-                    });
+                    .value()
+                    .trim()
+                    .to_string();
+                if player_name.is_empty() {
+                    log::error!("Player name is empty.");
+                    self.player_name_error_message_langkeyid =
+                        Some("game-creation-form-error-message-player-name-empty".to_string());
                     error_found = true;
                 }
-                match &self.create_lobby_settings_visibility {
+
+                match &mut self.create_lobby_settings_visibility {
                     CreateLobbySettingsVisibility::Visible {
+                        max_questions_error_message_langkeyid,
+                        minimum_score_error_message_langkeyid,
+                        timer_wanted_error_message_langkeyid,
+
                         max_questions_input_node_ref,
                         minimum_score_input_node_ref,
                         timer_wanted_input_node_ref,
@@ -85,10 +84,13 @@ impl Component for IndexComponent {
                             if value_str.is_empty() {
                                 Ok(None)
                             } else {
-                                use anyhow::Context;
-                                value_str.parse::<u64>().map(Some).context("")
+                                value_str.parse::<u64>().map(Some).map_err(Into::into)
                             }
                         }
+
+                        *max_questions_error_message_langkeyid = None;
+                        *minimum_score_error_message_langkeyid = None;
+                        *timer_wanted_error_message_langkeyid = None;
 
                         let count_of_questions_result =
                             special_string_parse(max_questions_input_node_ref);
@@ -97,35 +99,30 @@ impl Component for IndexComponent {
                         let timer_result = special_string_parse(timer_wanted_input_node_ref);
 
                         if let Err(error) = &count_of_questions_result {
-                            log::error!("Failed parsing count of questions: {error}");
-                            self.messages.push(Message {
-                                // TODO: LOCALIZE
-                                text: "FAILED PARSING COUNT OF QUESTIONS".into(),
-                                level: MessageLevel::Error,
-                                closable: ClosingCapability::Closable,
-                            });
+                            log::error!("Could not parse count of questions result ({error}).");
+                            *max_questions_error_message_langkeyid = Some(
+                                "game-creation-form-error-message-max-questions-invalid"
+                                    .to_string(),
+                            );
                             error_found = true;
                         }
 
                         if let Err(error) = &minimum_score_of_questions_result {
-                            log::error!("Failed parsing minimum score of questions: {error}");
-                            self.messages.push(Message {
-                                // TODO: LOCALIZE
-                                text: "FAILED PARSING MINIMUM SCORE OF QUESTIONS".into(),
-                                level: MessageLevel::Error,
-                                closable: ClosingCapability::Closable,
-                            });
+                            log::error!(
+                                "Could not parse minimum score of questions result ({error})."
+                            );
+                            *minimum_score_error_message_langkeyid = Some(
+                                "game-creation-form-error-message-minimum-score-invalid"
+                                    .to_string(),
+                            );
                             error_found = true;
                         }
 
                         if let Err(error) = &timer_result {
-                            log::error!("Failed parsing timer: {error}");
-                            self.messages.push(Message {
-                                // TODO: LOCALIZE
-                                text: "FAILED PARSING TIMER".into(),
-                                level: MessageLevel::Error,
-                                closable: ClosingCapability::Closable,
-                            });
+                            log::error!("Could not parse timer wanted result ({error}).");
+                            *timer_wanted_error_message_langkeyid = Some(
+                                "game-creation-form-error-message-timer-wanted-invalid".to_string(),
+                            );
                             error_found = true;
                         }
 
@@ -155,7 +152,17 @@ impl Component for IndexComponent {
                             .invite_code_node_ref
                             .cast::<HtmlInputElement>()
                             .unwrap()
-                            .value();
+                            .value()
+                            .trim()
+                            .to_string();
+                        if invite_code.is_empty() {
+                            log::error!("Invite code is empty.");
+                            self.invite_code_error_message_langkeyid = Some(
+                                "game-creation-form-error-message-invite-code-empty".to_string(),
+                            );
+                            error_found = true;
+                        }
+
                         let just_watch: bool = just_watch_checkbox_node_ref
                             .cast::<HtmlInputElement>()
                             .unwrap()
@@ -179,15 +186,9 @@ impl Component for IndexComponent {
                     .value()
                     .is_empty();
                 self.create_lobby_settings_visibility = if empty_invite_code {
-                    CreateLobbySettingsVisibility::Visible {
-                        max_questions_input_node_ref: NodeRef::default(),
-                        minimum_score_input_node_ref: NodeRef::default(),
-                        timer_wanted_input_node_ref: NodeRef::default(),
-                    }
+                    CreateLobbySettingsVisibility::visible_default()
                 } else {
-                    CreateLobbySettingsVisibility::Hidden {
-                        just_watch_checkbox_node_ref: NodeRef::default(),
-                    }
+                    CreateLobbySettingsVisibility::hidden_default()
                 };
                 true
             }
@@ -195,9 +196,6 @@ impl Component for IndexComponent {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let on_message_closed = ctx
-            .link()
-            .callback(IndexComponentMsg::MessagesComponentOnMessageClosed);
         let form_onsubmit = ctx.link().callback(|event: SubmitEvent| {
             event.prevent_default();
             event.stop_propagation();
@@ -209,8 +207,9 @@ impl Component for IndexComponent {
         html! {
             <main>
                 <p class={classes!("index-game-explanation")}><span style="font-weight: bold;"><LocaleComponent keyid="game-name"/></span>{" "}<LocaleComponent keyid="game-title-description"/></p>
-                <MessagesComponent class={classes!("index-messages")} messages={self.messages.clone()} {on_message_closed} />
+
                 <form class={classes!("index-form")} onsubmit={form_onsubmit}>
+
                     <label for="username_new_game">
                         <span class={classes!("index-form-description-label")}>
                             <LocaleComponent keyid="game-creation-form-username-label"/>
@@ -219,6 +218,11 @@ impl Component for IndexComponent {
                         {" "}
                     </label>
                     <input type="text" id="username_new_game" placeholder={locale("game-creation-form-username-placeholder", &self.langid)} ref={self.player_name_node_ref.clone()}/>
+                    if let Some(player_name_error_message_langkeyid) = &self.player_name_error_message_langkeyid {
+                        <p class={classes!("index-form-error-paragraph")}>
+                            <LocaleComponent keyid={player_name_error_message_langkeyid.clone()}/>
+                        </p>
+                    }
 
                     <label for="invite_code">
                         <span class={classes!("index-form-description-label")}>
@@ -228,12 +232,21 @@ impl Component for IndexComponent {
                         {" "}
                     </label>
                     <input type="text" id="invite_code" placeholder={locale("game-creation-form-invite-code-placeholder", &self.langid)} onkeyup={invite_code_onkeyup} ref={self.invite_code_node_ref.clone()}/>
+                    if let Some(invite_code_error_message_langkeyid) = &self.invite_code_error_message_langkeyid {
+                        <p class={classes!("index-form-error-paragraph")}>
+                            <LocaleComponent keyid={invite_code_error_message_langkeyid.clone()}/>
+                        </p>
+                    }
 
                     <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-starting-game-explanation"/></p>
 
                     {
                         match &self.create_lobby_settings_visibility {
                             CreateLobbySettingsVisibility::Visible {
+                                max_questions_error_message_langkeyid,
+                                minimum_score_error_message_langkeyid,
+                                timer_wanted_error_message_langkeyid,
+
                                 max_questions_input_node_ref,
                                 minimum_score_input_node_ref,
                                 timer_wanted_input_node_ref,
@@ -244,6 +257,11 @@ impl Component for IndexComponent {
                                         {": "}
                                     </label>
                                     <input type="text" id="max-questions" value="10" placeholder={locale("game-creation-form-max-questions-placeholder", &self.langid)} ref={max_questions_input_node_ref.clone()}/>
+                                    if let Some(max_questions_error_message_langkeyid) = &max_questions_error_message_langkeyid {
+                                        <p class={classes!("index-form-error-paragraph")}>
+                                            <LocaleComponent keyid={max_questions_error_message_langkeyid.clone()}/>
+                                        </p>
+                                    }
                                     <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-max-questions-explanation"/></p>
 
                                     <label for="minimum-score">
@@ -251,6 +269,11 @@ impl Component for IndexComponent {
                                         {": "}
                                     </label>
                                     <input type="text" id="minimum-score" placeholder={locale("game-creation-form-minimum-score-placeholder", &self.langid)} ref={minimum_score_input_node_ref.clone()}/>
+                                    if let Some(minimum_score_error_message_langkeyid) = &minimum_score_error_message_langkeyid {
+                                        <p class={classes!("index-form-error-paragraph")}>
+                                            <LocaleComponent keyid={minimum_score_error_message_langkeyid.clone()}/>
+                                        </p>
+                                    }
                                     <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-minimum-score-explanation"/></p>
 
                                     <label for="timer-wanted">
@@ -258,6 +281,11 @@ impl Component for IndexComponent {
                                         {": "}
                                     </label>
                                     <input type="text" id="timer-wanted" placeholder={locale("game-creation-form-timer-wanted-placeholder", &self.langid)} ref={timer_wanted_input_node_ref.clone()}/>
+                                    if let Some(timer_wanted_error_message_langkeyid) = &timer_wanted_error_message_langkeyid {
+                                        <p class={classes!("index-form-error-paragraph")}>
+                                            <LocaleComponent keyid={timer_wanted_error_message_langkeyid.clone()}/>
+                                        </p>
+                                    }
                                     <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-timer-wanted-explanation"/></p>
                                 </>
                             },
@@ -277,6 +305,7 @@ impl Component for IndexComponent {
                             CreateLobbySettingsVisibility::Hidden { .. } => locale("game-creation-form-submit-value-join", &self.langid),
                         }
                     }/>
+
                 </form>
             </main>
         }
@@ -285,7 +314,6 @@ impl Component for IndexComponent {
 
 pub enum IndexComponentMsg {
     MessageContextUpdated(LanguageIdentifier),
-    MessagesComponentOnMessageClosed(Message),
     FormSubmitted,
     InviteCodeValueChanged,
 }
@@ -315,6 +343,10 @@ pub struct CreateLobby {
 
 enum CreateLobbySettingsVisibility {
     Visible {
+        max_questions_error_message_langkeyid: Option<String>,
+        minimum_score_error_message_langkeyid: Option<String>,
+        timer_wanted_error_message_langkeyid: Option<String>,
+
         max_questions_input_node_ref: NodeRef,
         minimum_score_input_node_ref: NodeRef,
         timer_wanted_input_node_ref: NodeRef,
@@ -322,4 +354,24 @@ enum CreateLobbySettingsVisibility {
     Hidden {
         just_watch_checkbox_node_ref: NodeRef,
     },
+}
+
+impl CreateLobbySettingsVisibility {
+    fn visible_default() -> Self {
+        Self::Visible {
+            max_questions_error_message_langkeyid: None,
+            minimum_score_error_message_langkeyid: None,
+            timer_wanted_error_message_langkeyid: None,
+
+            max_questions_input_node_ref: Default::default(),
+            minimum_score_input_node_ref: Default::default(),
+            timer_wanted_input_node_ref: Default::default(),
+        }
+    }
+
+    fn hidden_default() -> Self {
+        Self::Hidden {
+            just_watch_checkbox_node_ref: Default::default(),
+        }
+    }
 }

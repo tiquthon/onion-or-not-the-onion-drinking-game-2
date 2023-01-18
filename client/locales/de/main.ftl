@@ -30,7 +30,12 @@ game-creation-form-max-questions-label = Anzahl an Fragen
 game-creation-form-max-questions-placeholder = { game-creation-form-max-questions-label }
 game-creation-form-max-questions-explanation = Leer Lassen, wenn bis zu 2000 Fragen gewollt sind
 
-game-creation-form-minimum-score-label = Minimaler Score der Fragen
+-minimum-score =
+    { $inflection ->
+        *[strong] Minimaler Score der Fragen
+        [weak] Minimale Score der Fragen
+    }
+game-creation-form-minimum-score-label = { -minimum-score(inflection: "strong") }
 game-creation-form-minimum-score-placeholder = { game-creation-form-minimum-score-label }
 game-creation-form-minimum-score-explanation = Leer Lassen, wenn es egal ist, wie gut eine Frage sein muss
 
@@ -40,6 +45,12 @@ game-creation-form-timer-wanted-explanation = Leer Lassen, wenn kein Timer beim 
 
 game-creation-form-submit-value-create = ERSTELLEN
 game-creation-form-submit-value-join = BEITRETEN
+
+game-creation-form-error-message-player-name-empty = Der { game-creation-form-username-label } fehlt.
+game-creation-form-error-message-invite-code-empty = Der { game-creation-form-invite-code-label } fehlt.
+game-creation-form-error-message-max-questions-invalid = Die { game-creation-form-max-questions-label } konnte nicht verarbeitet werden.
+game-creation-form-error-message-minimum-score-invalid = Der { -minimum-score(inflection: "weak") } konnte nicht verarbeitet werden.
+game-creation-form-error-message-timer-wanted-invalid = Der { game-creation-form-timer-wanted-label } konnte nicht verarbeitet werden.
 
 ## Game View
 
