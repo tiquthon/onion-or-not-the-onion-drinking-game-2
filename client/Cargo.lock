@@ -610,6 +610,7 @@ name = "onion-or-not-the-onion-drinking-game-2-client"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bincode",
  "fluent-templates",
  "futures-util",
  "gloo-net",

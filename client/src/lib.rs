@@ -12,7 +12,8 @@ use crate::components::locale::{
 };
 
 use crate::routes::index::IndexComponent;
-// TODO: use crate::routes::play::PlayComponent;
+use crate::routes::play::CreateJoinLobby;
+use crate::routes::play::PlayComponent;
 
 pub mod components;
 pub mod routes;
@@ -42,14 +43,16 @@ impl Component for AppComponent {
                 true
             }
             AppComponentMsg::JoinLobby(join_lobby) => {
-                // TODO
-                log::info!("{join_lobby:?}");
-                false
+                self.state = AppState::Play {
+                    create_join_lobby: CreateJoinLobby::Join(join_lobby),
+                };
+                true
             }
             AppComponentMsg::CreateLobby(create_lobby) => {
-                // TODO
-                log::info!("{create_lobby:?}");
-                false
+                self.state = AppState::Play {
+                    create_join_lobby: CreateJoinLobby::Create(create_lobby),
+                };
+                true
             }
         }
     }
@@ -70,9 +73,9 @@ impl Component for AppComponent {
                                 <IndexComponent {on_join_lobby} {on_create_lobby}/>
                             }
                         },
-                        /* TODO: AppState::Play => html! {
-                            <PlayComponent/>
-                        },*/
+                        AppState::Play { create_join_lobby } => html! {
+                            <PlayComponent create_join_lobby={create_join_lobby.clone()}/>
+                        },
                     }
                 }
                 <FooterComponent {on_change_language_identifier}/>
@@ -90,5 +93,5 @@ pub enum AppComponentMsg {
 
 enum AppState {
     Index,
-    // TODO: Play,
+    Play { create_join_lobby: CreateJoinLobby },
 }

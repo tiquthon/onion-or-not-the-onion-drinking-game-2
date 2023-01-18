@@ -38,6 +38,9 @@ web-sys = { version = "0.3", features = [
     "Navigator"
 ] }
 
+# network transport
+bincode = "1"
+
 # localisation
 fluent-templates = "0.8"
 unic-langid = "0.9"

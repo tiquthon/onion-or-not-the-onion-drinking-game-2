@@ -326,14 +326,14 @@ pub struct IndexComponentProps {
     pub on_create_lobby: Callback<CreateLobby>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct JoinLobby {
     pub player_name: String,
     pub invite_code: String,
     pub just_watch: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct CreateLobby {
     pub player_name: String,
     pub count_of_questions: Option<u64>,

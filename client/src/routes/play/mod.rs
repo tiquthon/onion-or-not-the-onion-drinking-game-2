@@ -1,22 +1,26 @@
-// TODO: use std::cell::RefCell;
-// TODO: use std::rc::Rc;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 use fluent_templates::LanguageIdentifier;
 
-// TODO: use futures_util::stream::SplitSink;
-// TODO: use futures_util::StreamExt;
+use futures_util::stream::SplitSink;
+use futures_util::StreamExt;
 
-// TODO: use gloo_net::websocket::futures::WebSocket;
+use gloo_net::websocket::futures::WebSocket;
 use gloo_net::websocket::{Message, WebSocketError};
 
-// TODO: use wasm_bindgen_futures::spawn_local;
+// TODO use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::ClientMessage;
+
+use wasm_bindgen_futures::spawn_local;
 
 use yew::{html, Component, Context, ContextHandle, Html};
 
-// TODO: use aftermath::AftermathComponent;
+use aftermath::AftermathComponent;
 use connecting::ConnectingComponent;
-// TODO: use game::GameComponent;
-// TODO: use lobby::LobbyComponent;
+use game::GameComponent;
+use lobby::LobbyComponent;
+
+use crate::routes::index::{CreateLobby, JoinLobby};
 
 pub mod aftermath;
 pub mod connecting;
@@ -27,48 +31,88 @@ pub struct PlayComponent {
     langid: LanguageIdentifier,
     _context_listener: ContextHandle<LanguageIdentifier>,
 
-    // TODO: messages: Vec<crate::components::messages::Message>,
     state: PlayState,
 }
 
 impl Component for PlayComponent {
     type Message = PlayComponentMsg;
-    type Properties = ();
+    type Properties = PlayComponentProps;
 
     fn create(ctx: &Context<Self>) -> Self {
-        // TODO: use anyhow::Context;
+        use anyhow::Context;
 
         let (langid, context_listener) = ctx
             .link()
             .context(ctx.link().callback(PlayComponentMsg::MessageContextUpdated))
             .expect("Missing LanguageIdentifier context.");
 
-        /* TODO: let web_socket_sink = WebSocket::open("ws://localhost:8080/ws")
-        .map(|web_socket: WebSocket| {
-            let (sink, mut stream) = web_socket.split();
-            let web_socket_message_received_callback = ctx
-                .link()
-                .callback(PlayComponentMsg::WebSocketMessageReceived);
-            let web_socket_closed_callback =
-                ctx.link().callback(|_| PlayComponentMsg::WebSocketClosed);
-            spawn_local(async move {
-                while let Some(msg) = stream.next().await {
-                    web_socket_message_received_callback.emit(msg);
-                }
-                web_socket_closed_callback.emit(());
+        let web_socket_address =
+            option_env!("BUILD_WEBSOCKET_ADDRESS").unwrap_or("ws://localhost:8000/api/ws");
+        let web_socket_sink = WebSocket::open(web_socket_address)
+            .map(|web_socket: WebSocket| {
+                let (sink, mut stream) = web_socket.split();
+
+                let web_socket_message_received_callback = ctx
+                    .link()
+                    .callback(PlayComponentMsg::WebSocketMessageReceived);
+                let web_socket_closed_callback =
+                    ctx.link().callback(|_| PlayComponentMsg::WebSocketClosed);
+
+                spawn_local(async move {
+                    while let Some(msg) = stream.next().await {
+                        web_socket_message_received_callback.emit(msg);
+                    }
+                    web_socket_closed_callback.emit(());
+                });
+
+                let sink_rc = Rc::new(RefCell::new(sink));
+
+                /* TODO let initial_message = match &ctx.props().create_join_lobby {
+                    CreateJoinLobby::Create(CreateLobby {
+                        player_name,
+                        count_of_questions,
+                        minimum_score_of_questions,
+                        timer,
+                    }) => ClientMessage::CreateLobby {
+                        player_name: player_name.clone(),
+                        count_of_questions: *count_of_questions,
+                        minimum_score_of_questions: *minimum_score_of_questions,
+                        timer: *timer,
+                    },
+                    CreateJoinLobby::Join(JoinLobby {
+                        player_name,
+                        invite_code,
+                        just_watch,
+                    }) => ClientMessage::JoinLobby {
+                        player_name: player_name.clone(),
+                        invite_code: invite_code.clone(),
+                        just_watch: *just_watch,
+                    },
+                };*/
+
+                // TODO let sink_cloned = Rc::clone(&sink_rc);
+                spawn_local(async move {
+                    /* TODO
+                    #[allow(clippy::await_holding_refcell_ref)]
+                    RefCell::borrow_mut(&sink_cloned)
+                        .send(Message::Bytes(
+                            bincode::serialize(&initial_message).unwrap(),
+                        ))
+                        .await
+                        .unwrap();*/
+                });
+
+                sink_rc
+            })
+            .with_context(|| {
+                format!("Failed opening WebSocket to {web_socket_address} connection.")
             });
-            Rc::new(RefCell::new(sink))
-        })
-        .context("Failed opening WebSocket connection.");*/
 
         Self {
             langid,
             _context_listener: context_listener,
 
-            // TODO: messages: Vec::new(),
-            state: PlayState::Connecting {
-                // TODO: web_socket_sink
-            },
+            state: PlayState::Connecting { web_socket_sink },
         }
     }
 
@@ -78,7 +122,14 @@ impl Component for PlayComponent {
                 self.langid = langid;
                 true
             }
-            _ => true,
+            PlayComponentMsg::WebSocketClosed => {
+                log::info!("Web Socket Closed");
+                true
+            }
+            PlayComponentMsg::WebSocketMessageReceived(msg) => {
+                log::info!("Web Socket Message Received {msg:?}");
+                true
+            }
         }
     }
 
@@ -86,15 +137,16 @@ impl Component for PlayComponent {
         match &self.state {
             PlayState::Connecting { .. } => {
                 html! { <ConnectingComponent /> }
-            } /* TODO: PlayState::Lobby => {
-                  html! { <LobbyComponent /> }
-              }
-              PlayState::Game => {
-                  html! { <GameComponent /> }
-              }
-              PlayState::Aftermath => {
-                  html! { <AftermathComponent /> }
-              } */
+            }
+            PlayState::Lobby => {
+                html! { <LobbyComponent /> }
+            }
+            PlayState::Game => {
+                html! { <GameComponent /> }
+            }
+            PlayState::Aftermath => {
+                html! { <AftermathComponent /> }
+            }
         }
     }
 }
@@ -105,11 +157,30 @@ pub enum PlayComponentMsg {
     WebSocketMessageReceived(Result<Message, WebSocketError>),
 }
 
+#[derive(yew::Properties, PartialEq)]
+pub struct PlayComponentProps {
+    pub create_join_lobby: CreateJoinLobby,
+}
+
+#[derive(PartialEq, Clone)]
+pub enum CreateJoinLobby {
+    Create(CreateLobby),
+    Join(JoinLobby),
+}
+
 enum PlayState {
     Connecting {
-        // TODO: web_socket_sink: anyhow::Result<Rc<RefCell<SplitSink<WebSocket, Message>>>>,
+        // TODO
+        #[allow(dead_code)]
+        web_socket_sink: anyhow::Result<Rc<RefCell<SplitSink<WebSocket, Message>>>>,
     },
-    // TODO: Lobby,
-    // TODO: Game,
-    // TODO: Aftermath,
+    // TODO
+    #[allow(dead_code)]
+    Lobby,
+    // TODO
+    #[allow(dead_code)]
+    Game,
+    // TODO
+    #[allow(dead_code)]
+    Aftermath,
 }
