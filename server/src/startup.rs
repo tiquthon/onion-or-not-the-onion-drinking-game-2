@@ -1,4 +1,5 @@
 use std::net::TcpListener;
+use std::sync::Arc;
 
 use actix_web::dev::Server;
 use actix_web::{web, App, HttpServer};
@@ -6,6 +7,7 @@ use actix_web::{web, App, HttpServer};
 use tracing_actix_web::TracingLogger;
 
 use crate::configuration::Configuration;
+use crate::model;
 use crate::routes::websocket::ws;
 
 pub struct Application {
@@ -32,10 +34,12 @@ impl Application {
 }
 
 async fn run(tcp_listener: TcpListener) -> anyhow::Result<Server> {
+    let server_data = Arc::new(tokio::sync::Mutex::new(model::Server::new()));
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
             .route("/ws", web::get().to(ws))
+            .app_data(web::Data::new(Arc::clone(&server_data)))
     })
     .listen(tcp_listener)?
     .run();

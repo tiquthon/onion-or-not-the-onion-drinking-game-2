@@ -48,5 +48,7 @@ thiserror = "1"
 serde = { version = "1", features = ["derive"] }
 
 # various
+chrono = "0.4"
+rand = "0.8"
 ron = "0.8"
 uuid = { version = "1", features = ["v4", "serde"] }
