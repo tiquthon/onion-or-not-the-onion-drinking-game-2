@@ -1,4 +1,5 @@
 use fluent_templates::LanguageIdentifier;
+use std::str::FromStr;
 
 use web_sys::{HtmlInputElement, SubmitEvent};
 
@@ -78,13 +79,17 @@ impl Component for IndexComponent {
                         minimum_score_input_node_ref,
                         timer_wanted_input_node_ref,
                     } => {
-                        fn special_string_parse(input: &NodeRef) -> anyhow::Result<Option<u64>> {
+                        fn special_string_parse<T>(input: &NodeRef) -> anyhow::Result<Option<T>>
+                        where
+                            T: FromStr,
+                            <T as FromStr>::Err: std::error::Error + Send + Sync + 'static,
+                        {
                             let value: String = input.cast::<HtmlInputElement>().unwrap().value();
                             let value_str = value.trim();
                             if value_str.is_empty() {
                                 Ok(None)
                             } else {
-                                value_str.parse::<u64>().map(Some).map_err(Into::into)
+                                value_str.parse().map(Some).map_err(Into::into)
                             }
                         }
 
@@ -337,7 +342,7 @@ pub struct JoinLobby {
 pub struct CreateLobby {
     pub player_name: String,
     pub count_of_questions: Option<u64>,
-    pub minimum_score_of_questions: Option<u64>,
+    pub minimum_score_of_questions: Option<i64>,
     pub timer: Option<u64>,
 }
 

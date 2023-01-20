@@ -4,12 +4,12 @@ use std::rc::Rc;
 use fluent_templates::LanguageIdentifier;
 
 use futures_util::stream::SplitSink;
-use futures_util::StreamExt;
+use futures_util::{SinkExt, StreamExt};
 
 use gloo_net::websocket::futures::WebSocket;
 use gloo_net::websocket::{Message, WebSocketError};
 
-// TODO use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::ClientMessage;
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::ClientMessage;
 
 use wasm_bindgen_futures::spawn_local;
 
@@ -67,7 +67,7 @@ impl Component for PlayComponent {
 
                 let sink_rc = Rc::new(RefCell::new(sink));
 
-                /* TODO let initial_message = match &ctx.props().create_join_lobby {
+                let initial_message = match &ctx.props().create_join_lobby {
                     CreateJoinLobby::Create(CreateLobby {
                         player_name,
                         count_of_questions,
@@ -75,9 +75,11 @@ impl Component for PlayComponent {
                         timer,
                     }) => ClientMessage::CreateLobby {
                         player_name: player_name.clone(),
+                        // TODO: just_watch
+                        just_watch: false,
                         count_of_questions: *count_of_questions,
-                        minimum_score_of_questions: *minimum_score_of_questions,
-                        timer: *timer,
+                        minimum_score_per_question: *minimum_score_of_questions,
+                        maximum_answer_time_per_question: *timer,
                     },
                     CreateJoinLobby::Join(JoinLobby {
                         player_name,
@@ -88,19 +90,10 @@ impl Component for PlayComponent {
                         invite_code: invite_code.clone(),
                         just_watch: *just_watch,
                     },
-                };*/
+                };
 
-                // TODO let sink_cloned = Rc::clone(&sink_rc);
-                spawn_local(async move {
-                    /* TODO
-                    #[allow(clippy::await_holding_refcell_ref)]
-                    RefCell::borrow_mut(&sink_cloned)
-                        .send(Message::Bytes(
-                            bincode::serialize(&initial_message).unwrap(),
-                        ))
-                        .await
-                        .unwrap();*/
-                });
+                let sink_cloned = Rc::clone(&sink_rc);
+                spawn_local(async move { send(&sink_cloned, initial_message).await });
 
                 sink_rc
             })
@@ -183,4 +176,12 @@ enum PlayState {
     // TODO
     #[allow(dead_code)]
     Aftermath,
+}
+
+#[allow(clippy::await_holding_refcell_ref)]
+async fn send(sink_cloned: &Rc<RefCell<SplitSink<WebSocket, Message>>>, message: ClientMessage) {
+    RefCell::borrow_mut(sink_cloned)
+        .send(Message::Bytes(message.try_into().unwrap()))
+        .await
+        .unwrap();
 }
