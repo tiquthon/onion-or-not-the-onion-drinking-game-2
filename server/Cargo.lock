@@ -918,6 +918,7 @@ dependencies = [
  "chrono",
  "config",
  "futures-util",
+ "lazy_static",
  "onion-or-not-the-onion-drinking-game-2-shared-library",
  "rand",
  "ron",
