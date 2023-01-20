@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::fmt::{Debug, Formatter};
 use std::rc::Rc;
 
 use fluent_templates::LanguageIdentifier;
@@ -9,7 +10,9 @@ use futures_util::{SinkExt, StreamExt};
 use gloo_net::websocket::futures::WebSocket;
 use gloo_net::websocket::{Message, WebSocketError};
 
-use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::ClientMessage;
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::{
+    ClientMessage, ServerMessage,
+};
 
 use wasm_bindgen_futures::spawn_local;
 
@@ -32,6 +35,29 @@ pub struct PlayComponent {
     _context_listener: ContextHandle<LanguageIdentifier>,
 
     state: PlayState,
+}
+
+impl PlayComponent {
+    fn handle_server_message(&mut self, server_message: ServerMessage) -> bool {
+        match server_message {
+            ServerMessage::LobbyCreated(_) => match &self.state {
+                PlayState::Connecting { .. } => {
+                    self.state = PlayState::Game;
+                    true
+                }
+                PlayState::Lobby | PlayState::Game | PlayState::Aftermath => {
+                    log::warn!(
+                        "Received {server_message:?} and not {:?}; doing nothing.",
+                        self.state
+                    );
+                    // No-Op
+                    false
+                }
+            },
+            ServerMessage::LobbyJoined(_) => todo!(),
+            ServerMessage::GameFullUpdate(_) => todo!(),
+        }
+    }
 }
 
 impl Component for PlayComponent {
@@ -119,10 +145,13 @@ impl Component for PlayComponent {
                 log::info!("Web Socket Closed");
                 true
             }
-            PlayComponentMsg::WebSocketMessageReceived(msg) => {
-                log::info!("Web Socket Message Received {msg:?}");
-                true
-            }
+            PlayComponentMsg::WebSocketMessageReceived(msg) => match msg {
+                Ok(Message::Bytes(bytes)) => {
+                    let server_message = ServerMessage::try_from(&bytes[..]).unwrap();
+                    self.handle_server_message(server_message)
+                }
+                Ok(Message::Text(_)) | Err(_) => panic!(),
+            },
         }
     }
 
@@ -176,6 +205,17 @@ enum PlayState {
     // TODO
     #[allow(dead_code)]
     Aftermath,
+}
+
+impl Debug for PlayState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PlayState::Connecting { .. } => f.debug_struct("PlayState::Connecting").finish(),
+            PlayState::Lobby => f.debug_struct("PlayState::Lobby").finish(),
+            PlayState::Game => f.debug_struct("PlayState::Game").finish(),
+            PlayState::Aftermath => f.debug_struct("PlayState::Aftermath").finish(),
+        }
+    }
 }
 
 #[allow(clippy::await_holding_refcell_ref)]

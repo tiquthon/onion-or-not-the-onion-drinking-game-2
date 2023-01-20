@@ -12,7 +12,7 @@ impl Component for ConnectingComponent {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
-            <div>{"it works!"}</div>
+            <div>{"Connecting..."}</div>
         }
     }
 }

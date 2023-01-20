@@ -21,7 +21,7 @@ path = "src/main.rs"
 yew = { version = "0.20", features = ["csr"] }
 
 # own libraries
-onion-or-not-the-onion-drinking-game-2-shared-library = { path = "../shared-library" }
+onion-or-not-the-onion-drinking-game-2-shared-library = { path = "../shared-library", features = ["wasm"] }
 
 # web framework
 gloo-net = "0.2"

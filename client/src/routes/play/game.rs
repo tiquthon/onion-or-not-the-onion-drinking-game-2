@@ -12,7 +12,7 @@ impl Component for GameComponent {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
-            <div>{"it works!"}</div>
+            <div>{"GAME"}</div>
         }
     }
 }
