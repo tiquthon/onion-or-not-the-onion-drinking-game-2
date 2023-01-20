@@ -13,4 +13,8 @@ publish = false
 path = "src/lib.rs"
 
 [dependencies]
+bincode = "1"
+chrono = { version = "0.4", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
+thiserror = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
