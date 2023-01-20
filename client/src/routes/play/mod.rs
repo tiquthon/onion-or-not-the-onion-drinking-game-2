@@ -96,13 +96,13 @@ impl Component for PlayComponent {
                 let initial_message = match &ctx.props().create_join_lobby {
                     CreateJoinLobby::Create(CreateLobby {
                         player_name,
+                        just_watch,
                         count_of_questions,
                         minimum_score_of_questions,
                         timer,
                     }) => ClientMessage::CreateLobby {
                         player_name: player_name.clone(),
-                        // TODO: just_watch
-                        just_watch: false,
+                        just_watch: *just_watch,
                         count_of_questions: *count_of_questions,
                         minimum_score_per_question: *minimum_score_of_questions,
                         maximum_answer_time_per_question: *timer,

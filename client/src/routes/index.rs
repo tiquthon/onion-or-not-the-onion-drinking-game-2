@@ -16,6 +16,7 @@ pub struct IndexComponent {
 
     player_name_node_ref: NodeRef,
     invite_code_node_ref: NodeRef,
+    just_watch_checkbox_node_ref: NodeRef,
 
     create_lobby_settings_visibility: CreateLobbySettingsVisibility,
 }
@@ -41,6 +42,7 @@ impl Component for IndexComponent {
 
             player_name_node_ref: NodeRef::default(),
             invite_code_node_ref: NodeRef::default(),
+            just_watch_checkbox_node_ref: NodeRef::default(),
 
             create_lobby_settings_visibility: CreateLobbySettingsVisibility::visible_default(),
         }
@@ -68,6 +70,12 @@ impl Component for IndexComponent {
                         Some("game-creation-form-error-message-player-name-empty".to_string());
                     error_found = true;
                 }
+
+                let just_watch: bool = self
+                    .just_watch_checkbox_node_ref
+                    .cast::<HtmlInputElement>()
+                    .unwrap()
+                    .checked();
 
                 match &mut self.create_lobby_settings_visibility {
                     CreateLobbySettingsVisibility::Visible {
@@ -144,15 +152,14 @@ impl Component for IndexComponent {
                         ) {
                             ctx.props().on_create_lobby.emit(CreateLobby {
                                 player_name,
+                                just_watch,
                                 count_of_questions,
                                 minimum_score_of_questions,
                                 timer,
                             });
                         }
                     }
-                    CreateLobbySettingsVisibility::Hidden {
-                        just_watch_checkbox_node_ref,
-                    } => {
+                    CreateLobbySettingsVisibility::Hidden => {
                         let invite_code: String = self
                             .invite_code_node_ref
                             .cast::<HtmlInputElement>()
@@ -168,10 +175,6 @@ impl Component for IndexComponent {
                             error_found = true;
                         }
 
-                        let just_watch: bool = just_watch_checkbox_node_ref
-                            .cast::<HtmlInputElement>()
-                            .unwrap()
-                            .checked();
                         if !error_found {
                             ctx.props().on_join_lobby.emit(JoinLobby {
                                 player_name,
@@ -245,6 +248,12 @@ impl Component for IndexComponent {
 
                     <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-starting-game-explanation"/></p>
 
+                    <label class={classes!("just-watch-new-game-label")}>
+                        <input type="checkbox" ref={self.just_watch_checkbox_node_ref.clone()}/>
+                        {" "}
+                        <LocaleComponent keyid="game-creation-form-just-watch-label"/>
+                    </label>
+
                     {
                         match &self.create_lobby_settings_visibility {
                             CreateLobbySettingsVisibility::Visible {
@@ -294,13 +303,7 @@ impl Component for IndexComponent {
                                     <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-timer-wanted-explanation"/></p>
                                 </>
                             },
-                            CreateLobbySettingsVisibility::Hidden { just_watch_checkbox_node_ref } => html! {
-                                <label class={classes!("just-watch-new-game-label")}>
-                                    <input type="checkbox" ref={just_watch_checkbox_node_ref.clone()}/>
-                                    {" "}
-                                    <LocaleComponent keyid="game-creation-form-just-watch-label"/>
-                                </label>
-                            },
+                            CreateLobbySettingsVisibility::Hidden => html! {},
                         }
                     }
 
@@ -341,6 +344,7 @@ pub struct JoinLobby {
 #[derive(Debug, PartialEq, Clone)]
 pub struct CreateLobby {
     pub player_name: String,
+    pub just_watch: bool,
     pub count_of_questions: Option<u64>,
     pub minimum_score_of_questions: Option<i64>,
     pub timer: Option<u64>,
@@ -356,9 +360,7 @@ enum CreateLobbySettingsVisibility {
         minimum_score_input_node_ref: NodeRef,
         timer_wanted_input_node_ref: NodeRef,
     },
-    Hidden {
-        just_watch_checkbox_node_ref: NodeRef,
-    },
+    Hidden,
 }
 
 impl CreateLobbySettingsVisibility {
@@ -375,8 +377,6 @@ impl CreateLobbySettingsVisibility {
     }
 
     fn hidden_default() -> Self {
-        Self::Hidden {
-            just_watch_checkbox_node_ref: Default::default(),
-        }
+        Self::Hidden
     }
 }
