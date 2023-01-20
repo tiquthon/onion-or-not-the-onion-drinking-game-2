@@ -135,7 +135,7 @@ async fn handle_message(
                 new_game.into_shared_model_game(
                     new_invite_code,
                     connection_store.connected_player_id,
-                    |_question_id| todo!(),
+                    crate::data::get,
                 ),
             ))
         }

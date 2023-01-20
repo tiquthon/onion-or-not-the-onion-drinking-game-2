@@ -95,7 +95,7 @@ impl Game {
         f: F,
     ) -> shared_model::game::Game
     where
-        F: Fn(&QuestionId) -> RedditSubmissionData,
+        F: Fn(&QuestionId) -> Option<&RedditSubmissionData>,
     {
         shared_model::game::Game {
             invite_code: invite_code.into(),
@@ -140,7 +140,7 @@ impl GameState {
         f: F,
     ) -> shared_model::game::GameState
     where
-        F: Fn(&QuestionId) -> RedditSubmissionData,
+        F: Fn(&QuestionId) -> Option<&RedditSubmissionData>,
     {
         match self {
             GameState::InLobby => shared_model::game::GameState::InLobby,
@@ -149,7 +149,7 @@ impl GameState {
                 playing_state,
                 ..
             } => shared_model::game::GameState::Playing {
-                current_question: f(&current_question).into(),
+                current_question: f(&current_question).unwrap().clone().into(),
                 playing_state: playing_state.into_shared_model_playing_state(own_id),
             },
             GameState::Aftermath {
@@ -160,7 +160,7 @@ impl GameState {
                     .into_iter()
                     .map(|(question_id, player_answer_map)| {
                         (
-                            f(&question_id).into(),
+                            f(&question_id).unwrap().clone().into(),
                             player_answer_map
                                 .into_iter()
                                 .map(|(player_id, answer)| (player_id.into(), answer.into()))

@@ -32,3 +32,11 @@ fn parse(data: &str) -> HashMap<QuestionId, RedditSubmissionData> {
         .map(|submission_data| (QuestionId::generate(), submission_data))
         .collect()
 }
+
+pub fn get(question_id: &QuestionId) -> Option<&RedditSubmissionData> {
+    NOT_THE_ONION_BEST
+        .get(question_id)
+        .or_else(|| NOT_THE_ONION_TOP.get(question_id))
+        .or_else(|| THE_ONION_BEST.get(question_id))
+        .or_else(|| THE_ONION_TOP.get(question_id))
+}
