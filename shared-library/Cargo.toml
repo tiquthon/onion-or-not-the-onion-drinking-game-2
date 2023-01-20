@@ -18,3 +18,7 @@ chrono = { version = "0.4", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
 thiserror = "1"
 uuid = { version = "1", features = ["v4", "serde"] }
+
+[features]
+default = []
+wasm = ["uuid/js"]
