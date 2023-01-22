@@ -59,7 +59,12 @@ impl From<bincode::Error> for ClientMessageTryIntoByteVecError {
 #[derive(Clone, Eq, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
 pub enum ServerMessage {
     LobbyCreated(Game),
+
     LobbyJoined(Game),
+
+    ErrorNewNameEmpty,
+    ErrorUnknownInviteCode,
+
     GameFullUpdate(Game),
 }
 

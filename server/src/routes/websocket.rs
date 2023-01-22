@@ -102,7 +102,7 @@ async fn handle_message(
             minimum_score_per_question,
             maximum_answer_time_per_question,
         } => {
-            handler_create_lobby(
+            handle_create_lobby(
                 server,
                 connection_store,
                 player_name,
@@ -113,9 +113,19 @@ async fn handle_message(
             )
             .await
         }
-        ClientMessage::JoinLobby { .. } => {
-            tracing::info!("JOIN LOBBY");
-            None
+        ClientMessage::JoinLobby {
+            player_name,
+            invite_code,
+            just_watch,
+        } => {
+            handle_join_lobby(
+                server,
+                connection_store,
+                player_name,
+                invite_code,
+                just_watch,
+            )
+            .await
         }
     }
 }
@@ -143,7 +153,7 @@ impl Default for ConnectionStore {
     }
 }
 
-async fn handler_create_lobby(
+async fn handle_create_lobby(
     server: &Arc<tokio::sync::Mutex<crate::model::Server>>,
     connection_store: &mut ConnectionStore,
     player_name: String,
@@ -152,6 +162,11 @@ async fn handler_create_lobby(
     minimum_score_per_question: Option<i64>,
     maximum_answer_time_per_question: Option<u64>,
 ) -> Option<ServerMessage> {
+    let player_name = player_name.trim().to_string();
+    if player_name.is_empty() {
+        return Some(ServerMessage::ErrorNewNameEmpty);
+    }
+
     let new_invite_code = crate::model::InviteCode::generate();
 
     let new_game = Arc::new(tokio::sync::Mutex::new(crate::model::Game {
@@ -189,4 +204,48 @@ async fn handler_create_lobby(
     drop(locked_ned_game);
 
     Some(ServerMessage::LobbyCreated(shared_model_game))
+}
+
+async fn handle_join_lobby(
+    server: &Arc<tokio::sync::Mutex<crate::model::Server>>,
+    connection_store: &mut ConnectionStore,
+    player_name: String,
+    invite_code: String,
+    just_watch: bool,
+) -> Option<ServerMessage> {
+    let invite_code = crate::model::InviteCode(invite_code.trim().to_string());
+
+    let locked_server = server.lock().await;
+    let game = match locked_server.games.get(&invite_code) {
+        None => return Some(ServerMessage::ErrorUnknownInviteCode),
+        Some(game) => Arc::clone(game),
+    };
+
+    let player_name = player_name.trim().to_string();
+    if player_name.is_empty() {
+        return Some(ServerMessage::ErrorNewNameEmpty);
+    }
+    let player_name = crate::model::PlayerName(player_name);
+
+    let mut locked_game = game.lock().await;
+    locked_game.players.push(crate::model::Player {
+        id: connection_store.connected_player_id,
+        name: player_name,
+        play_type: if just_watch {
+            crate::model::PlayType::Watcher
+        } else {
+            crate::model::PlayType::Player { points: 0 }
+        },
+    });
+    let joined_game = locked_game.clone().into_shared_model_game(
+        invite_code.clone(),
+        connection_store.connected_player_id,
+        crate::data::get,
+    );
+    drop(locked_game);
+
+    connection_store.in_lobby = Some(invite_code);
+    connection_store.in_game = Some(game);
+
+    Some(ServerMessage::LobbyJoined(joined_game))
 }

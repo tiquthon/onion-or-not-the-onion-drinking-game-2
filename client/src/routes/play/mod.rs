@@ -39,9 +39,10 @@ pub struct PlayComponent {
 
 impl PlayComponent {
     fn handle_server_message(&mut self, server_message: ServerMessage) -> bool {
-        match server_message {
-            ServerMessage::LobbyCreated(_) => match &self.state {
+        match &server_message {
+            ServerMessage::LobbyCreated(game) => match &self.state {
                 PlayState::Connecting { .. } => {
+                    log::info!("Lobby Created {game:?}");
                     self.state = PlayState::Game;
                     true
                 }
@@ -54,8 +55,13 @@ impl PlayComponent {
                     false
                 }
             },
-            ServerMessage::LobbyJoined(_) => todo!(),
+            ServerMessage::LobbyJoined(game) => {
+                log::info!("Lobby Joined {game:?}");
+                todo!()
+            }
             ServerMessage::GameFullUpdate(_) => todo!(),
+            ServerMessage::ErrorNewNameEmpty => todo!(),
+            ServerMessage::ErrorUnknownInviteCode => todo!(),
         }
     }
 }
