@@ -10,7 +10,7 @@ use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::{
     ClientMessage, ServerMessage,
 };
 
-#[tracing::instrument(name = "Websocket", skip(req, body))]
+#[tracing::instrument(name = "Websocket", skip(req, body, server))]
 pub async fn ws(
     req: HttpRequest,
     body: web::Payload,
@@ -102,42 +102,16 @@ async fn handle_message(
             minimum_score_per_question,
             maximum_answer_time_per_question,
         } => {
-            let new_invite_code = crate::model::InviteCode::generate();
-
-            let new_game = crate::model::Game {
-                configuration: crate::model::GameConfiguration {
-                    count_of_questions,
-                    minimum_score_per_question,
-                    maximum_answer_time_per_question,
-                },
-                game_state: crate::model::GameState::InLobby,
-                players: vec![crate::model::Player {
-                    id: connection_store.connected_player_id,
-                    name: player_name.try_into().unwrap(),
-                    play_type: match just_watch {
-                        true => crate::model::PlayType::Watcher,
-                        false => crate::model::PlayType::Player { points: 0 },
-                    },
-                }],
-            };
-
-            connection_store.in_lobby = Some(new_invite_code.clone());
-
-            let mut locked_server = server.lock().await;
-
-            locked_server
-                .games
-                .insert(new_invite_code.clone(), new_game.clone());
-
-            drop(locked_server);
-
-            Some(ServerMessage::LobbyCreated(
-                new_game.into_shared_model_game(
-                    new_invite_code,
-                    connection_store.connected_player_id,
-                    crate::data::get,
-                ),
-            ))
+            handler_create_lobby(
+                server,
+                connection_store,
+                player_name,
+                just_watch,
+                count_of_questions,
+                minimum_score_per_question,
+                maximum_answer_time_per_question,
+            )
+            .await
         }
         ClientMessage::JoinLobby { .. } => {
             tracing::info!("JOIN LOBBY");
@@ -146,6 +120,7 @@ async fn handle_message(
     }
 }
 
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
 struct ConnectionStore {
     connected_player_id: crate::model::PlayerId,
     in_lobby: Option<crate::model::InviteCode>,
@@ -164,4 +139,51 @@ impl Default for ConnectionStore {
     fn default() -> Self {
         Self::new()
     }
+}
+
+async fn handler_create_lobby(
+    server: &Arc<tokio::sync::Mutex<crate::model::Server>>,
+    connection_store: &mut ConnectionStore,
+    player_name: String,
+    just_watch: bool,
+    count_of_questions: Option<u64>,
+    minimum_score_per_question: Option<i64>,
+    maximum_answer_time_per_question: Option<u64>,
+) -> Option<ServerMessage> {
+    let new_invite_code = crate::model::InviteCode::generate();
+
+    let new_game = crate::model::Game {
+        configuration: crate::model::GameConfiguration {
+            count_of_questions,
+            minimum_score_per_question,
+            maximum_answer_time_per_question,
+        },
+        game_state: crate::model::GameState::InLobby,
+        players: vec![crate::model::Player {
+            id: connection_store.connected_player_id,
+            name: player_name.try_into().unwrap(),
+            play_type: match just_watch {
+                true => crate::model::PlayType::Watcher,
+                false => crate::model::PlayType::Player { points: 0 },
+            },
+        }],
+    };
+
+    connection_store.in_lobby = Some(new_invite_code.clone());
+
+    let mut locked_server = server.lock().await;
+
+    locked_server
+        .games
+        .insert(new_invite_code.clone(), new_game.clone());
+
+    drop(locked_server);
+
+    Some(ServerMessage::LobbyCreated(
+        new_game.into_shared_model_game(
+            new_invite_code,
+            connection_store.connected_player_id,
+            crate::data::get,
+        ),
+    ))
 }
