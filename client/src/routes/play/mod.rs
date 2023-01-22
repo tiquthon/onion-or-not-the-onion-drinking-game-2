@@ -10,6 +10,7 @@ use futures_util::{SinkExt, StreamExt};
 use gloo_net::websocket::futures::WebSocket;
 use gloo_net::websocket::{Message, WebSocketError};
 
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::Game;
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::{
     ClientMessage, ServerMessage,
 };
@@ -40,24 +41,36 @@ pub struct PlayComponent {
 impl PlayComponent {
     fn handle_server_message(&mut self, server_message: ServerMessage) -> bool {
         match &server_message {
-            ServerMessage::LobbyCreated(game) => match &self.state {
-                PlayState::Connecting { .. } => {
-                    log::info!("Lobby Created {game:?}");
-                    self.state = PlayState::Game;
-                    true
+            ServerMessage::LobbyCreated(game) | ServerMessage::LobbyJoined(game) => {
+                match &self.state {
+                    PlayState::Connecting { web_socket_sink } => {
+                        match web_socket_sink {
+                            Ok(web_socket_sink) => {
+                                self.state = PlayState::Lobby {
+                                    web_socket_sink: web_socket_sink.clone(),
+                                    game: Box::new(game.clone()),
+                                };
+                                true
+                            }
+                            Err(_) => {
+                                log::warn!(
+                                    "Received {server_message:?} in {:?}, but web_socket_sink is Err.",
+                                    self.state
+                                );
+                                // No-Op
+                                false
+                            }
+                        }
+                    }
+                    PlayState::Lobby { .. } | PlayState::Game | PlayState::Aftermath => {
+                        log::warn!(
+                            "Received {server_message:?} and but I am in {:?}; doing nothing.",
+                            self.state
+                        );
+                        // No-Op
+                        false
+                    }
                 }
-                PlayState::Lobby | PlayState::Game | PlayState::Aftermath => {
-                    log::warn!(
-                        "Received {server_message:?} and not {:?}; doing nothing.",
-                        self.state
-                    );
-                    // No-Op
-                    false
-                }
-            },
-            ServerMessage::LobbyJoined(game) => {
-                log::info!("Lobby Joined {game:?}");
-                todo!()
             }
             ServerMessage::GameFullUpdate(_) => todo!(),
             ServerMessage::ErrorNewNameEmpty => todo!(),
@@ -166,8 +179,8 @@ impl Component for PlayComponent {
             PlayState::Connecting { .. } => {
                 html! { <ConnectingComponent /> }
             }
-            PlayState::Lobby => {
-                html! { <LobbyComponent /> }
+            PlayState::Lobby { game, .. } => {
+                html! { <LobbyComponent game={AsRef::as_ref(game).clone()} /> }
             }
             PlayState::Game => {
                 html! { <GameComponent /> }
@@ -204,7 +217,10 @@ enum PlayState {
     },
     // TODO
     #[allow(dead_code)]
-    Lobby,
+    Lobby {
+        web_socket_sink: Rc<RefCell<SplitSink<WebSocket, Message>>>,
+        game: Box<Game>,
+    },
     // TODO
     #[allow(dead_code)]
     Game,
@@ -217,7 +233,10 @@ impl Debug for PlayState {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             PlayState::Connecting { .. } => f.debug_struct("PlayState::Connecting").finish(),
-            PlayState::Lobby => f.debug_struct("PlayState::Lobby").finish(),
+            PlayState::Lobby { game, .. } => f
+                .debug_struct("PlayState::Lobby")
+                .field("game", game)
+                .finish(),
             PlayState::Game => f.debug_struct("PlayState::Game").finish(),
             PlayState::Aftermath => f.debug_struct("PlayState::Aftermath").finish(),
         }

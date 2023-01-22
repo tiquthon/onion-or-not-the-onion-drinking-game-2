@@ -1,3 +1,5 @@
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::Game;
+
 use yew::{html, Component, Context, Html};
 
 use crate::components::join_game::JoinGameComponent;
@@ -7,17 +9,27 @@ pub struct LobbyComponent;
 
 impl Component for LobbyComponent {
     type Message = ();
-    type Properties = ();
+    type Properties = LobbyComponentProps;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let player_name = ctx
+            .props()
+            .game
+            .players
+            .iter()
+            .find(|player| player.id == ctx.props().game.this_player_id)
+            .unwrap()
+            .name
+            .to_string();
+        let invite_code = ctx.props().game.invite_code.to_string();
         html! {
             <main>
-                <JoinGameComponent />
-                <h2>{"PLAYER NAME"}</h2>
+                <JoinGameComponent {invite_code} />
+                <h2>{player_name}</h2>
                 <p>
                     <span>{
                         if true {
@@ -34,4 +46,9 @@ impl Component for LobbyComponent {
             </main>
         }
     }
+}
+
+#[derive(yew::Properties, PartialEq)]
+pub struct LobbyComponentProps {
+    pub game: Game,
 }

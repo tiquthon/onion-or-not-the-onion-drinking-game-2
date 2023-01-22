@@ -6,13 +6,13 @@ pub struct JoinGameComponent;
 
 impl Component for JoinGameComponent {
     type Message = ();
-    type Properties = ();
+    type Properties = JoinGameComponentProps;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {}
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <aside>
                 <LocaleComponent keyid="join-game-header-string-1"/>
@@ -21,10 +21,15 @@ impl Component for JoinGameComponent {
                 {" "}
                 <LocaleComponent keyid="join-game-header-string-2"/>
                 {" "}
-                <span style="font-weight: bold;">{"YWQC"}</span>
+                <span style="font-weight: bold;">{ctx.props().invite_code.clone()}</span>
                 {" "}
                 <LocaleComponent keyid="join-game-header-string-3"/>
             </aside>
         }
     }
+}
+
+#[derive(yew::Properties, PartialEq)]
+pub struct JoinGameComponentProps {
+    pub invite_code: String,
 }
