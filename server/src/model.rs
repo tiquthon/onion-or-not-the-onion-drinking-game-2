@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
+use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
 
@@ -19,10 +20,10 @@ const POSSIBLE_INVITE_CODE_COMBINATIONS: usize = INVITE_CODE_CHARS.len()
 
 /* SERVER */
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub struct Server {
     pub previous_invite_codes: Vec<InviteCode>,
-    pub games: HashMap<InviteCode, Game>,
+    pub games: HashMap<InviteCode, Arc<tokio::sync::Mutex<Game>>>,
 }
 
 impl Server {

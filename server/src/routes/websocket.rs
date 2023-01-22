@@ -120,10 +120,11 @@ async fn handle_message(
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Clone, Debug)]
 struct ConnectionStore {
     connected_player_id: crate::model::PlayerId,
     in_lobby: Option<crate::model::InviteCode>,
+    in_game: Option<Arc<tokio::sync::Mutex<crate::model::Game>>>,
 }
 
 impl ConnectionStore {
@@ -131,6 +132,7 @@ impl ConnectionStore {
         Self {
             connected_player_id: crate::model::PlayerId::generate(),
             in_lobby: None,
+            in_game: None,
         }
     }
 }
@@ -152,7 +154,7 @@ async fn handler_create_lobby(
 ) -> Option<ServerMessage> {
     let new_invite_code = crate::model::InviteCode::generate();
 
-    let new_game = crate::model::Game {
+    let new_game = Arc::new(tokio::sync::Mutex::new(crate::model::Game {
         configuration: crate::model::GameConfiguration {
             count_of_questions,
             minimum_score_per_question,
@@ -167,23 +169,24 @@ async fn handler_create_lobby(
                 false => crate::model::PlayType::Player { points: 0 },
             },
         }],
-    };
+    }));
 
     connection_store.in_lobby = Some(new_invite_code.clone());
+    connection_store.in_game = Some(Arc::clone(&new_game));
 
     let mut locked_server = server.lock().await;
-
     locked_server
         .games
-        .insert(new_invite_code.clone(), new_game.clone());
-
+        .insert(new_invite_code.clone(), Arc::clone(&new_game));
     drop(locked_server);
 
-    Some(ServerMessage::LobbyCreated(
-        new_game.into_shared_model_game(
-            new_invite_code,
-            connection_store.connected_player_id,
-            crate::data::get,
-        ),
-    ))
+    let locked_ned_game = new_game.lock().await;
+    let shared_model_game = locked_ned_game.clone().into_shared_model_game(
+        new_invite_code,
+        connection_store.connected_player_id,
+        crate::data::get,
+    );
+    drop(locked_ned_game);
+
+    Some(ServerMessage::LobbyCreated(shared_model_game))
 }
