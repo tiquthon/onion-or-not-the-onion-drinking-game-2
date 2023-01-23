@@ -213,7 +213,7 @@ impl Component for IndexComponent {
             .link()
             .callback(|_| IndexComponentMsg::InviteCodeValueChanged);
         html! {
-            <main>
+            <main class={classes!("index-main")}>
                 <p class={classes!("index-game-explanation")}><span style="font-weight: bold;"><LocaleComponent keyid="game-name"/></span>{" "}<LocaleComponent keyid="game-title-description"/></p>
 
                 <form class={classes!("index-form")} onsubmit={form_onsubmit}>

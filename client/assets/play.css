@@ -1,0 +1,511 @@
+/******************************************************************************/
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > >  ROOT VARIABLE DEFINITION  < < < < < < < < < < < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+:root {
+    --celery: #96be50;
+    --white: #ffffff;
+    --boulder: #787878;
+    --siam: #5a6450;
+    --chelsea-cucumber: #78a04b;
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > > >     RESET LAYOUT CSS   < < < < < < < < < < < < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+.play-main {
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: min-content min-content;
+
+    grid-row-gap: 10px;
+
+    padding: 0 0 10px;
+}
+
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+/* >   >   >   >   >   >   >       JOIN PANEL       <   <   <   <   <   <   < */
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+
+#join-panel {
+    background-color: #84ab4a;
+    margin: 0;
+    padding: 10px;
+    text-align: center;
+}
+
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+/* >   >   >   >   >   >   >      MAIN WRAPPER      <   <   <   <   <   <   < */
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+
+#main-wrapper {
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: min-content min-content min-content min-content min-content min-content min-content min-content min-content min-content 1fr;
+
+    grid-row-gap: 5px;
+
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                            PLAYER NAME HEADLINE                            */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#player-name-headline {
+    grid-column: 1 / span 1;
+    grid-row: 1 / span 1;
+
+    margin: 0;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                            PLAYER TYPE AND EXIT                            */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#player-type-and-exit {
+    grid-column: 1 / span 1;
+    grid-row: 2 / span 1;
+
+    text-align: center;
+    margin: 0;
+}
+
+#exit-game-link {
+    padding: 4px;
+}
+
+#player-type {
+    font-style: italic;
+}
+
+#remaining-time-question-state {
+    grid-column: 1 / span 1;
+    grid-row: 3 / span 1;
+
+    text-align: center;
+    font-style: italic;
+}
+
+#remaining-time-aftermath-state {
+    grid-column: 1 / span 1;
+    grid-row: 3 / span 1;
+
+    text-align: center;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                       MAIN SECTION FRONTEND MESSAGES                       */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#main-section-frontend-messages {
+    grid-column: 1 / span 1;
+    grid-row: 4 / span 1;
+    margin-top: 10px;
+}
+
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+/* >   >   >   >   >   >   >      STATE START       <   <   <   <   <   <   < */
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                              WELCOME HEADLINE                              */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#welcome-headline {
+    grid-column: 1 / span 1;
+    grid-row: 5 / span 1;
+
+    text-align: center;
+}
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                                 START FORM                                 */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#start-form {
+    grid-column: 1 / span 1;
+    grid-row: 6 / span 1;
+
+    width: 100%;
+}
+
+#start-form-submit-button {
+    width: 100%;
+}
+
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+/* >   >   >   >   >   >   >     STATE QUESTION     <   <   <   <   <   <   < */
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                              QUESTION HEADLINE                             */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#question-headline-at-question-state {
+    grid-column: 1 / span 1;
+    grid-row: 5 / span 1;
+}
+
+.question-headline {
+    font-family: 'Playfair Display', serif;
+    text-align: center;
+
+    font-weight: 900;
+    font-size: 1.6rem;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 10px;
+    margin-top: 0;
+}
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                           QUESTION ANSWER BUTTONS                          */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#question-the-onion-not-the-onion-forms-section {
+    grid-column: 1 / span 1;
+    grid-row: 6 / span 1;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: 10px;
+}
+
+#question-the-onion-form {
+    grid-column: 1 / span 1;
+    grid-row: 6 / span 1;
+}
+
+#question-the-onion-form-submit-button {
+    width: 100%;
+    background-color: #00b500;
+}
+
+#question-not-the-onion-form {
+    grid-column: 2 / span 1;
+    grid-row: 6 / span 1;
+}
+
+#question-not-the-onion-form-submit-button {
+    width: 100%;
+    background-color: #b50000;
+}
+
+.button-chosen-outline {
+    border: 2px solid #000000 !important;
+}
+
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+/* >   >   >   >   >   >   >     STATE AFTERMATH    <   <   <   <   <   <   < */
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                                RESULT LINE                                 */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#question-result {
+    grid-column: 1 / span 1;
+    grid-row: 5 / span 1;
+
+    text-align: center;
+
+    margin: 0;
+}
+
+.question-result-correct {
+    color: #006700;
+    font-weight: bold;
+}
+
+.question-result-wrong {
+    color: #670000;
+    font-weight: bold;
+}
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                              QUESTION HEADLINE                             */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#question-headline-at-aftermath-state {
+    grid-column: 1 / span 1;
+    grid-row: 6 / span 1;
+}
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                               QUESTION SUBLINE                             */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#question-subline {
+    grid-column: 1 / span 1;
+    grid-row: 7 / span 1;
+
+    display: grid;
+    grid-column-gap: 10px;
+    grid-template-columns: min-content 1fr 1fr;
+}
+
+#question-subline-link-to-post {
+    grid-column: 1 / span 1;
+    grid-row: 1 / span 1;
+
+    margin-top: auto;
+    margin-bottom: auto;
+
+    white-space: nowrap;
+}
+
+#question-section-downvote-form {
+    grid-column: 2 / span 1;
+    grid-row: 1 / span 1;
+
+    width: 100%;
+}
+
+#question-section-upvote-form {
+    grid-column: 3 / span 1;
+    grid-row: 1 / span 1;
+
+    width: 100%;
+}
+
+#question-section-downvote-submit-button {
+    background-color: #b50000;
+    width: 100%;
+}
+
+#question-section-upvote-submit-button {
+    background-color: #00b500;
+    width: 100%;
+}
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                              QUESTION PICTURE                              */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#question-picture {
+    grid-column: 1 / span 1;
+    grid-row: 8 / span 1;
+
+    width: 100%;
+}
+
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+/* >   >   >   >   >   >   >       STATE END        <   <   <   <   <   <   < */
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                                END HEADLINE                                */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#question-headline-at-end-state {
+    grid-column: 1 / span 1;
+    grid-row: 5 / span 1;
+}
+
+#play-again-form {
+    grid-column: 1 / span 1;
+    grid-row: 6 / span 1;
+}
+
+#play-again-submit-button {
+    width: 100%;
+}
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                              RANKING HEADLINE                              */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#ranking-headline-at-end-state {
+    grid-column: 1 / span 1;
+    grid-row: 7 / span 1;
+}
+
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+/*                              RANKING HEADLINE                              */
+/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
+
+#list-or-paragraph-ranking {
+    grid-column: 1 / span 1;
+    grid-row: 8 / span 1;
+
+    padding-left: 0;
+}
+
+#list-or-paragraph-ranking > li {
+    list-style: none;
+
+    padding: 5px;
+
+    margin-top: 2px;
+    margin-bottom: 2px;
+
+    border-radius: 5px;
+}
+
+.list-or-paragraph-ranking-place-one {
+    background-color: #D4AF37;
+}
+
+.list-or-paragraph-ranking-place-two {
+    background-color: #c4c7ce;
+}
+
+.list-or-paragraph-ranking-place-three {
+    background-color: #a36e27;
+}
+
+.list-or-paragraph-ranking-place-others {
+    background-color: #ffffff;
+}
+
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+/* >   >   >   >   >   >   >       PLAYERLIST       <   <   <   <   <   <   < */
+/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
+
+#playerlist-headline {
+    grid-column: 1 / span 1;
+    grid-row: 9 / span 1;
+
+    margin-bottom: 0;
+}
+
+#playerlist-listing-or-paragraph {
+    grid-column: 1 / span 1;
+    grid-row: 10 / span 1;
+
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+}
+
+#playerlist-listing-or-paragraph > li {
+    background-color: #bde552;
+
+    border-radius: 5px;
+    padding: 5px;
+
+    list-style: none;
+
+    margin-bottom: 2px;
+    margin-top: 2px;
+
+    display: grid;
+    grid-template-columns: auto min-content min-content min-content min-content;
+    grid-column-gap: 5px;
+}
+
+.span-username {
+    grid-column: 1 / span 1;
+}
+
+.span-actual-user-is-username {
+    font-weight: bold;
+}
+
+.span-user-wants-to-skip {
+    grid-column: 2 / span 1;
+}
+
+.span-user-wants-to-skip > img {
+    height: 1em;
+}
+
+.span-user-has-answered {
+    grid-column: 3 / span 1;
+}
+
+.span-user-has-answered > img {
+    height: 1em;
+}
+
+.span-users-answer {
+    grid-column: 4 / span 1;
+}
+
+.span-users-answer > img {
+    height: 1em;
+}
+
+.span-users-answer-is-correct {
+
+}
+
+.span-users-answer-is-wrong {
+
+}
+
+.span-points-or-watching {
+    grid-column: 5 / span 1;
+
+    white-space: nowrap;
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
+/* > > > > > > >  Extra small devices (phones, 600px and down)  < < < < < < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+@media only screen and (max-width: 600px) {
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
+/* > > > Small devices (portrait tablets and large phones, 600px and up)  < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+@media only screen and (min-width: 600px) {
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
+/* > > > > > > Medium devices (landscape tablets, 768px and up) < < < < < < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+@media only screen and (min-width: 768px) {
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
+/* > > > > > > > Large devices (laptops/desktops, 992px and up) < < < < < < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+@media only screen and (min-width: 992px) {
+    #main-wrapper {
+        padding-right: 5%;
+        padding-left: 5%;
+
+        grid-template-columns: 1fr min-content;
+        grid-column-gap: 10px;
+    }
+    #playerlist-headline {
+        grid-column: 2 / span 1;
+        grid-row: 1 / span 1;
+    }
+    #playerlist-listing-or-paragraph {
+        grid-column: 2 / span 1;
+        grid-row: 2 / -1;
+    }
+}
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
+/* > >  Extra large devices (large laptops and desktops, 1200px and up)   < < */
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+@media only screen and (min-width: 1200px) {
+    #main-wrapper {
+        padding-right: 10%;
+        padding-left: 10%;
+    }
+}
+
+/******************************************************************************/

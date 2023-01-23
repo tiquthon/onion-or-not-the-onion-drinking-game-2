@@ -1,6 +1,6 @@
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Game, PlayType};
 
-use yew::{html, Component, Context, Html};
+use yew::{classes, html, Component, Context, Html};
 
 use crate::components::join_game::JoinGameComponent;
 use crate::components::locale::LocaleComponent;
@@ -38,7 +38,7 @@ impl Component for LobbyComponent {
             .unwrap_or_else(|| "\u{221E}".to_string());
 
         html! {
-            <main>
+            <main class={classes!("play-main")}>
                 <JoinGameComponent {invite_code} />
                 <h2>{player_name}</h2>
                 <p>
