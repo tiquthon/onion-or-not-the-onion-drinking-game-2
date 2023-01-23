@@ -1,4 +1,4 @@
-use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::Game;
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Game, PlayType};
 
 use yew::{html, Component, Context, Html};
 
@@ -16,32 +16,43 @@ impl Component for LobbyComponent {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let player_name = ctx
+        let this_player = ctx
             .props()
             .game
             .players
             .iter()
             .find(|player| player.id == ctx.props().game.this_player_id)
-            .unwrap()
-            .name
-            .to_string();
+            .unwrap();
+        let player_name = this_player.name.to_string();
+        let is_watcher = matches!(this_player.play_type, PlayType::Watcher);
+
         let invite_code = ctx.props().game.invite_code.to_string();
+
+        let count_of_questions = ctx
+            .props()
+            .game
+            .configuration
+            .count_of_questions
+            .as_ref()
+            .map(ToString::to_string)
+            .unwrap_or_else(|| "\u{221E}".to_string());
+
         html! {
             <main>
                 <JoinGameComponent {invite_code} />
                 <h2>{player_name}</h2>
                 <p>
                     <span>{
-                        if true {
+                        if is_watcher {
                             html!{ <LocaleComponent keyid="game-view-type-of-player-watcher"/> }
                         } else {
                             html!{ <LocaleComponent keyid="game-view-type-of-player-player"/> }
                         }
                     }</span>
+                    {" | 0 / "}
+                    {count_of_questions}
                     {" | "}
-                    {"3"}{" / "}{"12"}
-                    {" | "}
-                    <a href=""><LocaleComponent keyid="game-view-exit-the-game"/></a>
+                    <button type="button"><LocaleComponent keyid="game-view-exit-the-game"/></button>
                 </p>
             </main>
         }
