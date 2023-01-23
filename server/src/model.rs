@@ -100,6 +100,7 @@ impl Game {
     {
         shared_model::game::Game {
             invite_code: invite_code.into(),
+            configuration: self.configuration.into(),
             game_state: self
                 .game_state
                 .into_shared_model_game_state(&this_player_id, f),
@@ -116,6 +117,18 @@ pub struct GameConfiguration {
     pub count_of_questions: Option<u64>,
     pub minimum_score_per_question: Option<i64>,
     pub maximum_answer_time_per_question: Option<u64>,
+}
+
+// Allowing clippy::from_over_into, because don't want to and can't implement From<_> for shared_model.
+#[allow(clippy::from_over_into)]
+impl Into<shared_model::game::GameConfiguration> for GameConfiguration {
+    fn into(self) -> shared_model::game::GameConfiguration {
+        shared_model::game::GameConfiguration {
+            count_of_questions: self.count_of_questions,
+            minimum_score_per_question: self.minimum_score_per_question,
+            maximum_answer_time_per_question: self.maximum_answer_time_per_question,
+        }
+    }
 }
 
 /* GAME STATE */

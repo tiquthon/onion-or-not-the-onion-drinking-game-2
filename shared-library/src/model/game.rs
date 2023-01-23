@@ -10,6 +10,7 @@ use uuid::Uuid;
 #[derive(Clone, Eq, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Game {
     pub invite_code: InviteCode,
+    pub configuration: GameConfiguration,
     pub game_state: GameState,
     pub players: Vec<Player>,
     pub this_player_id: PlayerId,
@@ -26,6 +27,17 @@ impl Display for InviteCode {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
+}
+
+/* GAME CONFIGURATION */
+
+#[derive(
+    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, serde::Serialize, serde::Deserialize,
+)]
+pub struct GameConfiguration {
+    pub count_of_questions: Option<u64>,
+    pub minimum_score_per_question: Option<i64>,
+    pub maximum_answer_time_per_question: Option<u64>,
 }
 
 /* GAME STATE */
