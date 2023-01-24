@@ -30,7 +30,7 @@
 /* >   >   >   >   >   >   >       JOIN PANEL       <   <   <   <   <   <   < */
 /* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
 
-#join-panel {
+.join-panel {
     background-color: #84ab4a;
     margin: 0;
     padding: 10px;
@@ -41,7 +41,7 @@
 /* >   >   >   >   >   >   >      MAIN WRAPPER      <   <   <   <   <   <   < */
 /* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
 
-#main-wrapper {
+.main-wrapper {
     display: grid;
     grid-template-columns: 100%;
     grid-template-rows: min-content min-content min-content min-content min-content min-content min-content min-content min-content min-content 1fr;
@@ -56,7 +56,7 @@
 /*                            PLAYER NAME HEADLINE                            */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 
-#player-name-headline {
+.player-name-headline {
     grid-column: 1 / span 1;
     grid-row: 1 / span 1;
 
@@ -69,7 +69,7 @@
 /*                            PLAYER TYPE AND EXIT                            */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 
-#player-type-and-exit {
+.player-type-and-exit {
     grid-column: 1 / span 1;
     grid-row: 2 / span 1;
 
@@ -77,11 +77,11 @@
     margin: 0;
 }
 
-#exit-game-link {
+.exit-game-link {
     padding: 4px;
 }
 
-#player-type {
+.player-type {
     font-style: italic;
 }
 
@@ -479,7 +479,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 @media only screen and (min-width: 992px) {
-    #main-wrapper {
+    .main-wrapper {
         padding-right: 5%;
         padding-left: 5%;
 
@@ -502,7 +502,7 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 @media only screen and (min-width: 1200px) {
-    #main-wrapper {
+    .main-wrapper {
         padding-right: 10%;
         padding-left: 10%;
     }

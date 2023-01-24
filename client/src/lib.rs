@@ -54,6 +54,10 @@ impl Component for AppComponent {
                 };
                 true
             }
+            AppComponentMsg::NavigateToIndex => {
+                self.state = AppState::Index;
+                true
+            }
         }
     }
 
@@ -73,8 +77,11 @@ impl Component for AppComponent {
                                 <IndexComponent {on_join_lobby} {on_create_lobby}/>
                             }
                         },
-                        AppState::Play { create_join_lobby } => html! {
-                            <PlayComponent create_join_lobby={create_join_lobby.clone()}/>
+                        AppState::Play { create_join_lobby } => {
+                            let on_exit_game = ctx.link().callback(|_| AppComponentMsg::NavigateToIndex);
+                            html! {
+                                <PlayComponent create_join_lobby={create_join_lobby.clone()} {on_exit_game}/>
+                            }
                         },
                     }
                 }
@@ -89,6 +96,8 @@ pub enum AppComponentMsg {
 
     JoinLobby(routes::index::JoinLobby),
     CreateLobby(routes::index::CreateLobby),
+
+    NavigateToIndex,
 }
 
 enum AppState {

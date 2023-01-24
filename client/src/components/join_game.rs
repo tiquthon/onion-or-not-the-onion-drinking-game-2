@@ -1,4 +1,4 @@
-use yew::{html, Component, Context, Html};
+use yew::{classes, html, Component, Context, Html};
 
 use super::locale::LocaleComponent;
 
@@ -14,7 +14,7 @@ impl Component for JoinGameComponent {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
-            <aside>
+            <aside class={classes!("join-panel")}>
                 <LocaleComponent keyid="join-game-header-string-1"/>
                 {" "}
                 <span style="font-weight: bold;">{"tkprog.de/onto"}</span>

@@ -531,6 +531,8 @@ version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98c4a8d6391675c6b2ee1a6c8d06e8e2d03605c44cec1270675985a4c2a5500b"
 dependencies = [
+ "futures-channel",
+ "futures-core",
  "js-sys",
  "wasm-bindgen",
 ]
@@ -771,9 +773,11 @@ dependencies = [
  "futures-util",
  "gloo-net",
  "gloo-storage",
+ "gloo-timers",
  "js-sys",
  "log",
  "onion-or-not-the-onion-drinking-game-2-shared-library",
+ "tokio",
  "unic-langid",
  "wasm-bindgen",
  "wasm-bindgen-futures",
