@@ -133,16 +133,14 @@ async fn handle_message(
 #[derive(Clone, Debug)]
 struct ConnectionStore {
     connected_player_id: crate::model::PlayerId,
-    in_lobby: Option<crate::model::InviteCode>,
-    in_game: Option<Arc<tokio::sync::Mutex<crate::model::Game>>>,
+    in_play: Option<InPlay>,
 }
 
 impl ConnectionStore {
     pub fn new() -> Self {
         Self {
             connected_player_id: crate::model::PlayerId::generate(),
-            in_lobby: None,
-            in_game: None,
+            in_play: None,
         }
     }
 }
@@ -151,6 +149,14 @@ impl Default for ConnectionStore {
     fn default() -> Self {
         Self::new()
     }
+}
+
+#[derive(Clone, Debug)]
+struct InPlay {
+    #[allow(dead_code)]
+    invite_code: crate::model::InviteCode,
+    #[allow(dead_code)]
+    game: Arc<tokio::sync::Mutex<crate::model::Game>>,
 }
 
 async fn handle_create_lobby(
@@ -186,8 +192,10 @@ async fn handle_create_lobby(
         }],
     }));
 
-    connection_store.in_lobby = Some(new_invite_code.clone());
-    connection_store.in_game = Some(Arc::clone(&new_game));
+    connection_store.in_play = Some(InPlay {
+        invite_code: new_invite_code.clone(),
+        game: Arc::clone(&new_game),
+    });
 
     let mut locked_server = server.lock().await;
     locked_server
@@ -244,8 +252,7 @@ async fn handle_join_lobby(
     );
     drop(locked_game);
 
-    connection_store.in_lobby = Some(invite_code);
-    connection_store.in_game = Some(game);
+    connection_store.in_play = Some(InPlay { invite_code, game });
 
     Some(ServerMessage::LobbyJoined(joined_game))
 }
