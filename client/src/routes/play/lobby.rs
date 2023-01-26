@@ -73,7 +73,9 @@ impl Component for LobbyComponent {
                         <LocaleComponent keyid="lobby-view-welcome-headline"/>
                     </h1>
                     {
-                        if !is_watcher {
+                        if is_watcher {
+                            html! {}
+                        } else {
                             html! {
                                 <div class={classes!("start-form")}>
                                     <button type="button" id="start-form-submit-button" class={classes!("start-form-submit-button")}>
@@ -81,8 +83,6 @@ impl Component for LobbyComponent {
                                     </button>
                                 </div>
                             }
-                        } else {
-                            html! {}
                         }
                     }
                     <PlayerListComponent
