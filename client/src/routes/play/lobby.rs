@@ -87,7 +87,7 @@ impl Component for LobbyComponent {
                     }
                     <PlayerListComponent
                         players={ctx.props().game.players.clone()}
-                        this_player_id={ctx.props().game.this_player_id.clone()}/>
+                        this_player_id={ctx.props().game.this_player_id}/>
                 </section>
             </main>
         }

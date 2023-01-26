@@ -1,8 +1,10 @@
-use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Player, PlayerId, PlayType};
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{
+    PlayType, Player, PlayerId,
+};
 
-use yew::{classes, Component, Context, Html, html};
+use yew::{classes, html, Component, Context, Html};
 
-use crate::components::locale::{LocaleComponent, locale_args};
+use crate::components::locale::{locale_args, LocaleComponent};
 
 pub struct PlayerListComponent;
 
