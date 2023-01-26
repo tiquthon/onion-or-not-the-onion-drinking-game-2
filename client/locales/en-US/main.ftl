@@ -48,7 +48,18 @@ game-creation-form-error-message-timer-wanted-invalid = Timer could not be parse
 
 ## Game View
 
-game-view-type-of-player-watcher = Watcher
-game-view-type-of-player-player = Player
+play-view-type-of-player-watcher = Watcher
+play-view-type-of-player-player = Player
 
-game-view-exit-the-game = Exit The Game
+play-view-exit-the-game = Exit The Game
+
+play-view-players-headline = Players:
+play-view-players-no-one-here = No one here!
+play-view-players-is-watching = Watching
+play-view-players-points = { $points } { $points ->
+        [one] Point
+        *[other] Points
+    }
+
+lobby-view-welcome-headline = Welcome!
+lobby-view-start-game-button = START

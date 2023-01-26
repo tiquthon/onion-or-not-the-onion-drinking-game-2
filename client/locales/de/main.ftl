@@ -54,7 +54,18 @@ game-creation-form-error-message-timer-wanted-invalid = Der { game-creation-form
 
 ## Game View
 
-game-view-type-of-player-watcher = Zuschauer
-game-view-type-of-player-player = Spieler
+play-view-type-of-player-watcher = Zuschauer
+play-view-type-of-player-player = Spieler
 
-game-view-exit-the-game = Das Spiel verlassen
+play-view-exit-the-game = Das Spiel verlassen
+
+play-view-players-headline = Spieler:
+play-view-players-no-one-here = Keiner da!
+play-view-players-is-watching = Zuschauend
+play-view-players-points = { $points } { $points ->
+        [one] Punkt
+        *[other] Punkte
+    }
+
+lobby-view-welcome-headline = Willkommen!
+lobby-view-start-game-button = STARTEN

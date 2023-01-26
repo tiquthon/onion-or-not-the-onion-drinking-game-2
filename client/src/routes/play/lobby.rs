@@ -4,6 +4,7 @@ use yew::{classes, html, Callback, Component, Context, Html};
 
 use crate::components::join_game::JoinGameComponent;
 use crate::components::locale::LocaleComponent;
+use crate::components::playerlist::PlayerListComponent;
 
 pub struct LobbyComponent;
 
@@ -56,19 +57,37 @@ impl Component for LobbyComponent {
                     <p class={classes!("player-type-and-exit")}>
                         <span class={classes!("player-type")}>{
                             if is_watcher {
-                                html!{ <LocaleComponent keyid="game-view-type-of-player-watcher"/> }
+                                html!{ <LocaleComponent keyid="play-view-type-of-player-watcher"/> }
                             } else {
-                                html!{ <LocaleComponent keyid="game-view-type-of-player-player"/> }
+                                html!{ <LocaleComponent keyid="play-view-type-of-player-player"/> }
                             }
                         }</span>
                         {" | 0 / "}
                         {count_of_questions}
                         {" | "}
                         <button type="button" class={classes!("exit-game-link")} onclick={onclick_exit_game}>
-                            <LocaleComponent keyid="game-view-exit-the-game"/>
+                            <LocaleComponent keyid="play-view-exit-the-game"/>
                         </button>
                     </p>
-                    {"GAME VIEW"}
+                    <h1 class={classes!("welcome-headline")}>
+                        <LocaleComponent keyid="lobby-view-welcome-headline"/>
+                    </h1>
+                    {
+                        if !is_watcher {
+                            html! {
+                                <div class={classes!("start-form")}>
+                                    <button type="button" id="start-form-submit-button" class={classes!("start-form-submit-button")}>
+                                        <LocaleComponent keyid="lobby-view-start-game-button"/>
+                                    </button>
+                                </div>
+                            }
+                        } else {
+                            html! {}
+                        }
+                    }
+                    <PlayerListComponent
+                        players={ctx.props().game.players.clone()}
+                        this_player_id={ctx.props().game.this_player_id.clone()}/>
                 </section>
             </main>
         }
