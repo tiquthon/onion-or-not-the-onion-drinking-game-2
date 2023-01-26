@@ -403,47 +403,39 @@
     grid-column-gap: 5px;
 }
 
-.playerlist-span-username {
+.playerlist-username {
     grid-column: 1 / span 1;
 }
 
-.span-actual-user-is-username {
+.playerlist-actual-user-is-username {
     font-weight: bold;
 }
 
-.span-user-wants-to-skip {
+.playerlist-user-wants-to-skip {
     grid-column: 2 / span 1;
 }
 
-.span-user-wants-to-skip > img {
+.playerlist-user-wants-to-skip > img {
     height: 1em;
 }
 
-.span-user-has-answered {
+.playerlist-user-has-answered {
     grid-column: 3 / span 1;
 }
 
-.span-user-has-answered > img {
+.playerlist-user-has-answered > img {
     height: 1em;
 }
 
-.span-users-answer {
+.playerlist-users-answer {
     grid-column: 4 / span 1;
 }
 
-.span-users-answer > img {
+.playerlist-users-answer > img {
     height: 1em;
 }
 
-.span-users-answer-is-correct {
-
-}
-
-.span-users-answer-is-wrong {
-
-}
-
-.span-points-or-watching {
+.playerlist-points-or-watching {
     grid-column: 5 / span 1;
 
     white-space: nowrap;

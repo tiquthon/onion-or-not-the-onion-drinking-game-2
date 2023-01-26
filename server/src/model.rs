@@ -137,12 +137,12 @@ impl Into<shared_model::game::GameConfiguration> for GameConfiguration {
 pub enum GameState {
     InLobby,
     Playing {
-        previous_questions: Vec<(QuestionId, HashMap<PlayerId, Answer>)>,
-        current_question: QuestionId,
+        previous_questions: Vec<(AnsweredQuestion, HashMap<PlayerId, Answer>)>,
+        current_question: AnsweredQuestion,
         playing_state: PlayingState,
     },
     Aftermath {
-        questions: Vec<(QuestionId, HashMap<PlayerId, Answer>)>,
+        questions: Vec<(AnsweredQuestion, HashMap<PlayerId, Answer>)>,
         restart_request: Vec<PlayerId>,
     },
 }
@@ -163,8 +163,9 @@ impl GameState {
                 playing_state,
                 ..
             } => shared_model::game::GameState::Playing {
-                current_question: f(&current_question).unwrap().clone().into(),
-                playing_state: playing_state.into_shared_model_playing_state(own_id),
+                current_question: f(&current_question.question_id).unwrap().clone().into(),
+                playing_state: playing_state
+                    .into_shared_model_playing_state(own_id, current_question.answer),
             },
             GameState::Aftermath {
                 questions,
@@ -172,9 +173,9 @@ impl GameState {
             } => shared_model::game::GameState::Aftermath {
                 questions: questions
                     .into_iter()
-                    .map(|(question_id, player_answer_map)| {
+                    .map(|(answered_question, player_answer_map)| {
                         (
-                            f(&question_id).unwrap().clone().into(),
+                            answered_question.into_shared_model_answered_question(&f),
                             player_answer_map
                                 .into_iter()
                                 .map(|(player_id, answer)| (player_id.into(), answer.into()))
@@ -205,6 +206,29 @@ impl Display for QuestionId {
     }
 }
 
+/* ANSWERED QUESTION */
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+pub struct AnsweredQuestion {
+    question_id: QuestionId,
+    answer: Answer,
+}
+
+impl AnsweredQuestion {
+    pub fn into_shared_model_answered_question<F>(
+        self,
+        f: &F,
+    ) -> shared_model::game::AnsweredQuestion
+    where
+        F: Fn(&QuestionId) -> Option<&RedditSubmissionData>,
+    {
+        shared_model::game::AnsweredQuestion {
+            question: f(&self.question_id).unwrap().clone().into(),
+            answer: self.answer.into(),
+        }
+    }
+}
+
 /* PLAYING STATE */
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -224,6 +248,7 @@ impl PlayingState {
     pub fn into_shared_model_playing_state(
         self,
         own_id: &PlayerId,
+        correct_answer: Answer,
     ) -> shared_model::game::PlayingState {
         match self {
             PlayingState::Question {
@@ -243,6 +268,7 @@ impl PlayingState {
                 skip_request,
             } => shared_model::game::PlayingState::Solution {
                 time_until,
+                correct_answer: correct_answer.into(),
                 answers: answers
                     .into_iter()
                     .map(|(id, answer)| (id.into(), answer.into()))

@@ -50,7 +50,7 @@ pub enum GameState {
         playing_state: PlayingState,
     },
     Aftermath {
-        questions: Vec<(Question, HashMap<PlayerId, Answer>)>,
+        questions: Vec<(AnsweredQuestion, HashMap<PlayerId, Answer>)>,
         restart_requests: Vec<PlayerId>,
     },
 }
@@ -66,6 +66,16 @@ pub struct Question {
     pub preview_image_url: Option<String>,
 }
 
+/* ANSWERED QUESTION */
+
+#[derive(
+    Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, serde::Serialize, serde::Deserialize,
+)]
+pub struct AnsweredQuestion {
+    pub question: Question,
+    pub answer: Answer,
+}
+
 /* PLAYING STATE */
 
 #[derive(Clone, Eq, PartialEq, Debug, serde::Serialize, serde::Deserialize)] // Default, Display
@@ -77,6 +87,7 @@ pub enum PlayingState {
     },
     Solution {
         time_until: DateTime<Utc>,
+        correct_answer: Answer,
         answers: HashMap<PlayerId, Answer>,
         skip_request: Vec<PlayerId>,
     },
