@@ -166,19 +166,30 @@ impl PlayState {
                     | PlayState::Lobby { .. }
                     | PlayState::Game { .. }
                     | PlayState::Aftermath { .. } => {
-                        log::warn!("Received {server_message:?} and but I am in {self:?}; so doing nothing.");
+                        log::warn!(
+                            "Received {server_message:?} but I am in {self:?}; so doing nothing."
+                        );
                         // No-Op
                         false
                     }
                 }
             }
-            ServerMessage::GameFullUpdate(_) => {
-                // TODO
-                log::info!("Got Game Full Update");
-                false
+            ServerMessage::GameFullUpdate(game_update) => {
+                match &mut *self {
+                    PlayState::Lobby { game, .. } => {
+                        *game = Box::new(game_update.clone());
+                        true
+                    }
+                    PlayState::Connecting { .. } | PlayState::ConnectingError { .. } => {
+                        log::warn!(
+                            "Received {server_message:?} but I am in {self:?}; so doing nothing."
+                        );
+                        // No-Op
+                        false
+                    }
+                    _ => todo!(),
+                }
             }
-            ServerMessage::ErrorNewNameEmpty => todo!(),
-            ServerMessage::ErrorUnknownInviteCode => todo!(),
         }
     }
 
