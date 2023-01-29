@@ -85,6 +85,12 @@ impl LobbiesStorage {
 
         output
     }
+
+    pub async fn remove(&self, invite_code: &crate::model::InviteCode) {
+        let mut locked_internal = tokio::sync::Mutex::lock(&self.internal).await;
+        locked_internal.lobbies.remove(invite_code);
+        drop(locked_internal);
+    }
 }
 
 impl Default for LobbiesStorage {

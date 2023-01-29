@@ -25,26 +25,35 @@ pub async fn start_lobby_task(
         };
 
         while let Some((client_info, to_lobby_message)) = unbounded_receiver.recv().await {
-            process_client_message(
+            let process_client_message_result = process_client_message(
                 client_info,
                 to_lobby_message,
                 &invite_code,
                 &mut game,
                 &broadcast_sender,
-            );
+                &lobbies_storage,
+            )
+            .await;
+            if matches!(
+                process_client_message_result,
+                ProcessClientMessageResult::Exit
+            ) {
+                break;
+            }
         }
     });
 
     return_invite_code
 }
 
-fn process_client_message(
+async fn process_client_message(
     client_info: ClientInfo,
     to_lobby_message: ToLobbyMessage,
     invite_code: &crate::model::InviteCode,
     game: &mut crate::model::Game,
     broadcast_sender: &tokio::sync::broadcast::Sender<shared_model::network::ServerMessage>,
-) {
+    lobbies_storage: &LobbiesStorage,
+) -> ProcessClientMessageResult {
     let generate_game_full_update = |game: crate::model::Game| -> shared_model::game::Game {
         game.into_shared_model_game(invite_code.clone(), client_info.player_id, crate::data::get)
     };
@@ -83,12 +92,40 @@ fn process_client_message(
 
             let update_all_response = shared_model::network::ServerMessage::GameFullUpdate(game);
             broadcast_sender.send(update_all_response).unwrap();
+
+            ProcessClientMessageResult::Continue
+        }
+        ToLobbyMessage::Disconnect => {
+            // Process
+            game.players
+                .retain(|player| player.id != client_info.player_id);
+
+            if game.players.is_empty() {
+                lobbies_storage.remove(invite_code).await;
+
+                ProcessClientMessageResult::Exit
+            } else {
+                // Respond
+                let game = generate_game_full_update(game.clone());
+                let update_all_response =
+                    shared_model::network::ServerMessage::GameFullUpdate(game);
+                broadcast_sender.send(update_all_response).unwrap();
+
+                ProcessClientMessageResult::Continue
+            }
         }
         ToLobbyMessage::ClientMessage(shared_model::network::ClientMessage::RequestFullUpdate) => {
             // Respond
             let game = generate_game_full_update(game.clone());
             let response = shared_model::network::ServerMessage::GameFullUpdate(game);
             client_info.callback.send(response).unwrap();
+
+            ProcessClientMessageResult::Continue
         }
     }
+}
+
+enum ProcessClientMessageResult {
+    Continue,
+    Exit,
 }

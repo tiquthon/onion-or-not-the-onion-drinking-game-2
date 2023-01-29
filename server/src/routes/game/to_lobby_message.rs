@@ -7,6 +7,7 @@ pub enum ToLobbyMessage {
         just_watch: bool,
         register_type: RegisterType,
     },
+    Disconnect,
     ClientMessage(shared_model::network::ClientMessage),
 }
 

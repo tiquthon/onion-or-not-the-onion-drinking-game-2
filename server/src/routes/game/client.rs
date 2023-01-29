@@ -82,6 +82,15 @@ pub async fn start_client_network_task(
                     tracing::info!(
                         "WebSocket connection closed by client ({optional_close_reason:?})"
                     );
+                    unbounded_sender_to_lobby
+                        .send((
+                            ClientInfo {
+                                callback: unbounded_sender_from_lobby.clone(),
+                                player_id: this_player_id,
+                            },
+                            ToLobbyMessage::Disconnect,
+                        ))
+                        .unwrap();
                     break;
                 }
                 Message::Ping(bytes) => {
