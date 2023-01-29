@@ -19,7 +19,7 @@ path = "src/main.rs"
 [dependencies]
 # web framework
 actix-web = "4"
-tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync"] }
 actix-ws = "0.2"
 
 # own libraries

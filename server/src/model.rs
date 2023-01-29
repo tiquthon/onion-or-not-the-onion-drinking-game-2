@@ -13,7 +13,7 @@ const INVITE_CODE_CHARS: [char; 26] = [
     'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 ];
 
-const POSSIBLE_INVITE_CODE_COMBINATIONS: usize = INVITE_CODE_CHARS.len()
+pub const POSSIBLE_INVITE_CODE_COMBINATIONS: usize = INVITE_CODE_CHARS.len()
     * (INVITE_CODE_CHARS.len() - 1)
     * (INVITE_CODE_CHARS.len() - 2)
     * (INVITE_CODE_CHARS.len() - 3);

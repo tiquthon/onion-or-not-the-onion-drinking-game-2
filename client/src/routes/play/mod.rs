@@ -42,7 +42,7 @@ impl Component for PlayComponent {
             _context_listener: context_listener,
 
             state: PlayState::connect(
-                option_env!("BUILD_WEBSOCKET_ADDRESS").unwrap_or("ws://localhost:8000/api/ws"),
+                option_env!("BUILD_WEBSOCKET_ADDRESS").unwrap_or("ws://localhost:8000/api"),
                 ctx.link()
                     .callback(PlayComponentMsg::WebSocketMessageReceived),
                 ctx.link().callback(|_| PlayComponentMsg::WebSocketClosed),

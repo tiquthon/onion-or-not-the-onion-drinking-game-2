@@ -4,17 +4,13 @@ use std::task::Poll;
 use std::time::Duration;
 
 use futures_util::stream::{SplitSink, SplitStream};
-use futures_util::{SinkExt, StreamExt};
+use futures_util::StreamExt;
 
 use gloo_net::websocket::futures::WebSocket;
 use gloo_net::websocket::{Message, WebSocketError};
 
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::Game;
-use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::{
-    ClientMessage, ServerMessage,
-};
-
-use tokio::sync::Mutex as TokioMutex;
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::ServerMessage;
 
 use wasm_bindgen_futures::spawn_local;
 
@@ -28,48 +24,79 @@ pub enum PlayState {
         error: anyhow::Error,
     },
     Connecting {
-        web_socket_stream: Arc<TokioMutex<Option<SplitStream<WebSocket>>>>,
-        web_socket_sink: Arc<TokioMutex<Option<SplitSink<WebSocket, Message>>>>,
+        web_socket_stream: Arc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
+        web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
     },
     Lobby {
-        web_socket_stream: Arc<TokioMutex<Option<SplitStream<WebSocket>>>>,
-        web_socket_sink: Arc<TokioMutex<Option<SplitSink<WebSocket, Message>>>>,
+        web_socket_stream: Arc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
+        web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
         game: Box<Game>,
     },
     // TODO
     #[allow(dead_code)]
     Game {
-        web_socket_stream: Arc<TokioMutex<Option<SplitStream<WebSocket>>>>,
-        web_socket_sink: Arc<TokioMutex<Option<SplitSink<WebSocket, Message>>>>,
+        web_socket_stream: Arc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
+        web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
     },
     // TODO
     #[allow(dead_code)]
     Aftermath {
-        web_socket_stream: Arc<TokioMutex<Option<SplitStream<WebSocket>>>>,
-        web_socket_sink: Arc<TokioMutex<Option<SplitSink<WebSocket, Message>>>>,
+        web_socket_stream: Arc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
+        web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
     },
 }
 
 impl PlayState {
     pub fn connect(
-        web_socket_address: &str,
+        web_socket_address_root: &str,
         on_message_received: Callback<Result<Message, WebSocketError>>,
         on_connection_closed: Callback<()>,
         create_join_lobby: &CreateJoinLobby,
     ) -> Self {
-        match WebSocket::open(web_socket_address) {
+        let web_socket_address = match create_join_lobby {
+            CreateJoinLobby::Create(CreateLobby {
+                player_name,
+                just_watch,
+                count_of_questions,
+                minimum_score_of_questions,
+                timer,
+            }) => {
+                let player_name = urlencoding::encode(player_name);
+                let count_of_questions = count_of_questions
+                    .map(|v| format!("&count_of_questions={v}"))
+                    .unwrap_or_default();
+                let minimum_score_of_questions = minimum_score_of_questions
+                    .map(|v| format!("&count_of_questions={v}"))
+                    .unwrap_or_default();
+                let timer = timer
+                    .map(|v| format!("&count_of_questions={v}"))
+                    .unwrap_or_default();
+                format!("{web_socket_address_root}/create?player_name={player_name}&just_watch={just_watch}{count_of_questions}{minimum_score_of_questions}{timer}")
+            }
+            CreateJoinLobby::Join(JoinLobby {
+                player_name,
+                invite_code,
+                just_watch,
+            }) => {
+                format!("{web_socket_address_root}/join/{invite_code}?player_name={player_name}&just_watch={just_watch}")
+            }
+        };
+
+        log::info!("web_socket_address: {web_socket_address}");
+
+        match WebSocket::open(&web_socket_address) {
             Ok(web_socket) => {
                 let (sink, stream) = web_socket.split();
 
-                let stream_arc = Arc::new(TokioMutex::new(Some(stream)));
+                let stream_arc = Arc::new(tokio::sync::Mutex::new(Some(stream)));
                 let cloned_stream_arc = Arc::clone(&stream_arc);
 
-                let sink_arc = Arc::new(TokioMutex::new(Some(sink)));
-                let cloned_sink_arc = Arc::clone(&sink_arc);
+                let sink_arc = Arc::new(tokio::sync::Mutex::new(Some(sink)));
 
                 spawn_local(async move {
                     loop {
-                        let mut locked_optional_stream = TokioMutex::lock(&cloned_stream_arc).await;
+                        let mut locked_optional_stream =
+                            tokio::sync::Mutex::lock(&cloned_stream_arc).await;
                         match &mut *locked_optional_stream {
                             Some(locked_stream) => {
                                 let stream_result_optional_poll = futures_util::poll!(
@@ -104,41 +131,6 @@ impl PlayState {
                     }
 
                     on_connection_closed.emit(());
-                });
-
-                let initial_message = match create_join_lobby {
-                    CreateJoinLobby::Create(CreateLobby {
-                        player_name,
-                        just_watch,
-                        count_of_questions,
-                        minimum_score_of_questions,
-                        timer,
-                    }) => ClientMessage::CreateLobby {
-                        player_name: player_name.clone(),
-                        just_watch: *just_watch,
-                        count_of_questions: *count_of_questions,
-                        minimum_score_per_question: *minimum_score_of_questions,
-                        maximum_answer_time_per_question: *timer,
-                    },
-                    CreateJoinLobby::Join(JoinLobby {
-                        player_name,
-                        invite_code,
-                        just_watch,
-                    }) => ClientMessage::JoinLobby {
-                        player_name: player_name.clone(),
-                        invite_code: invite_code.clone(),
-                        just_watch: *just_watch,
-                    },
-                };
-
-                spawn_local(async move {
-                    let mut locked_cloned_sink = cloned_sink_arc.lock().await;
-                    locked_cloned_sink
-                        .as_mut()
-                        .unwrap()
-                        .send(Message::Bytes(initial_message.try_into().unwrap()))
-                        .await
-                        .unwrap();
                 });
 
                 PlayState::Connecting {
@@ -180,7 +172,11 @@ impl PlayState {
                     }
                 }
             }
-            ServerMessage::GameFullUpdate(_) => todo!(),
+            ServerMessage::GameFullUpdate(_) => {
+                // TODO
+                log::info!("Got Game Full Update");
+                false
+            }
             ServerMessage::ErrorNewNameEmpty => todo!(),
             ServerMessage::ErrorUnknownInviteCode => todo!(),
         }
@@ -209,9 +205,9 @@ impl PlayState {
                 let cloned_web_socket_sink = Arc::clone(web_socket_sink);
                 spawn_local(async move {
                     let mut locked_cloned_websocket_stream =
-                        TokioMutex::lock(&cloned_websocket_stream).await;
+                        tokio::sync::Mutex::lock(&cloned_websocket_stream).await;
                     let mut locked_cloned_websocket_sink =
-                        TokioMutex::lock(&cloned_web_socket_sink).await;
+                        tokio::sync::Mutex::lock(&cloned_web_socket_sink).await;
                     let optional_websocket_stream =
                         Option::take(&mut locked_cloned_websocket_stream);
                     let optional_websocket_sink = Option::take(&mut locked_cloned_websocket_sink);

@@ -2,18 +2,7 @@ use crate::model::game::Game;
 
 #[derive(Clone, Eq, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
 pub enum ClientMessage {
-    CreateLobby {
-        player_name: String,
-        just_watch: bool,
-        count_of_questions: Option<u64>,
-        minimum_score_per_question: Option<i64>,
-        maximum_answer_time_per_question: Option<u64>,
-    },
-    JoinLobby {
-        player_name: String,
-        invite_code: String,
-        just_watch: bool,
-    },
+    RequestFullUpdate,
 }
 
 impl TryFrom<&[u8]> for ClientMessage {

@@ -1,5 +1,4 @@
 use std::net::TcpListener;
-use std::sync::Arc;
 
 use actix_web::dev::Server;
 use actix_web::{web, App, HttpServer};
@@ -7,8 +6,8 @@ use actix_web::{web, App, HttpServer};
 use tracing_actix_web::TracingLogger;
 
 use crate::configuration::Configuration;
-use crate::model;
-use crate::routes::websocket::ws;
+use crate::routes::game::lobbies_storage::LobbiesStorage;
+use crate::routes::game::{create_lobby, join_lobby};
 
 pub struct Application {
     #[allow(dead_code)]
@@ -34,12 +33,13 @@ impl Application {
 }
 
 async fn run(tcp_listener: TcpListener) -> anyhow::Result<Server> {
-    let server_data = Arc::new(tokio::sync::Mutex::new(model::Server::new()));
+    let lobbies_storage = LobbiesStorage::default();
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
-            .route("/ws", web::get().to(ws))
-            .app_data(web::Data::new(Arc::clone(&server_data)))
+            .route("/create", web::get().to(create_lobby))
+            .route("/join/{invite_code}", web::get().to(join_lobby))
+            .app_data(web::Data::new(lobbies_storage.clone()))
     })
     .listen(tcp_listener)?
     .run();
