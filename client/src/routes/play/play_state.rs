@@ -206,6 +206,7 @@ impl PlayState {
             ServerMessage::GameFullUpdate(game_update) => {
                 match &mut *self {
                     PlayState::Lobby { game, .. } => {
+                        log::info!("Received Game Full Update");
                         *game = Box::new(game_update.clone());
                         true
                     }

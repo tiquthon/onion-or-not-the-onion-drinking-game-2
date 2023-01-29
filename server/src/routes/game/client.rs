@@ -21,11 +21,12 @@ pub async fn start_client_network_task(
     let (unbounded_sender_from_lobby, mut unbounded_receiver_from_lobby) =
         tokio::sync::mpsc::unbounded_channel::<shared_model::network::ServerMessage>();
 
-    let player_id = crate::model::PlayerId::generate();
+    let this_player_id = crate::model::PlayerId::generate();
 
     let mut cloned_session = session.clone();
     tokio::spawn(async move {
-        while let Ok(server_message) = broadcast_receiver_from_lobby.recv().await {
+        while let Ok(mut server_message) = broadcast_receiver_from_lobby.recv().await {
+            server_message.replace_this_player_id_with(this_player_id.into());
             let server_message: Vec<u8> = server_message.try_into().unwrap();
             cloned_session.binary(server_message).await.unwrap();
         }
@@ -33,7 +34,8 @@ pub async fn start_client_network_task(
 
     let mut cloned_session = session.clone();
     tokio::spawn(async move {
-        while let Some(server_message) = unbounded_receiver_from_lobby.recv().await {
+        while let Some(mut server_message) = unbounded_receiver_from_lobby.recv().await {
+            server_message.replace_this_player_id_with(this_player_id.into());
             let server_message: Vec<u8> = server_message.try_into().unwrap();
             cloned_session.binary(server_message).await.unwrap();
         }
@@ -44,7 +46,7 @@ pub async fn start_client_network_task(
             .send((
                 ClientInfo {
                     callback: unbounded_sender_from_lobby.clone(),
-                    player_id,
+                    player_id: this_player_id,
                 },
                 ToLobbyMessage::Register {
                     name: player_name,
@@ -63,7 +65,7 @@ pub async fn start_client_network_task(
                                 .send((
                                     ClientInfo {
                                         callback: unbounded_sender_from_lobby.clone(),
-                                        player_id,
+                                        player_id: this_player_id,
                                     },
                                     ToLobbyMessage::ClientMessage(client_message),
                                 ))

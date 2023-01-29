@@ -53,6 +53,16 @@ pub enum ServerMessage {
     GameFullUpdate(Game),
 }
 
+impl ServerMessage {
+    pub fn replace_this_player_id_with(&mut self, this_player_id: crate::model::game::PlayerId) {
+        match self {
+            Self::LobbyCreated(game) | Self::LobbyJoined(game) | Self::GameFullUpdate(game) => {
+                game.this_player_id = this_player_id;
+            }
+        }
+    }
+}
+
 impl TryFrom<&[u8]> for ServerMessage {
     type Error = ServerMessageTryFromByteSliceError;
 
