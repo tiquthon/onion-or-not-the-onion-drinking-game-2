@@ -4,13 +4,15 @@ use std::task::Poll;
 use std::time::Duration;
 
 use futures_util::stream::{SplitSink, SplitStream};
-use futures_util::StreamExt;
+use futures_util::{SinkExt, StreamExt};
 
 use gloo_net::websocket::futures::WebSocket;
 use gloo_net::websocket::{Message, WebSocketError};
 
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::Game;
-use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::ServerMessage;
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::{
+    ClientMessage, ServerMessage,
+};
 
 use wasm_bindgen_futures::spawn_local;
 
@@ -92,8 +94,11 @@ impl PlayState {
                 let cloned_stream_arc = Arc::clone(&stream_arc);
 
                 let sink_arc = Arc::new(tokio::sync::Mutex::new(Some(sink)));
+                let cloned_sink_arc = Arc::clone(&sink_arc);
 
                 spawn_local(async move {
+                    let mut last_game_updated_requested_on = wasm_timer::Instant::now();
+
                     loop {
                         let mut locked_optional_stream =
                             tokio::sync::Mutex::lock(&cloned_stream_arc).await;
@@ -113,6 +118,30 @@ impl PlayState {
                                         break;
                                     }
                                     Poll::Pending => {
+                                        // No value in stream yet, but stream still open.
+
+                                        // Send a Ping to keep the connection open.
+                                        if last_game_updated_requested_on.elapsed().as_secs_f64()
+                                            > 30.0
+                                        {
+                                            last_game_updated_requested_on =
+                                                wasm_timer::Instant::now();
+
+                                            let mut locked_optional_sink =
+                                                tokio::sync::Mutex::lock(&cloned_sink_arc).await;
+                                            if let Some(locked_sink) = &mut *locked_optional_sink {
+                                                locked_sink
+                                                    .send(Message::Bytes(
+                                                        ClientMessage::RequestFullUpdate
+                                                            .try_into()
+                                                            .unwrap(),
+                                                    ))
+                                                    .await
+                                                    .unwrap();
+                                            }
+                                            drop(locked_optional_sink);
+                                        }
+
                                         /* No value in stream yet, but stream still open
                                          * => sleep to give possible "exit"-action from user time
                                          * to replace Option<SplitStream<_>> with None

@@ -66,7 +66,14 @@ impl Component for PlayComponent {
                     let server_message = ServerMessage::try_from(&bytes[..]).unwrap();
                     self.state.handle_server_message(server_message)
                 }
-                Ok(Message::Text(_)) | Err(_) => panic!(),
+                Ok(Message::Text(text)) => {
+                    log::warn!("Received TEXT {text}");
+                    panic!();
+                }
+                Err(error) => {
+                    log::warn!("Received ERROR {error} ({error:?})");
+                    panic!();
+                }
             },
             PlayComponentMsg::ExitGame => {
                 self.state.exit(ctx.props().on_exit_game.clone());
