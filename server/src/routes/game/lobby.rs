@@ -55,6 +55,7 @@ fn process_client_message(
             just_watch,
             register_type,
         } => {
+            // Process
             game.players
                 .retain(|player| player.id != client_info.player_id);
             game.players.push(crate::model::Player {
@@ -67,6 +68,7 @@ fn process_client_message(
                 },
             });
 
+            // Respond
             let game = generate_game_full_update(game.clone());
 
             let create_or_join_response = match register_type {
@@ -83,6 +85,7 @@ fn process_client_message(
             broadcast_sender.send(update_all_response).unwrap();
         }
         ToLobbyMessage::ClientMessage(shared_model::network::ClientMessage::RequestFullUpdate) => {
+            // Respond
             let game = generate_game_full_update(game.clone());
             let response = shared_model::network::ServerMessage::GameFullUpdate(game);
             client_info.callback.send(response).unwrap();

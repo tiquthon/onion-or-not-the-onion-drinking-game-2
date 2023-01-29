@@ -34,9 +34,15 @@ pub async fn create_lobby(
     )
     .await;
 
+    tracing::info!(
+        "Created Lobby \"{invite_code}\" by player \"{player_name}\" (just_watch:{just_watch}) with \
+        {count_of_questions:?} questions, {minimum_score_per_question:?} minimum score and \
+        {maximum_answer_time_per_question:?} maximum answer time"
+    );
+
     start_client_network_task(
-        crate::model::PlayerName(player_name),
-        invite_code,
+        crate::model::PlayerName(player_name.clone()),
+        invite_code.clone(),
         just_watch,
         LobbiesStorage::clone(&lobbies),
         session,
@@ -44,6 +50,10 @@ pub async fn create_lobby(
         ClientType::LobbyCreator,
     )
     .await;
+
+    tracing::info!(
+        "Player \"{player_name}\" joined lobby \"{invite_code}\" (just_watch:{just_watch})"
+    );
 
     Ok(response)
 }
@@ -74,8 +84,8 @@ pub async fn join_lobby(
     let (response, session, msg_stream) = actix_ws::handle(&req, body)?;
 
     start_client_network_task(
-        crate::model::PlayerName(player_name),
-        crate::model::InviteCode(invite_code),
+        crate::model::PlayerName(player_name.clone()),
+        crate::model::InviteCode(invite_code.clone()),
         just_watch,
         LobbiesStorage::clone(&lobbies),
         session,
@@ -83,6 +93,10 @@ pub async fn join_lobby(
         ClientType::LobbyJoiner,
     )
     .await;
+
+    tracing::info!(
+        "Player \"{player_name}\" joined lobby \"{invite_code}\" (just_watch:{just_watch})"
+    );
 
     Ok(response)
 }
