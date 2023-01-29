@@ -13,6 +13,9 @@ join-game-header-string-1 = Join Game with
 join-game-header-string-2 = and Code
 join-game-header-string-3 = {""}
 
+cancel-button-text = CANCEL
+go-back-button-text = GO BACK
+
 ## Game Creation Form
 
 game-creation-form-username-label = Playername
@@ -46,7 +49,12 @@ game-creation-form-error-message-max-questions-invalid = Count of Questions coul
 game-creation-form-error-message-minimum-score-invalid = Minimum Score of Questions could not be parsed.
 game-creation-form-error-message-timer-wanted-invalid = Timer could not be parsed.
 
-## Game View
+## Connecting View
+
+connecting-view-connecting-string = Connecting...
+connecting-view-error-occurred-string = An error occurred while connecting.
+
+## Play View
 
 play-view-type-of-player-watcher = Watcher
 play-view-type-of-player-player = Player

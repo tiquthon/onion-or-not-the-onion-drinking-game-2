@@ -13,6 +13,7 @@ use lobby::LobbyComponent;
 use play_state::PlayState;
 
 use crate::routes::index::{CreateLobby, JoinLobby};
+use crate::routes::play::connecting::ConnectingComponentState;
 
 pub mod aftermath;
 pub mod connecting;
@@ -67,32 +68,43 @@ impl Component for PlayComponent {
                     self.state.handle_server_message(server_message)
                 }
                 Ok(Message::Text(text)) => {
-                    log::warn!("Received TEXT {text}");
-                    panic!();
+                    log::warn!("Received text from WebSocket \"{text}\"; ignoring it...");
+                    false
                 }
                 Err(error) => {
-                    log::warn!("Received ERROR {error} ({error:?})");
-                    panic!();
+                    log::warn!("An error occurred: {error} ({error:?})");
+                    self.state = PlayState::ConnectingError {
+                        error: error.into(),
+                    };
+                    true
                 }
             },
+            PlayComponentMsg::GoBackToIndex => {
+                ctx.props().on_go_back_to_index.emit(());
+                false
+            }
             PlayComponentMsg::ExitGame => {
-                self.state.exit(ctx.props().on_exit_game.clone());
+                self.state.exit(ctx.props().on_go_back_to_index.clone());
                 false
             }
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let on_exit_game_wish = ctx.link().callback(|_| PlayComponentMsg::ExitGame);
-
         match &self.state {
             PlayState::ConnectingError { .. } => {
-                html! { <ConnectingComponent /> }
+                let on_go_back = ctx.link().callback(|_| PlayComponentMsg::GoBackToIndex);
+
+                html! { <ConnectingComponent state={ConnectingComponentState::Failed} {on_go_back} /> }
             }
             PlayState::Connecting { .. } => {
-                html! { <ConnectingComponent /> }
+                let on_cancel = ctx.link().callback(|_| PlayComponentMsg::ExitGame);
+
+                html! { <ConnectingComponent state={ConnectingComponentState::Connecting} {on_cancel} /> }
             }
             PlayState::Lobby { game, .. } => {
+                let on_exit_game_wish = ctx.link().callback(|_| PlayComponentMsg::ExitGame);
+
                 html! { <LobbyComponent game={AsRef::as_ref(game).clone()} {on_exit_game_wish} /> }
             }
             PlayState::Game { .. } => {
@@ -110,13 +122,14 @@ pub enum PlayComponentMsg {
     WebSocketClosed,
     WebSocketMessageReceived(Result<Message, WebSocketError>),
 
+    GoBackToIndex,
     ExitGame,
 }
 
 #[derive(yew::Properties, PartialEq)]
 pub struct PlayComponentProps {
     pub create_join_lobby: CreateJoinLobby,
-    pub on_exit_game: Callback<()>,
+    pub on_go_back_to_index: Callback<()>,
 }
 
 #[derive(PartialEq, Clone)]

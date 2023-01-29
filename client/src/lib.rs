@@ -74,13 +74,13 @@ impl Component for AppComponent {
                             let on_join_lobby = ctx.link().callback(AppComponentMsg::JoinLobby);
                             let on_create_lobby = ctx.link().callback(AppComponentMsg::CreateLobby);
                             html! {
-                                <IndexComponent {on_join_lobby} {on_create_lobby}/>
+                                <IndexComponent {on_join_lobby} {on_create_lobby} />
                             }
                         },
                         AppState::Play { create_join_lobby } => {
-                            let on_exit_game = ctx.link().callback(|_| AppComponentMsg::NavigateToIndex);
+                            let on_go_back_to_index = ctx.link().callback(|_| AppComponentMsg::NavigateToIndex);
                             html! {
-                                <PlayComponent create_join_lobby={create_join_lobby.clone()} {on_exit_game}/>
+                                <PlayComponent create_join_lobby={create_join_lobby.clone()} {on_go_back_to_index} />
                             }
                         },
                     }

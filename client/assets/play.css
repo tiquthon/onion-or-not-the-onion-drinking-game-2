@@ -26,6 +26,24 @@
     padding: 0 0 10px;
 }
 
+.connecting-main {
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: min-content min-content;
+
+    grid-row-gap: 10px;
+
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.connecting-text {
+    margin-top: 10px;
+    margin-bottom: 10px;
+
+    font-weight: bold;
+}
+
 /* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
 /* >   >   >   >   >   >   >       JOIN PANEL       <   <   <   <   <   <   < */
 /* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
@@ -471,6 +489,12 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 @media only screen and (min-width: 992px) {
+    .connecting-main {
+        padding-left: 5%;
+        padding-right: 5%;
+
+        grid-column-gap: 10px;
+    }
     .main-wrapper {
         padding-right: 5%;
         padding-left: 5%;
@@ -494,6 +518,11 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 @media only screen and (min-width: 1200px) {
+    .connecting-main {
+        padding-left: 10%;
+        padding-right: 10%;
+    }
+
     .main-wrapper {
         padding-right: 10%;
         padding-left: 10%;

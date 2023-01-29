@@ -14,6 +14,9 @@ join-game-header-string-1 = Tritt dem Spiel auf
 join-game-header-string-2 = mit dem Code
 join-game-header-string-3 = bei!
 
+cancel-button-text = ABBRECHEN
+go-back-button-text = ZURÜCK
+
 ## Game Creation Form
 
 game-creation-form-username-label = Spielername
@@ -52,7 +55,12 @@ game-creation-form-error-message-max-questions-invalid = Die { game-creation-for
 game-creation-form-error-message-minimum-score-invalid = Der { -minimum-score(inflection: "weak") } konnte nicht verarbeitet werden.
 game-creation-form-error-message-timer-wanted-invalid = Der { game-creation-form-timer-wanted-label } konnte nicht verarbeitet werden.
 
-## Game View
+## Connecting View
+
+connecting-view-connecting-string = Verbinde...
+connecting-view-error-occurred-string = Ein Fehler trat während des Verbindens auf.
+
+## Play View
 
 play-view-type-of-player-watcher = Zuschauer
 play-view-type-of-player-player = Spieler
