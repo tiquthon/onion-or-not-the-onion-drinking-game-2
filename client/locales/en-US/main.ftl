@@ -52,7 +52,7 @@ game-creation-form-error-message-timer-wanted-invalid = Timer could not be parse
 ## Connecting View
 
 connecting-view-connecting-string = Connecting...
-connecting-view-error-occurred-string = An error occurred while connecting.
+connecting-view-error-occurred-string = A connection error occurred.
 
 ## Play View
 
