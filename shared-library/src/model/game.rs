@@ -81,7 +81,7 @@ pub struct AnsweredQuestion {
 #[derive(Clone, Eq, PartialEq, Debug, serde::Serialize, serde::Deserialize)] // Default, Display
 pub enum PlayingState {
     Question {
-        time_until: DateTime<Utc>,
+        time_until: Option<DateTime<Utc>>,
         answers: Vec<PlayerId>,
         own_answer: Option<Answer>,
     },

@@ -22,6 +22,11 @@ impl Component for LobbyComponent {
                 ctx.props().on_exit_game_wish.emit(());
                 false
             }
+            LobbyComponentMsg::StartGame => {
+                log::info!("START GAME A");
+                ctx.props().on_start_game.emit(());
+                false
+            }
         }
     }
 
@@ -48,6 +53,8 @@ impl Component for LobbyComponent {
             .unwrap_or_else(|| "\u{221E}".to_string());
 
         let onclick_exit_game = ctx.link().callback(|_| LobbyComponentMsg::ExitGame);
+
+        let onclick_start_game = ctx.link().callback(|_| LobbyComponentMsg::StartGame);
 
         html! {
             <main class={classes!("play-main")}>
@@ -78,7 +85,7 @@ impl Component for LobbyComponent {
                         } else {
                             html! {
                                 <div class={classes!("start-form")}>
-                                    <button type="button" id="start-form-submit-button" class={classes!("start-form-submit-button")}>
+                                    <button type="button" id="start-form-submit-button" class={classes!("start-form-submit-button")} onclick={onclick_start_game}>
                                         <LocaleComponent keyid="lobby-view-start-game-button"/>
                                     </button>
                                 </div>
@@ -97,10 +104,12 @@ impl Component for LobbyComponent {
 
 pub enum LobbyComponentMsg {
     ExitGame,
+    StartGame,
 }
 
 #[derive(yew::Properties, PartialEq)]
 pub struct LobbyComponentProps {
     pub game: Game,
     pub on_exit_game_wish: Callback<()>,
+    pub on_start_game: Callback<()>,
 }

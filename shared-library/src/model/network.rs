@@ -3,6 +3,8 @@ use crate::model::game::Game;
 #[derive(Clone, Eq, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
 pub enum ClientMessage {
     RequestFullUpdate,
+
+    StartGame,
 }
 
 impl TryFrom<&[u8]> for ClientMessage {

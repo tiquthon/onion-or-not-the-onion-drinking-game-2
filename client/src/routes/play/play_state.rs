@@ -9,7 +9,7 @@ use futures_util::{SinkExt, StreamExt};
 use gloo_net::websocket::futures::WebSocket;
 use gloo_net::websocket::{Message, WebSocketError};
 
-use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::Game;
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Game, GameState};
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::{
     ClientMessage, ServerMessage,
 };
@@ -29,22 +29,10 @@ pub enum PlayState {
         web_socket_stream: Arc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
         web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
     },
-    Lobby {
+    Playing {
         web_socket_stream: Arc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
         web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
         game: Box<Game>,
-    },
-    // TODO
-    #[allow(dead_code)]
-    Game {
-        web_socket_stream: Arc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
-        web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
-    },
-    // TODO
-    #[allow(dead_code)]
-    Aftermath {
-        web_socket_stream: Arc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
-        web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
     },
 }
 
@@ -84,7 +72,7 @@ impl PlayState {
             }
         };
 
-        log::info!("web_socket_address: {web_socket_address}");
+        log::info!("Connecting to {web_socket_address}");
 
         match WebSocket::open(&web_socket_address) {
             Ok(web_socket) => {
@@ -184,17 +172,14 @@ impl PlayState {
                         web_socket_stream,
                         web_socket_sink,
                     } => {
-                        *self = PlayState::Lobby {
+                        *self = PlayState::Playing {
                             web_socket_stream: Arc::clone(web_socket_stream),
                             web_socket_sink: Arc::clone(web_socket_sink),
                             game: Box::new(game.clone()),
                         };
                         true
                     }
-                    PlayState::ConnectingError { .. }
-                    | PlayState::Lobby { .. }
-                    | PlayState::Game { .. }
-                    | PlayState::Aftermath { .. } => {
+                    PlayState::ConnectingError { .. } | PlayState::Playing { .. } => {
                         log::warn!(
                             "Received {server_message:?} but I am in {self:?}; so doing nothing."
                         );
@@ -205,7 +190,7 @@ impl PlayState {
             }
             ServerMessage::GameFullUpdate(game_update) => {
                 match &mut *self {
-                    PlayState::Lobby { game, .. } => {
+                    PlayState::Playing { game, .. } => {
                         log::info!("Received Game Full Update");
                         *game = Box::new(game_update.clone());
                         true
@@ -217,9 +202,38 @@ impl PlayState {
                         // No-Op
                         false
                     }
-                    _ => todo!(),
                 }
             }
+        }
+    }
+
+    pub fn wish_for_game_start(&self) {
+        if let PlayState::Playing {
+            web_socket_sink,
+            game,
+            ..
+        } = self
+        {
+            if matches!(game.game_state, GameState::InLobby) {
+                let cloned_web_socket_sink = Arc::clone(web_socket_sink);
+                spawn_local(async move {
+                    let mut locked_optional_sink =
+                        tokio::sync::Mutex::lock(&cloned_web_socket_sink).await;
+                    if let Some(locked_sink) = &mut *locked_optional_sink {
+                        let message = ClientMessage::StartGame;
+                        locked_sink
+                            .send(Message::Bytes(message.try_into().unwrap()))
+                            .await
+                            .unwrap();
+                    } else {
+                        log::error!("There is a wish for game start, but I do not have a WebSocket sink to write to.");
+                    }
+                });
+            } else {
+                log::error!("There is a wish for game start, but I am not in Playing GameState::InLobby; doing nothing.");
+            }
+        } else {
+            log::error!("There is a wish for game start, but I am in {self:?}; doing nothing.");
         }
     }
 
@@ -229,18 +243,10 @@ impl PlayState {
                 web_socket_stream,
                 web_socket_sink,
             }
-            | PlayState::Lobby {
+            | PlayState::Playing {
                 web_socket_stream,
                 web_socket_sink,
                 ..
-            }
-            | PlayState::Game {
-                web_socket_stream,
-                web_socket_sink,
-            }
-            | PlayState::Aftermath {
-                web_socket_stream,
-                web_socket_sink,
             } => {
                 let cloned_websocket_stream = Arc::clone(web_socket_stream);
                 let cloned_web_socket_sink = Arc::clone(web_socket_sink);
@@ -276,12 +282,10 @@ impl Debug for PlayState {
                 .field("error", error)
                 .finish(),
             PlayState::Connecting { .. } => f.debug_struct("PlayState::Connecting").finish(),
-            PlayState::Lobby { game, .. } => f
+            PlayState::Playing { game, .. } => f
                 .debug_struct("PlayState::Lobby")
                 .field("game", game)
                 .finish(),
-            PlayState::Game { .. } => f.debug_struct("PlayState::Game").finish(),
-            PlayState::Aftermath { .. } => f.debug_struct("PlayState::Aftermath").finish(),
         }
     }
 }

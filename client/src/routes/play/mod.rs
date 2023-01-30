@@ -2,6 +2,7 @@ use fluent_templates::LanguageIdentifier;
 
 use gloo_net::websocket::{Message, WebSocketError};
 
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::GameState;
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::ServerMessage;
 
 use yew::{html, Callback, Component, Context, ContextHandle, Html};
@@ -87,6 +88,10 @@ impl Component for PlayComponent {
                 self.state.exit(ctx.props().on_go_back_to_index.clone());
                 false
             }
+            PlayComponentMsg::StartGame => {
+                self.state.wish_for_game_start();
+                false
+            }
         }
     }
 
@@ -102,17 +107,20 @@ impl Component for PlayComponent {
 
                 html! { <ConnectingComponent state={ConnectingComponentState::Connecting} {on_cancel} /> }
             }
-            PlayState::Lobby { game, .. } => {
-                let on_exit_game_wish = ctx.link().callback(|_| PlayComponentMsg::ExitGame);
+            PlayState::Playing { game, .. } => match game.game_state {
+                GameState::InLobby => {
+                    let on_exit_game_wish = ctx.link().callback(|_| PlayComponentMsg::ExitGame);
+                    let on_start_game = ctx.link().callback(|_| PlayComponentMsg::StartGame);
 
-                html! { <LobbyComponent game={AsRef::as_ref(game).clone()} {on_exit_game_wish} /> }
-            }
-            PlayState::Game { .. } => {
-                html! { <GameComponent /> }
-            }
-            PlayState::Aftermath { .. } => {
-                html! { <AftermathComponent /> }
-            }
+                    html! { <LobbyComponent game={AsRef::as_ref(game).clone()} {on_exit_game_wish} {on_start_game} /> }
+                }
+                GameState::Playing { .. } => {
+                    html! { <GameComponent /> }
+                }
+                GameState::Aftermath { .. } => {
+                    html! { <AftermathComponent /> }
+                }
+            },
         }
     }
 }
@@ -124,6 +132,7 @@ pub enum PlayComponentMsg {
 
     GoBackToIndex,
     ExitGame,
+    StartGame,
 }
 
 #[derive(yew::Properties, PartialEq)]

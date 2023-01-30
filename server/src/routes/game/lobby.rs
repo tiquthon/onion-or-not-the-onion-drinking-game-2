@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+
+use chrono::Utc;
+
 use onion_or_not_the_onion_drinking_game_2_shared_library::model as shared_model;
 
 use crate::routes::game::lobbies_storage::{ClientInfo, LobbiesStorage};
@@ -121,6 +125,46 @@ async fn process_client_message(
             client_info.callback.send(response).unwrap();
 
             ProcessClientMessageResult::Continue
+        }
+        ToLobbyMessage::ClientMessage(shared_model::network::ClientMessage::StartGame) => {
+            match game.game_state {
+                crate::model::GameState::InLobby => {
+                    // Process
+                    let current_question =
+                        crate::data_model_bridge::get_random_answered_question().unwrap();
+
+                    game.game_state = crate::model::GameState::Playing {
+                        previous_questions: Vec::new(),
+                        current_question,
+                        playing_state: crate::model::PlayingState::Question {
+                            time_until: game.configuration.maximum_answer_time_per_question.map(
+                                |maximum_answer_time_per_question| {
+                                    Utc::now()
+                                        + chrono::Duration::seconds(
+                                            i64::try_from(maximum_answer_time_per_question)
+                                                .unwrap(),
+                                        )
+                                },
+                            ),
+                            answers: HashMap::new(),
+                        },
+                    };
+
+                    // Respond
+                    let game = generate_game_full_update(game.clone());
+                    let update_all_response =
+                        shared_model::network::ServerMessage::GameFullUpdate(game);
+                    broadcast_sender.send(update_all_response).unwrap();
+
+                    ProcessClientMessageResult::Continue
+                }
+                crate::model::GameState::Playing { .. } => {
+                    // Not starting game, because it's already running
+
+                    ProcessClientMessageResult::Continue
+                }
+                crate::model::GameState::Aftermath { .. } => todo!(),
+            }
         }
     }
 }

@@ -178,8 +178,8 @@ impl Display for QuestionId {
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct AnsweredQuestion {
-    question_id: QuestionId,
-    answer: Answer,
+    pub question_id: QuestionId,
+    pub answer: Answer,
 }
 
 impl AnsweredQuestion {
@@ -202,7 +202,7 @@ impl AnsweredQuestion {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum PlayingState {
     Question {
-        time_until: DateTime<Utc>,
+        time_until: Option<DateTime<Utc>>,
         answers: HashMap<PlayerId, Answer>,
     },
     Solution {
@@ -365,20 +365,20 @@ impl Into<shared_model::game::PlayType> for PlayType {
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, serde::Deserialize)]
 pub struct RedditSubmissionData {
-    subreddit: String,
-    subreddit_id: String,
-    id: String,
-    permalink: String,
-    created: u64,
-    created_utc: u64,
-    url: String,
-    title: String,
-    score: u64,
-    downs: u64,
-    ups: u64,
-    over_18: bool,
-    thumbnail: String,
-    preview_image_url: Option<String>,
+    pub subreddit: String,
+    pub subreddit_id: String,
+    pub id: String,
+    pub permalink: String,
+    pub created: u64,
+    pub created_utc: u64,
+    pub url: String,
+    pub title: String,
+    pub score: u64,
+    pub downs: u64,
+    pub ups: u64,
+    pub over_18: bool,
+    pub thumbnail: String,
+    pub preview_image_url: Option<String>,
 }
 
 // Allowing clippy::from_over_into, because don't want to and can't implement From<_> for shared_model.
