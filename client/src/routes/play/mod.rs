@@ -1,11 +1,13 @@
+use std::rc::Rc;
+
 use fluent_templates::LanguageIdentifier;
 
 use gloo_net::websocket::{Message, WebSocketError};
 
-use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::GameState;
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Game, GameState};
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::ServerMessage;
 
-use yew::{html, Callback, Component, Context, ContextHandle, Html};
+use yew::{html, Callback, Component, Context, ContextHandle, ContextProvider, Html};
 
 use aftermath::AftermathComponent;
 use connecting::ConnectingComponent;
@@ -107,20 +109,38 @@ impl Component for PlayComponent {
 
                 html! { <ConnectingComponent state={ConnectingComponentState::Connecting} {on_cancel} /> }
             }
-            PlayState::Playing { game, .. } => match game.game_state {
-                GameState::InLobby => {
-                    let on_exit_game_wish = ctx.link().callback(|_| PlayComponentMsg::ExitGame);
-                    let on_start_game = ctx.link().callback(|_| PlayComponentMsg::StartGame);
+            PlayState::Playing { game, .. } => {
+                let on_exit_game_wish = ctx.link().callback(|_| PlayComponentMsg::ExitGame);
 
-                    html! { <LobbyComponent game={AsRef::as_ref(game).clone()} {on_exit_game_wish} {on_start_game} /> }
+                match game.game_state {
+                    GameState::InLobby => {
+                        let on_start_game = ctx.link().callback(|_| PlayComponentMsg::StartGame);
+
+                        let game_rc = Rc::new(AsRef::as_ref(game).clone());
+                        html! {
+                            <ContextProvider<Rc<Game>> context={game_rc}>
+                                <LobbyComponent {on_exit_game_wish} {on_start_game} />
+                            </ContextProvider<Rc<Game>>>
+                        }
+                    }
+                    GameState::Playing { .. } => {
+                        let game_rc = Rc::new(AsRef::as_ref(game).clone());
+                        html! {
+                            <ContextProvider<Rc<Game>> context={game_rc}>
+                                <GameComponent {on_exit_game_wish} />
+                            </ContextProvider<Rc<Game>>>
+                        }
+                    }
+                    GameState::Aftermath { .. } => {
+                        let game_rc = Rc::new(AsRef::as_ref(game).clone());
+                        html! {
+                            <ContextProvider<Rc<Game>> context={game_rc}>
+                                <AftermathComponent />
+                            </ContextProvider<Rc<Game>>>
+                        }
+                    }
                 }
-                GameState::Playing { .. } => {
-                    html! { <GameComponent /> }
-                }
-                GameState::Aftermath { .. } => {
-                    html! { <AftermathComponent /> }
-                }
-            },
+            }
         }
     }
 }

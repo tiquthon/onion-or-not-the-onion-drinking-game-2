@@ -1,29 +1,49 @@
+use std::rc::Rc;
+
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Game, PlayType};
 
-use yew::{classes, html, Callback, Component, Context, Html};
+use yew::{classes, html, Callback, Component, Context, ContextHandle, Html};
 
 use crate::components::join_game::JoinGameComponent;
 use crate::components::locale::LocaleComponent;
+use crate::components::player_name_type_exit_headline::PlayerNameTypeExitHeadlineComponent;
 use crate::components::playerlist::PlayerListComponent;
 
-pub struct LobbyComponent;
+pub struct LobbyComponent {
+    game: Rc<Game>,
+    _context_listener: ContextHandle<Rc<Game>>,
+}
 
 impl Component for LobbyComponent {
     type Message = LobbyComponentMsg;
     type Properties = LobbyComponentProps;
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self {}
+    fn create(ctx: &Context<Self>) -> Self {
+        let (game, context_listener) = ctx
+            .link()
+            .context(
+                ctx.link()
+                    .callback(LobbyComponentMsg::MessageContextUpdated),
+            )
+            .expect("Missing Game context.");
+
+        Self {
+            game,
+            _context_listener: context_listener,
+        }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
+            LobbyComponentMsg::MessageContextUpdated(game) => {
+                self.game = game;
+                true
+            }
             LobbyComponentMsg::ExitGame => {
                 ctx.props().on_exit_game_wish.emit(());
                 false
             }
             LobbyComponentMsg::StartGame => {
-                log::info!("START GAME A");
                 ctx.props().on_start_game.emit(());
                 false
             }
@@ -31,28 +51,17 @@ impl Component for LobbyComponent {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let this_player = ctx
-            .props()
+        let this_player = self
             .game
             .players
             .iter()
-            .find(|player| player.id == ctx.props().game.this_player_id)
+            .find(|player| player.id == self.game.this_player_id)
             .unwrap();
-        let player_name = this_player.name.to_string();
         let is_watcher = matches!(this_player.play_type, PlayType::Watcher);
 
-        let invite_code = ctx.props().game.invite_code.to_string();
+        let invite_code = self.game.invite_code.to_string();
 
-        let count_of_questions = ctx
-            .props()
-            .game
-            .configuration
-            .count_of_questions
-            .as_ref()
-            .map(ToString::to_string)
-            .unwrap_or_else(|| "\u{221E}".to_string());
-
-        let onclick_exit_game = ctx.link().callback(|_| LobbyComponentMsg::ExitGame);
+        let on_exit_game_wished = ctx.link().callback(|_| LobbyComponentMsg::ExitGame);
 
         let onclick_start_game = ctx.link().callback(|_| LobbyComponentMsg::StartGame);
 
@@ -60,22 +69,7 @@ impl Component for LobbyComponent {
             <main class={classes!("play-main")}>
                 <JoinGameComponent {invite_code} />
                 <section class={classes!("main-wrapper")}>
-                    <h2 class={classes!("player-name-headline")}>{player_name}</h2>
-                    <p class={classes!("player-type-and-exit")}>
-                        <span class={classes!("player-type")}>{
-                            if is_watcher {
-                                html!{ <LocaleComponent keyid="play-view-type-of-player-watcher"/> }
-                            } else {
-                                html!{ <LocaleComponent keyid="play-view-type-of-player-player"/> }
-                            }
-                        }</span>
-                        {" | 0 / "}
-                        {count_of_questions}
-                        {" | "}
-                        <button type="button" class={classes!("exit-game-link")} onclick={onclick_exit_game}>
-                            <LocaleComponent keyid="play-view-exit-the-game"/>
-                        </button>
-                    </p>
+                    <PlayerNameTypeExitHeadlineComponent {on_exit_game_wished} />
                     <h1 class={classes!("welcome-headline")}>
                         <LocaleComponent keyid="lobby-view-welcome-headline"/>
                     </h1>
@@ -92,10 +86,7 @@ impl Component for LobbyComponent {
                             }
                         }
                     }
-                    <PlayerListComponent
-                        players={ctx.props().game.players.clone()}
-                        this_player_id={ctx.props().game.this_player_id}
-                        game_state={ctx.props().game.game_state.clone()}/>
+                    <PlayerListComponent />
                 </section>
             </main>
         }
@@ -103,13 +94,13 @@ impl Component for LobbyComponent {
 }
 
 pub enum LobbyComponentMsg {
+    MessageContextUpdated(Rc<Game>),
     ExitGame,
     StartGame,
 }
 
 #[derive(yew::Properties, PartialEq)]
 pub struct LobbyComponentProps {
-    pub game: Game,
     pub on_exit_game_wish: Callback<()>,
     pub on_start_game: Callback<()>,
 }

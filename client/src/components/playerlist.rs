@@ -1,16 +1,21 @@
+use std::rc::Rc;
+
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{
-    GameState, PlayType, Player, PlayerId, PlayingState,
+    Game, GameState, PlayType, Player, PlayingState,
 };
 
-use yew::{classes, html, Component, Context, Html};
+use yew::{classes, html, Component, Context, ContextHandle, Html};
 
 use crate::components::locale::{locale_args, LocaleComponent};
 
-pub struct PlayerListComponent;
+pub struct PlayerListComponent {
+    game: Rc<Game>,
+    _context_listener: ContextHandle<Rc<Game>>,
+}
 
 impl PlayerListComponent {
-    fn view_player_list(ctx: &Context<Self>) -> Html {
-        if ctx.props().players.is_empty() {
+    fn view_player_list(&self) -> Html {
+        if self.game.players.is_empty() {
             html! {
                 <p class={classes!("playerlist-listing-or-paragraph")}>
                     <LocaleComponent keyid="play-view-players-no-one-here"/>
@@ -20,10 +25,10 @@ impl PlayerListComponent {
             html! {
                 <ul class={classes!("playerlist-listing-or-paragraph")}>
                     {
-                        ctx.props()
+                        self.game
                             .players
                             .iter()
-                            .map(|player: &Player| Self::view_player(player, ctx))
+                            .map(|player: &Player| self.view_player(player))
                             .collect::<Html>()
                     }
                 </ul>
@@ -31,8 +36,8 @@ impl PlayerListComponent {
         }
     }
 
-    fn view_player(player: &Player, ctx: &Context<Self>) -> Html {
-        let is_this_player = player.id == ctx.props().this_player_id;
+    fn view_player(&self, player: &Player) -> Html {
+        let is_this_player = player.id == self.game.this_player_id;
         html! {
             <li>
                 <span class={classes!(
@@ -41,7 +46,7 @@ impl PlayerListComponent {
                 )}>
                     {player.name.to_string()}
                 </span>
-                { Self::view_player_state(player, ctx) }
+                { self.view_player_state(player) }
                 <span class={classes!("playerlist-points-or-watching")}>
                     {
                         match &player.play_type {
@@ -68,8 +73,8 @@ impl PlayerListComponent {
         }
     }
 
-    fn view_player_state(player: &Player, ctx: &Context<Self>) -> Html {
-        match &ctx.props().game_state {
+    fn view_player_state(&self, player: &Player) -> Html {
+        match &self.game.game_state {
             GameState::InLobby => html! {},
             GameState::Playing {
                 playing_state: PlayingState::Question { answers, .. },
@@ -157,28 +162,45 @@ impl PlayerListComponent {
 }
 
 impl Component for PlayerListComponent {
-    type Message = ();
-    type Properties = PlayerListComponentProps;
+    type Message = PlayerListComponentMsg;
+    type Properties = ();
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self {}
+    fn create(ctx: &Context<Self>) -> Self {
+        let (game, context_listener) = ctx
+            .link()
+            .context(
+                ctx.link()
+                    .callback(PlayerListComponentMsg::MessageContextUpdated),
+            )
+            .expect("Missing Game context.");
+
+        Self {
+            game,
+            _context_listener: context_listener,
+        }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            PlayerListComponentMsg::MessageContextUpdated(game) => {
+                self.game = game;
+                true
+            }
+        }
+    }
+
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
             <>
                 <h3 class={classes!("playerlist-headline")}>
                     <LocaleComponent keyid="play-view-players-headline"/>
                 </h3>
-                { Self::view_player_list(ctx) }
+                { self.view_player_list() }
             </>
         }
     }
 }
 
-#[derive(yew::Properties, PartialEq)]
-pub struct PlayerListComponentProps {
-    pub players: Vec<Player>,
-    pub this_player_id: PlayerId,
-    pub game_state: GameState,
+pub enum PlayerListComponentMsg {
+    MessageContextUpdated(Rc<Game>),
 }
