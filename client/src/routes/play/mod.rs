@@ -99,10 +99,10 @@ impl Component for PlayComponent {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         match &self.state {
-            PlayState::ConnectingError { .. } => {
+            PlayState::ConnectingError { error } => {
                 let on_go_back = ctx.link().callback(|_| PlayComponentMsg::GoBackToIndex);
 
-                html! { <ConnectingComponent state={ConnectingComponentState::Failed} {on_go_back} /> }
+                html! { <ConnectingComponent state={ConnectingComponentState::Failed { error: error.to_string() }} {on_go_back} /> }
             }
             PlayState::Connecting { .. } => {
                 let on_cancel = ctx.link().callback(|_| PlayComponentMsg::ExitGame);

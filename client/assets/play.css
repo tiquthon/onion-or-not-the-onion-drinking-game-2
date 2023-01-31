@@ -29,7 +29,7 @@
 .connecting-main {
     display: grid;
     grid-template-columns: 100%;
-    grid-template-rows: min-content min-content;
+    grid-template-rows: min-content min-content min-content;
 
     grid-row-gap: 10px;
 
@@ -42,6 +42,10 @@
     margin-bottom: 10px;
 
     font-weight: bold;
+}
+
+.connecting-sub-text {
+    font-style: italic;
 }
 
 /* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
