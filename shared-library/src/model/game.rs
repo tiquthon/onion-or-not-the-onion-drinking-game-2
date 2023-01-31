@@ -54,12 +54,29 @@ pub struct GameConfiguration {
 pub enum GameState {
     InLobby,
     Playing {
-        current_question: Question,
         playing_state: PlayingState,
     },
     Aftermath {
         questions: Vec<(AnsweredQuestion, HashMap<PlayerId, Answer>)>,
         restart_requests: Vec<PlayerId>,
+    },
+}
+
+/* PLAYING STATE */
+
+#[derive(Clone, Eq, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
+pub enum PlayingState {
+    Question {
+        current_question: Question,
+        time_until: Option<DateTime<Utc>>,
+        answers: Vec<PlayerId>,
+        own_answer: Option<Answer>,
+    },
+    Solution {
+        current_question: AnsweredQuestion,
+        time_until: DateTime<Utc>,
+        answers: HashMap<PlayerId, Answer>,
+        skip_request: Vec<PlayerId>,
     },
 }
 
@@ -69,9 +86,7 @@ pub enum GameState {
     Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, serde::Serialize, serde::Deserialize,
 )]
 pub struct Question {
-    pub url: String,
     pub title: String,
-    pub preview_image_url: Option<String>,
 }
 
 /* ANSWERED QUESTION */
@@ -81,24 +96,9 @@ pub struct Question {
 )]
 pub struct AnsweredQuestion {
     pub question: Question,
+    pub url: String,
+    pub preview_image_url: Option<String>,
     pub answer: Answer,
-}
-
-/* PLAYING STATE */
-
-#[derive(Clone, Eq, PartialEq, Debug, serde::Serialize, serde::Deserialize)] // Default, Display
-pub enum PlayingState {
-    Question {
-        time_until: Option<DateTime<Utc>>,
-        answers: Vec<PlayerId>,
-        own_answer: Option<Answer>,
-    },
-    Solution {
-        time_until: DateTime<Utc>,
-        correct_answer: Answer,
-        answers: HashMap<PlayerId, Answer>,
-        skip_request: Vec<PlayerId>,
-    },
 }
 
 /* ANSWER */

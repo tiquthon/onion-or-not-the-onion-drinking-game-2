@@ -2,7 +2,7 @@ use chrono::Utc;
 use std::rc::Rc;
 
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{
-    Game, GameState, PlayingState,
+    Answer, Game, GameState, PlayingState,
 };
 
 use yew::{classes, html, Callback, Component, Context, ContextHandle, Html};
@@ -10,6 +10,7 @@ use yew::{classes, html, Callback, Component, Context, ContextHandle, Html};
 use crate::components::join_game::JoinGameComponent;
 use crate::components::locale::{locale_args, LocaleComponent};
 use crate::components::player_name_type_exit_headline::PlayerNameTypeExitHeadlineComponent;
+use crate::components::playerlist::PlayerListComponent;
 
 pub struct GameComponent {
     game: Rc<Game>,
@@ -75,6 +76,120 @@ impl GameComponent {
             unreachable!()
         }
     }
+
+    fn view_question_or_solution(&self) -> Html {
+        let this_player_is_watcher = self.game.get_this_player().unwrap().is_watcher();
+        if let GameState::Playing { playing_state } = &self.game.game_state {
+            match playing_state {
+                PlayingState::Question {
+                    current_question,
+                    own_answer,
+                    ..
+                } => {
+                    let this_player_answer_is_the_onion = own_answer
+                        .map(|answer| answer == Answer::TheOnion)
+                        .unwrap_or(false)
+                        .then_some("button-chosen-outline");
+                    let this_player_answer_is_not_the_onion = own_answer
+                        .map(|answer| answer == Answer::NotTheOnion)
+                        .unwrap_or(false)
+                        .then_some("button-chosen-outline");
+
+                    html! {
+                        <>
+                            <h1 class={classes!("question-headline-at-question-state", "question-headline")}>
+                                {current_question.title.clone()}
+                            </h1>
+                            {
+                                if !this_player_is_watcher {
+                                    html! {
+                                        <section class={classes!("question-the-onion-not-the-onion-forms-section")}>
+                                            <div class={classes!("question-the-onion-form")}>
+                                                <button type="button" class={classes!("question-the-onion-form-submit-button", this_player_answer_is_the_onion)}>
+                                                    <LocaleComponent keyid="game-view-question-playing-state-selection-button-the-onion" />
+                                                </button>
+                                            </div>
+                                            <div class={classes!("question-not-the-onion-form")}>
+                                                <button type="button" class={classes!("question-not-the-onion-form-submit-button", this_player_answer_is_not_the_onion)}>
+                                                    <LocaleComponent keyid="game-view-question-playing-state-selection-button-not-the-onion" />
+                                                </button>
+                                            </div>
+                                        </section>
+                                    }
+                                } else {
+                                    html! {}
+                                }
+                            }
+                        </>
+                    }
+                }
+                PlayingState::Solution {
+                    current_question,
+                    answers,
+                    ..
+                } => {
+                    let this_player_answer = answers.get(&self.game.this_player_id);
+                    let this_player_answer_correct = this_player_answer
+                        .map(|player_answer| *player_answer == current_question.answer);
+
+                    let question_result_css_class =
+                        match (this_player_is_watcher, this_player_answer_correct) {
+                            (false, Some(true)) => "question-result-correct",
+                            (false, Some(false)) => "question-result-wrong",
+                            (true, _) | (false, None) => match current_question.answer {
+                                Answer::TheOnion => "question-result-correct",
+                                Answer::NotTheOnion => "question-result-wrong",
+                            },
+                        };
+
+                    let sub_headline_locale = match current_question.answer {
+                        Answer::TheOnion => {
+                            "game-view-solution-playing-state-sub-headline-the-onion"
+                        }
+                        Answer::NotTheOnion => {
+                            "game-view-solution-playing-state-sub-headline-not-the-onion"
+                        }
+                    };
+
+                    html! {
+                        <>
+                            <p class={classes!("question-result", question_result_css_class)}>
+                                <LocaleComponent keyid={sub_headline_locale} />
+                                {
+                                    if this_player_is_watcher {
+                                        html! {}
+                                    } else {
+                                        let this_player_answer_locale = match this_player_answer_correct {
+                                            Some(true) => "game-view-solution-playing-state-sub-headline-player-answer-correct",
+                                            Some(false) => "game-view-solution-playing-state-sub-headline-player-answer-wrong",
+                                            None => "game-view-solution-playing-state-sub-headline-player-answer-missing",
+                                        };
+                                        html! {
+                                            <>
+                                                <br/>
+                                                <LocaleComponent keyid={this_player_answer_locale} />
+                                            </>
+                                        }
+                                    }
+                                }
+                            </p>
+                            <h1 class={classes!("question-headline-at-aftermath-state", "question-headline")}>
+                                {current_question.question.title.clone()}
+                            </h1>
+                            <section class={classes!("question-subline")}>
+                                <a class={classes!("question-subline-link-to-post")} href={current_question.url.clone()} target="_blank">
+                                    <LocaleComponent keyid="game-view-solution-playing-state-link-to-newspaper-posting-anchor-text"/>
+                                </a>
+                            </section>
+                            <img class={classes!("question-picture")} src={current_question.preview_image_url.clone().unwrap_or_default()}/>
+                        </>
+                    }
+                }
+            }
+        } else {
+            unreachable!()
+        }
+    }
 }
 
 impl Component for GameComponent {
@@ -125,6 +240,8 @@ impl Component for GameComponent {
                 <section class={classes!("main-wrapper")}>
                     <PlayerNameTypeExitHeadlineComponent {on_exit_game_wished} />
                     { self.view_remaining_time() }
+                    { self.view_question_or_solution() }
+                    <PlayerListComponent />
                 </section>
             </main>
         }

@@ -168,7 +168,7 @@
 /*                              QUESTION HEADLINE                             */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 
-#question-headline-at-question-state {
+.question-headline-at-question-state {
     grid-column: 1 / span 1;
     grid-row: 5 / span 1;
 }
@@ -189,7 +189,7 @@
 /*                           QUESTION ANSWER BUTTONS                          */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 
-#question-the-onion-not-the-onion-forms-section {
+.question-the-onion-not-the-onion-forms-section {
     grid-column: 1 / span 1;
     grid-row: 6 / span 1;
 
@@ -198,22 +198,22 @@
     grid-column-gap: 10px;
 }
 
-#question-the-onion-form {
+.question-the-onion-form {
     grid-column: 1 / span 1;
     grid-row: 6 / span 1;
 }
 
-#question-the-onion-form-submit-button {
+.question-the-onion-form-submit-button {
     width: 100%;
     background-color: #00b500;
 }
 
-#question-not-the-onion-form {
+.question-not-the-onion-form {
     grid-column: 2 / span 1;
     grid-row: 6 / span 1;
 }
 
-#question-not-the-onion-form-submit-button {
+.question-not-the-onion-form-submit-button {
     width: 100%;
     background-color: #b50000;
 }
@@ -230,7 +230,7 @@
 /*                                RESULT LINE                                 */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 
-#question-result {
+.question-result {
     grid-column: 1 / span 1;
     grid-row: 5 / span 1;
 
@@ -253,7 +253,7 @@
 /*                              QUESTION HEADLINE                             */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 
-#question-headline-at-aftermath-state {
+.question-headline-at-aftermath-state {
     grid-column: 1 / span 1;
     grid-row: 6 / span 1;
 }
@@ -262,7 +262,7 @@
 /*                               QUESTION SUBLINE                             */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 
-#question-subline {
+.question-subline {
     grid-column: 1 / span 1;
     grid-row: 7 / span 1;
 
@@ -271,7 +271,7 @@
     grid-template-columns: min-content 1fr 1fr;
 }
 
-#question-subline-link-to-post {
+.question-subline-link-to-post {
     grid-column: 1 / span 1;
     grid-row: 1 / span 1;
 
@@ -309,7 +309,7 @@
 /*                              QUESTION PICTURE                              */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 
-#question-picture {
+.question-picture {
     grid-column: 1 / span 1;
     grid-row: 8 / span 1;
 

@@ -131,9 +131,11 @@ impl GameState {
                 playing_state,
                 ..
             } => shared_model::game::GameState::Playing {
-                current_question: f(&current_question.question_id).unwrap().clone().into(),
-                playing_state: playing_state
-                    .into_shared_model_playing_state(own_id, current_question.answer),
+                playing_state: playing_state.into_shared_model_playing_state(
+                    own_id,
+                    &current_question,
+                    f,
+                ),
             },
             GameState::Aftermath {
                 questions,
@@ -152,6 +154,64 @@ impl GameState {
                     })
                     .collect(),
                 restart_requests: restart_request.into_iter().map(Into::into).collect(),
+            },
+        }
+    }
+}
+
+/* PLAYING STATE */
+
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub enum PlayingState {
+    Question {
+        time_until: Option<DateTime<Utc>>,
+        answers: HashMap<PlayerId, Answer>,
+    },
+    Solution {
+        time_until: DateTime<Utc>,
+        answers: HashMap<PlayerId, Answer>,
+        skip_request: Vec<PlayerId>,
+    },
+}
+
+impl PlayingState {
+    pub fn into_shared_model_playing_state<F>(
+        self,
+        own_id: &PlayerId,
+        answered_question: &AnsweredQuestion,
+        f: F,
+    ) -> shared_model::game::PlayingState
+    where
+        F: Fn(&QuestionId) -> Option<&RedditSubmissionData>,
+    {
+        match self {
+            PlayingState::Question {
+                time_until,
+                answers,
+            } => {
+                let reddit_submission_data = f(&answered_question.question_id).unwrap();
+                let own_answer = answers.get(own_id).copied();
+                shared_model::game::PlayingState::Question {
+                    current_question: shared_model::game::Question {
+                        title: reddit_submission_data.title.clone(),
+                    },
+                    time_until,
+                    answers: answers.into_keys().map(Into::into).collect(),
+                    own_answer: own_answer.map(Into::into),
+                }
+            }
+            PlayingState::Solution {
+                time_until,
+                answers,
+                skip_request,
+            } => shared_model::game::PlayingState::Solution {
+                current_question: answered_question.into_shared_model_answered_question(&f),
+                time_until,
+                answers: answers
+                    .into_iter()
+                    .map(|(id, answer)| (id.into(), answer.into()))
+                    .collect(),
+                skip_request: skip_request.into_iter().map(Into::into).collect(),
             },
         }
     }
@@ -190,59 +250,14 @@ impl AnsweredQuestion {
     where
         F: Fn(&QuestionId) -> Option<&RedditSubmissionData>,
     {
+        let reddit_submission_data = (*f)(&self.question_id).unwrap();
         shared_model::game::AnsweredQuestion {
-            question: f(&self.question_id).unwrap().clone().into(),
-            answer: self.answer.into(),
-        }
-    }
-}
-
-/* PLAYING STATE */
-
-#[derive(Clone, Eq, PartialEq, Debug)]
-pub enum PlayingState {
-    Question {
-        time_until: Option<DateTime<Utc>>,
-        answers: HashMap<PlayerId, Answer>,
-    },
-    Solution {
-        time_until: DateTime<Utc>,
-        answers: HashMap<PlayerId, Answer>,
-        skip_request: Vec<PlayerId>,
-    },
-}
-
-impl PlayingState {
-    pub fn into_shared_model_playing_state(
-        self,
-        own_id: &PlayerId,
-        correct_answer: Answer,
-    ) -> shared_model::game::PlayingState {
-        match self {
-            PlayingState::Question {
-                time_until,
-                answers,
-            } => {
-                let own_answer = answers.get(own_id).copied();
-                shared_model::game::PlayingState::Question {
-                    time_until,
-                    answers: answers.into_keys().map(Into::into).collect(),
-                    own_answer: own_answer.map(Into::into),
-                }
-            }
-            PlayingState::Solution {
-                time_until,
-                answers,
-                skip_request,
-            } => shared_model::game::PlayingState::Solution {
-                time_until,
-                correct_answer: correct_answer.into(),
-                answers: answers
-                    .into_iter()
-                    .map(|(id, answer)| (id.into(), answer.into()))
-                    .collect(),
-                skip_request: skip_request.into_iter().map(Into::into).collect(),
+            question: shared_model::game::Question {
+                title: reddit_submission_data.title.clone(),
             },
+            url: reddit_submission_data.url.clone(),
+            preview_image_url: reddit_submission_data.preview_image_url.clone(),
+            answer: self.answer.into(),
         }
     }
 }
@@ -379,16 +394,4 @@ pub struct RedditSubmissionData {
     pub over_18: bool,
     pub thumbnail: String,
     pub preview_image_url: Option<String>,
-}
-
-// Allowing clippy::from_over_into, because don't want to and can't implement From<_> for shared_model.
-#[allow(clippy::from_over_into)]
-impl Into<shared_model::game::Question> for RedditSubmissionData {
-    fn into(self) -> shared_model::game::Question {
-        shared_model::game::Question {
-            url: self.url,
-            title: self.title,
-            preview_image_url: self.preview_image_url,
-        }
-    }
 }

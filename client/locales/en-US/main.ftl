@@ -80,9 +80,21 @@ game-view-question-playing-state-remaining-seconds = { $seconds } {$seconds ->
     } to go!
 game-view-question-playing-state-infinite-remaining-seconds = {""}
 
+game-view-question-playing-state-selection-button-the-onion = THE ONION
+game-view-question-playing-state-selection-button-not-the-onion = NOT THE ONION
+
 ## Game View Solution Playing State
 
 game-view-solution-playing-state-remaining-seconds = { $seconds } {$seconds ->
         [one] second
         *[other] seconds
     } to go!
+
+game-view-solution-playing-state-sub-headline-the-onion = It's THE ONION
+game-view-solution-playing-state-sub-headline-not-the-onion = It's NOT THE ONION
+
+game-view-solution-playing-state-sub-headline-player-answer-correct = Your answer was correct!
+game-view-solution-playing-state-sub-headline-player-answer-wrong = Your answer was wrong!
+game-view-solution-playing-state-sub-headline-player-answer-missing = Your answer was missing.
+
+game-view-solution-playing-state-link-to-newspaper-posting-anchor-text = Link to post

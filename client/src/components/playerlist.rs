@@ -94,7 +94,7 @@ impl PlayerListComponent {
             GameState::Playing {
                 playing_state:
                     PlayingState::Solution {
-                        correct_answer,
+                        current_question,
                         answers,
                         skip_request,
                         ..
@@ -104,7 +104,7 @@ impl PlayerListComponent {
                 let user_has_answered: bool = answers.contains_key(&player.id);
                 let user_has_correct_answer: Option<bool> = answers
                     .get(&player.id)
-                    .map(|player_answer| player_answer == correct_answer);
+                    .map(|player_answer| *player_answer == current_question.answer);
                 let user_wants_skip: bool = skip_request.contains(&player.id);
                 html! {
                     <>
