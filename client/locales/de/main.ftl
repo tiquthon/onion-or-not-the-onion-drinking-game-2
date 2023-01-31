@@ -77,3 +77,18 @@ play-view-players-points = { $points } { $points ->
 
 lobby-view-welcome-headline = Willkommen!
 lobby-view-start-game-button = STARTEN
+
+## Game View Question Playing State
+
+game-view-question-playing-state-remaining-seconds = Es {$seconds ->
+        [one] verbleibt { $seconds } Sekunde
+        *[other] verbleiben { $seconds } Sekunden
+    }
+game-view-question-playing-state-infinite-remaining-seconds = {""}
+
+## Game View Solution Playing State
+
+game-view-solution-playing-state-remaining-seconds = Es {$seconds ->
+        [one] verbleibt { $seconds } Sekunde
+        *[other] verbleiben { $seconds } Sekunden
+    }

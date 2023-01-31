@@ -16,6 +16,14 @@ pub struct Game {
     pub this_player_id: PlayerId,
 }
 
+impl Game {
+    pub fn get_this_player(&self) -> Option<&Player> {
+        self.players
+            .iter()
+            .find(|player| player.id == self.this_player_id)
+    }
+}
+
 /* INVITE CODE */
 
 #[derive(
@@ -112,6 +120,12 @@ pub struct Player {
     pub id: PlayerId,
     pub name: PlayerName,
     pub play_type: PlayType,
+}
+
+impl Player {
+    pub fn is_watcher(&self) -> bool {
+        matches!(self.play_type, PlayType::Watcher)
+    }
 }
 
 /* PLAYER ID */

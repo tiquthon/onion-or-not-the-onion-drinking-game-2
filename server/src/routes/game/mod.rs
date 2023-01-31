@@ -21,7 +21,7 @@ pub async fn create_lobby(
         just_watch,
         count_of_questions,
         minimum_score_per_question,
-        maximum_answer_time_per_question,
+        maximum_answer_seconds_per_question: maximum_answer_time_per_question,
     } = query.into_inner();
 
     let (response, session, msg_stream) = actix_ws::handle(&req, body)?;
@@ -64,7 +64,7 @@ pub struct CreateLobbyQuery {
     just_watch: bool,
     count_of_questions: Option<u64>,
     minimum_score_per_question: Option<i64>,
-    maximum_answer_time_per_question: Option<u64>,
+    maximum_answer_seconds_per_question: Option<u64>,
 }
 
 #[tracing::instrument(name = "Join Lobby", skip(req, body, lobbies))]

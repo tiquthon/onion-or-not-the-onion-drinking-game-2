@@ -103,7 +103,7 @@
     font-style: italic;
 }
 
-#remaining-time-question-state {
+.remaining-time-question-state {
     grid-column: 1 / span 1;
     grid-row: 3 / span 1;
 
@@ -111,7 +111,7 @@
     font-style: italic;
 }
 
-#remaining-time-aftermath-state {
+.remaining-time-aftermath-state {
     grid-column: 1 / span 1;
     grid-row: 3 / span 1;
 

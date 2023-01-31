@@ -48,20 +48,20 @@ impl PlayState {
                 player_name,
                 just_watch,
                 count_of_questions,
-                minimum_score_of_questions,
-                timer,
+                minimum_score_per_question,
+                maximum_answer_seconds_per_question,
             }) => {
                 let player_name = urlencoding::encode(player_name);
-                let count_of_questions = count_of_questions
+                let count_of_questions_str = count_of_questions
                     .map(|v| format!("&count_of_questions={v}"))
                     .unwrap_or_default();
-                let minimum_score_of_questions = minimum_score_of_questions
-                    .map(|v| format!("&count_of_questions={v}"))
+                let minimum_score_per_question_str = minimum_score_per_question
+                    .map(|v| format!("&minimum_score_per_question={v}"))
                     .unwrap_or_default();
-                let timer = timer
-                    .map(|v| format!("&count_of_questions={v}"))
+                let maximum_answer_seconds_per_question_str = maximum_answer_seconds_per_question
+                    .map(|v| format!("&maximum_answer_seconds_per_question={v}"))
                     .unwrap_or_default();
-                format!("{web_socket_address_root}/create?player_name={player_name}&just_watch={just_watch}{count_of_questions}{minimum_score_of_questions}{timer}")
+                format!("{web_socket_address_root}/create?player_name={player_name}&just_watch={just_watch}{count_of_questions_str}{minimum_score_per_question_str}{maximum_answer_seconds_per_question_str}")
             }
             CreateJoinLobby::Join(JoinLobby {
                 player_name,

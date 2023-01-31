@@ -154,8 +154,8 @@ impl Component for IndexComponent {
                                 player_name,
                                 just_watch,
                                 count_of_questions,
-                                minimum_score_of_questions,
-                                timer,
+                                minimum_score_per_question: minimum_score_of_questions,
+                                maximum_answer_seconds_per_question: timer,
                             });
                         }
                     }
@@ -346,8 +346,8 @@ pub struct CreateLobby {
     pub player_name: String,
     pub just_watch: bool,
     pub count_of_questions: Option<u64>,
-    pub minimum_score_of_questions: Option<i64>,
-    pub timer: Option<u64>,
+    pub minimum_score_per_question: Option<i64>,
+    pub maximum_answer_seconds_per_question: Option<u64>,
 }
 
 enum CreateLobbySettingsVisibility {

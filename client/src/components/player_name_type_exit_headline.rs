@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Game, PlayType};
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::Game;
 
 use yew::{classes, html, Callback, Component, Context, ContextHandle, Html};
 
@@ -44,14 +44,9 @@ impl Component for PlayerNameTypeExitHeadlineComponent {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let this_player = self
-            .game
-            .players
-            .iter()
-            .find(|player| player.id == self.game.this_player_id)
-            .unwrap();
+        let this_player = self.game.get_this_player().unwrap();
         let player_name = this_player.name.to_string();
-        let is_watcher = matches!(this_player.play_type, PlayType::Watcher);
+        let is_watcher = this_player.is_watcher();
 
         let count_of_questions = self
             .game
