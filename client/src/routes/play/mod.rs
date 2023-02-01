@@ -102,6 +102,10 @@ impl Component for PlayComponent {
                 self.state.request_skip();
                 false
             }
+            PlayComponentMsg::RequestPlayAgain => {
+                self.state.request_play_again();
+                false
+            }
         }
     }
 
@@ -144,9 +148,11 @@ impl Component for PlayComponent {
                     }
                     GameState::Aftermath { .. } => {
                         let game_rc = Rc::new(AsRef::as_ref(game).clone());
+                        let on_play_again_wish =
+                            ctx.link().callback(|_| PlayComponentMsg::RequestPlayAgain);
                         html! {
                             <ContextProvider<Rc<Game>> context={game_rc}>
-                                <AftermathComponent />
+                                <AftermathComponent {on_exit_game_wish} {on_play_again_wish}/>
                             </ContextProvider<Rc<Game>>>
                         }
                     }
@@ -167,6 +173,7 @@ pub enum PlayComponentMsg {
 
     ChooseAnswer(Answer),
     RequestSkip,
+    RequestPlayAgain,
 }
 
 #[derive(yew::Properties, PartialEq)]

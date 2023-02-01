@@ -221,23 +221,13 @@ impl PlayState {
             ..
         } = self
         {
-            if matches!(game.game_state, GameState::InLobby) {
-                let cloned_web_socket_sink = Arc::clone(web_socket_sink);
-                spawn_local(async move {
-                    let mut locked_optional_sink =
-                        tokio::sync::Mutex::lock(&cloned_web_socket_sink).await;
-                    if let Some(locked_sink) = &mut *locked_optional_sink {
-                        let message = ClientMessage::StartGame;
-                        locked_sink
-                            .send(Message::Bytes(message.try_into().unwrap()))
-                            .await
-                            .unwrap();
-                    } else {
-                        log::error!("There is a wish for game start, but I do not have a WebSocket sink to write to.");
-                    }
-                });
-            } else {
-                log::error!("There is a wish for game start, but I am not in Playing GameState::InLobby; doing nothing.");
+            match game.game_state {
+                GameState::InLobby => {
+                    send_to_server(Arc::clone(web_socket_sink), ClientMessage::StartGame);
+                }
+                GameState::Playing { .. } | GameState::Aftermath { .. } => {
+                    log::error!("There is a wish for game start, but I am not in Playing GameState::InLobby; doing nothing.");
+                }
             }
         } else {
             log::error!("There is a wish for game start, but I am in {self:?}; doing nothing.");
@@ -255,22 +245,10 @@ impl PlayState {
                     playing_state: PlayingState::Question { .. },
                     ..
                 } => {
-                    let cloned_web_socket_sink = Arc::clone(web_socket_sink);
-                    spawn_local(async move {
-                        let mut locked_optional_cloned_web_socket_sink =
-                            tokio::sync::Mutex::lock(&cloned_web_socket_sink).await;
-                        if let Some(locked_cloned_web_socket_sink) =
-                            &mut *locked_optional_cloned_web_socket_sink
-                        {
-                            locked_cloned_web_socket_sink
-                                .send(Message::Bytes(
-                                    ClientMessage::ChooseAnswer(answer).try_into().unwrap(),
-                                ))
-                                .await
-                                .unwrap();
-                        }
-                        drop(locked_optional_cloned_web_socket_sink);
-                    });
+                    send_to_server(
+                        Arc::clone(web_socket_sink),
+                        ClientMessage::ChooseAnswer(answer),
+                    );
                 }
                 GameState::Playing {
                     playing_state: PlayingState::Solution { .. },
@@ -300,22 +278,7 @@ impl PlayState {
                     playing_state: PlayingState::Solution { .. },
                     ..
                 } => {
-                    let cloned_web_socket_sink = Arc::clone(web_socket_sink);
-                    spawn_local(async move {
-                        let mut locked_optional_cloned_web_socket_sink =
-                            tokio::sync::Mutex::lock(&cloned_web_socket_sink).await;
-                        if let Some(locked_cloned_web_socket_sink) =
-                            &mut *locked_optional_cloned_web_socket_sink
-                        {
-                            locked_cloned_web_socket_sink
-                                .send(Message::Bytes(
-                                    ClientMessage::RequestSkip.try_into().unwrap(),
-                                ))
-                                .await
-                                .unwrap();
-                        }
-                        drop(locked_optional_cloned_web_socket_sink);
-                    });
+                    send_to_server(Arc::clone(web_socket_sink), ClientMessage::RequestSkip);
                 }
                 GameState::Playing {
                     playing_state: PlayingState::Question { .. },
@@ -323,11 +286,31 @@ impl PlayState {
                 }
                 | GameState::InLobby
                 | GameState::Aftermath { .. } => {
-                    log::error!("Client wants to skip, but I am not in Playing GameState::Playing PlayingState::Solution; doing nothing.");
+                    log::error!("Client wants to skip, but I am not in GameState::Playing PlayingState::Solution; doing nothing.");
                 }
             },
             PlayState::Connecting { .. } | PlayState::ConnectingError { .. } => {
                 log::error!("Client wants to skip, but I am in {self:?}; doing nothing.");
+            }
+        }
+    }
+
+    pub fn request_play_again(&self) {
+        match &self {
+            PlayState::Playing {
+                web_socket_sink,
+                game,
+                ..
+            } => match game.game_state {
+                GameState::Aftermath { .. } => {
+                    send_to_server(Arc::clone(web_socket_sink), ClientMessage::RequestPlayAgain);
+                }
+                GameState::InLobby | GameState::Playing { .. } => {
+                    log::error!("Client wants to play again, but I am not in GameState::Aftermath; doing nothing.");
+                }
+            },
+            PlayState::Connecting { .. } | PlayState::ConnectingError { .. } => {
+                log::error!("Client wants to play again, but I am in {self:?}; doing nothing.");
             }
         }
     }
@@ -383,4 +366,22 @@ impl Debug for PlayState {
                 .finish(),
         }
     }
+}
+
+fn send_to_server(
+    web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
+    client_message: ClientMessage,
+) {
+    spawn_local(async move {
+        let mut locked_optional_web_socket_sink = tokio::sync::Mutex::lock(&web_socket_sink).await;
+        if let Some(locked_web_socket_sink) = &mut *locked_optional_web_socket_sink {
+            locked_web_socket_sink
+                .send(Message::Bytes(client_message.try_into().unwrap()))
+                .await
+                .unwrap();
+        } else {
+            log::error!("Wanted to send {client_message:?} to server, but web_socket_sink is None; doing nothing.");
+        }
+        drop(locked_optional_web_socket_sink);
+    });
 }

@@ -101,3 +101,15 @@ game-view-solution-playing-state-sub-headline-player-answer-wrong = Your answer 
 game-view-solution-playing-state-sub-headline-player-answer-missing = Your answer was missing.
 
 game-view-solution-playing-state-link-to-newspaper-posting-anchor-text = Link to post
+
+## Aftermath View
+
+aftermath-view-headline = The Game Has Ended
+aftermath-view-next-round = PLAY AGAIN!
+aftermath-view-next-round-clicked = Waiting on other players for net round...
+aftermath-view-ranking-headline = Ranking
+aftermath-view-ranking-no-one = No one is in the ranking!
+aftermath-view-ranking-players-points = { $points } { $points ->
+        [one] Point
+        *[other] Points
+    }

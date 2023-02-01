@@ -7,6 +7,7 @@ pub enum ClientMessage {
     StartGame,
     ChooseAnswer(crate::model::game::Answer),
     RequestSkip,
+    RequestPlayAgain,
 }
 
 impl TryFrom<&[u8]> for ClientMessage {

@@ -188,42 +188,19 @@ async fn process_client_message(
             match game.game_state {
                 crate::model::GameState::InLobby => {
                     // Process
-                    let current_question = crate::data_model_bridge::get_random_answered_question(
-                        game.configuration.minimum_score_per_question,
-                        None,
-                        None,
-                    )
-                    .unwrap()
-                    .unwrap();
-
-                    game.game_state = crate::model::GameState::Playing {
-                        previous_questions: Vec::new(),
-                        current_question,
-                        playing_state: crate::model::PlayingState::Question {
-                            time_until: game.configuration.maximum_answer_time_per_question.map(
-                                |maximum_answer_time_per_question| {
-                                    Utc::now()
-                                        + chrono::Duration::seconds(
-                                            i64::try_from(maximum_answer_time_per_question)
-                                                .unwrap(),
-                                        )
-                                },
-                            ),
-                            answers: HashMap::new(),
-                        },
-                    };
+                    game.game_state = create_new_game_state_playing(game);
 
                     // Respond
                     broadcast_game_update(game.clone());
 
                     ProcessClientMessageResult::Continue
                 }
-                crate::model::GameState::Playing { .. } => {
+                crate::model::GameState::Playing { .. }
+                | crate::model::GameState::Aftermath { .. } => {
                     // Not starting game, because it's already running
 
                     ProcessClientMessageResult::Continue
                 }
-                crate::model::GameState::Aftermath { .. } => todo!(),
             }
         }
         ToLobbyMessage::ClientMessage {
@@ -320,14 +297,57 @@ async fn process_client_message(
                 }
             }
         }
+        ToLobbyMessage::ClientMessage {
+            client_info,
+            client_message: shared_model::network::ClientMessage::RequestPlayAgain,
+        } => {
+            match &mut game.game_state {
+                crate::model::GameState::Aftermath {
+                    restart_requests, ..
+                } => {
+                    restart_requests.push(client_info.player_id);
+
+                    // Update
+                    match process_playing_update(game) {
+                        ProcessPlayingUpdateResult::Broadcast
+                        | ProcessPlayingUpdateResult::DoNothing => {
+                            // Do nothing; broadcasting anyway
+                        }
+                    }
+
+                    // Respond
+                    broadcast_game_update(game.clone());
+
+                    ProcessClientMessageResult::Continue
+                }
+                crate::model::GameState::InLobby | crate::model::GameState::Playing { .. } => {
+                    // Not processing play again request, because not in GameState::Aftermath
+
+                    ProcessClientMessageResult::Continue
+                }
+            }
+        }
     }
 }
 
 #[must_use]
 fn process_playing_update(game: &mut crate::model::Game) -> ProcessPlayingUpdateResult {
     match &mut game.game_state {
-        crate::model::GameState::InLobby | crate::model::GameState::Aftermath { .. } => {
-            ProcessPlayingUpdateResult::DoNothing
+        crate::model::GameState::InLobby => ProcessPlayingUpdateResult::DoNothing,
+        crate::model::GameState::Aftermath {
+            restart_requests, ..
+        } => {
+            let count_of_players_wanting_restart = game
+                .players
+                .iter()
+                .filter(|player| restart_requests.contains(&player.id))
+                .count();
+            if count_of_players_wanting_restart * 2 >= game.players.len() {
+                game.game_state = create_new_game_state_playing(game);
+                ProcessPlayingUpdateResult::Broadcast
+            } else {
+                ProcessPlayingUpdateResult::DoNothing
+            }
         }
         crate::model::GameState::Playing {
             previous_questions,
@@ -424,25 +444,22 @@ fn process_playing_update(game: &mut crate::model::Game) -> ProcessPlayingUpdate
                                 )
                                 .unwrap()
                                 .unwrap();
-                            *playing_state = crate::model::PlayingState::Question {
-                                time_until: game
-                                    .configuration
-                                    .maximum_answer_time_per_question
-                                    .map(|maximum_answer_time_per_question| {
-                                        Utc::now()
-                                            + chrono::Duration::seconds(
-                                                i64::try_from(maximum_answer_time_per_question)
-                                                    .unwrap(),
-                                            )
-                                    }),
-                                answers: HashMap::new(),
-                            };
+                            *playing_state = create_new_playing_state_question(&game.configuration);
 
                             ProcessPlayingUpdateResult::Broadcast
                         } else {
                             game.game_state = crate::model::GameState::Aftermath {
-                                questions: previous_questions.clone(),
-                                restart_request: Vec::new(),
+                                ranked_players: game
+                                    .players
+                                    .iter()
+                                    .filter_map(|player| match player.play_type {
+                                        crate::model::PlayType::Player { points } => {
+                                            Some((player.id, player.name.clone(), points))
+                                        }
+                                        crate::model::PlayType::Watcher => None,
+                                    })
+                                    .collect(),
+                                restart_requests: Vec::new(),
                             };
 
                             ProcessPlayingUpdateResult::Broadcast
@@ -453,6 +470,38 @@ fn process_playing_update(game: &mut crate::model::Game) -> ProcessPlayingUpdate
                 }
             }
         }
+    }
+}
+
+fn create_new_game_state_playing(game: &crate::model::Game) -> crate::model::GameState {
+    let current_question = crate::data_model_bridge::get_random_answered_question(
+        game.configuration.minimum_score_per_question,
+        None,
+        None,
+    )
+    .unwrap()
+    .unwrap();
+
+    crate::model::GameState::Playing {
+        previous_questions: Vec::new(),
+        current_question,
+        playing_state: create_new_playing_state_question(&game.configuration),
+    }
+}
+
+fn create_new_playing_state_question(
+    game_configuration: &crate::model::GameConfiguration,
+) -> crate::model::PlayingState {
+    crate::model::PlayingState::Question {
+        time_until: game_configuration.maximum_answer_time_per_question.map(
+            |maximum_answer_time_per_question| {
+                Utc::now()
+                    + chrono::Duration::seconds(
+                        i64::try_from(maximum_answer_time_per_question).unwrap(),
+                    )
+            },
+        ),
+        answers: HashMap::new(),
     }
 }
 

@@ -110,8 +110,8 @@ pub enum GameState {
         playing_state: PlayingState,
     },
     Aftermath {
-        questions: Vec<(AnsweredQuestion, HashMap<PlayerId, Answer>)>,
-        restart_request: Vec<PlayerId>,
+        ranked_players: Vec<(PlayerId, PlayerName, u16)>,
+        restart_requests: Vec<PlayerId>,
     },
 }
 
@@ -139,19 +139,13 @@ impl GameState {
                 ),
             },
             GameState::Aftermath {
-                questions,
-                restart_request,
+                ranked_players,
+                restart_requests: restart_request,
             } => shared_model::game::GameState::Aftermath {
-                questions: questions
+                ranked_players: ranked_players
                     .into_iter()
-                    .map(|(answered_question, player_answer_map)| {
-                        (
-                            answered_question.into_shared_model_answered_question(&f),
-                            player_answer_map
-                                .into_iter()
-                                .map(|(player_id, answer)| (player_id.into(), answer.into()))
-                                .collect(),
-                        )
+                    .map(|(player_id, player_name, points)| {
+                        (player_id.into(), player_name.into(), points)
                     })
                     .collect(),
                 restart_requests: restart_request.into_iter().map(Into::into).collect(),

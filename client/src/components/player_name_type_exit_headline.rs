@@ -56,7 +56,7 @@ impl Component for PlayerNameTypeExitHeadlineComponent {
                 index_of_current_question,
                 ..
             } => (index_of_current_question + 1).to_string(),
-            GameState::Aftermath { questions, .. } => questions.len().to_string(),
+            GameState::Aftermath { .. } => count_of_questions.to_string(),
         };
 
         let onclick_exit_game = ctx

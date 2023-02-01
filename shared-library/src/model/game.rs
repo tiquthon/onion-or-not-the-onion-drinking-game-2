@@ -58,7 +58,7 @@ pub enum GameState {
         playing_state: PlayingState,
     },
     Aftermath {
-        questions: Vec<(AnsweredQuestion, HashMap<PlayerId, Answer>)>,
+        ranked_players: Vec<(PlayerId, PlayerName, u16)>,
         restart_requests: Vec<PlayerId>,
     },
 }

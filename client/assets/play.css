@@ -338,17 +338,15 @@
 /*                                END HEADLINE                                */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 
-#question-headline-at-end-state {
+.question-headline-at-end-state {
     grid-column: 1 / span 1;
     grid-row: 5 / span 1;
 }
 
-#play-again-form {
+.play-again-submit-button {
     grid-column: 1 / span 1;
     grid-row: 6 / span 1;
-}
 
-#play-again-submit-button {
     width: 100%;
 }
 
@@ -356,7 +354,7 @@
 /*                              RANKING HEADLINE                              */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 
-#ranking-headline-at-end-state {
+.ranking-headline-at-end-state {
     grid-column: 1 / span 1;
     grid-row: 7 / span 1;
 }
@@ -365,14 +363,14 @@
 /*                              RANKING HEADLINE                              */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 
-#list-or-paragraph-ranking {
+.list-or-paragraph-ranking {
     grid-column: 1 / span 1;
     grid-row: 8 / span 1;
 
     padding-left: 0;
 }
 
-#list-or-paragraph-ranking > li {
+.list-or-paragraph-ranking > li {
     list-style: none;
 
     padding: 5px;

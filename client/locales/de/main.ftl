@@ -107,3 +107,15 @@ game-view-solution-playing-state-sub-headline-player-answer-wrong = Deine Antwor
 game-view-solution-playing-state-sub-headline-player-answer-missing = Deine Antwort hat gefehlt.
 
 game-view-solution-playing-state-link-to-newspaper-posting-anchor-text = Link zum Artikel
+
+## Aftermath View
+
+aftermath-view-headline = Das Spiel ist vorbei
+aftermath-view-next-round = NOCHMAL SPIELEN!
+aftermath-view-next-round-clicked = Warte auf andere Spieler für nächste Runde...
+aftermath-view-ranking-headline = Rangliste
+aftermath-view-ranking-no-one = Niemand ist in der Rangliste!
+aftermath-view-ranking-players-points = { $points } { $points ->
+        [one] Punkt
+        *[other] Punkte
+    }
