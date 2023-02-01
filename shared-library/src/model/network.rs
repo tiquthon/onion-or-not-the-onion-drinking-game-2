@@ -5,6 +5,8 @@ pub enum ClientMessage {
     RequestFullUpdate,
 
     StartGame,
+    ChooseAnswer(crate::model::game::Answer),
+    RequestSkip,
 }
 
 impl TryFrom<&[u8]> for ClientMessage {
@@ -53,6 +55,8 @@ pub enum ServerMessage {
     LobbyJoined(Game),
 
     GameFullUpdate(Game),
+
+    AnswerNotInTimeLimit,
 }
 
 impl ServerMessage {
@@ -60,6 +64,9 @@ impl ServerMessage {
         match self {
             Self::LobbyCreated(game) | Self::LobbyJoined(game) | Self::GameFullUpdate(game) => {
                 game.this_player_id = this_player_id;
+            }
+            Self::AnswerNotInTimeLimit => {
+                // Do nothing
             }
         }
     }

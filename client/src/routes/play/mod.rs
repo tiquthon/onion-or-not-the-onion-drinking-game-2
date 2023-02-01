@@ -4,7 +4,7 @@ use fluent_templates::LanguageIdentifier;
 
 use gloo_net::websocket::{Message, WebSocketError};
 
-use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Game, GameState};
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Answer, Game, GameState};
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::ServerMessage;
 
 use yew::{html, Callback, Component, Context, ContextHandle, ContextProvider, Html};
@@ -94,6 +94,14 @@ impl Component for PlayComponent {
                 self.state.wish_for_game_start();
                 false
             }
+            PlayComponentMsg::ChooseAnswer(answer) => {
+                self.state.choose_answer(answer);
+                false
+            }
+            PlayComponentMsg::RequestSkip => {
+                self.state.request_skip();
+                false
+            }
         }
     }
 
@@ -125,9 +133,12 @@ impl Component for PlayComponent {
                     }
                     GameState::Playing { .. } => {
                         let game_rc = Rc::new(AsRef::as_ref(game).clone());
+                        let on_choose_answer = ctx.link().callback(PlayComponentMsg::ChooseAnswer);
+                        let on_request_skip =
+                            ctx.link().callback(|_| PlayComponentMsg::RequestSkip);
                         html! {
                             <ContextProvider<Rc<Game>> context={game_rc}>
-                                <GameComponent {on_exit_game_wish} />
+                                <GameComponent {on_exit_game_wish} {on_choose_answer} {on_request_skip} />
                             </ContextProvider<Rc<Game>>>
                         }
                     }
@@ -153,6 +164,9 @@ pub enum PlayComponentMsg {
     GoBackToIndex,
     ExitGame,
     StartGame,
+
+    ChooseAnswer(Answer),
+    RequestSkip,
 }
 
 #[derive(yew::Properties, PartialEq)]

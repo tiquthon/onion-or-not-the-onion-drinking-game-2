@@ -9,7 +9,9 @@ use futures_util::{SinkExt, StreamExt};
 use gloo_net::websocket::futures::WebSocket;
 use gloo_net::websocket::{Message, WebSocketError};
 
-use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Game, GameState};
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{
+    Answer, Game, GameState, PlayingState,
+};
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::{
     ClientMessage, ServerMessage,
 };
@@ -204,6 +206,11 @@ impl PlayState {
                     }
                 }
             }
+            ServerMessage::AnswerNotInTimeLimit => {
+                log::error!("Sent answer not in time limit.");
+                // TODO: Maybe handle error better?
+                false
+            }
         }
     }
 
@@ -234,6 +241,90 @@ impl PlayState {
             }
         } else {
             log::error!("There is a wish for game start, but I am in {self:?}; doing nothing.");
+        }
+    }
+
+    pub fn choose_answer(&self, answer: Answer) {
+        match &self {
+            PlayState::Playing {
+                web_socket_sink,
+                game,
+                ..
+            } => match game.game_state {
+                GameState::Playing {
+                    playing_state: PlayingState::Question { .. },
+                } => {
+                    let cloned_web_socket_sink = Arc::clone(web_socket_sink);
+                    spawn_local(async move {
+                        let mut locked_optional_cloned_web_socket_sink =
+                            tokio::sync::Mutex::lock(&cloned_web_socket_sink).await;
+                        if let Some(locked_cloned_web_socket_sink) =
+                            &mut *locked_optional_cloned_web_socket_sink
+                        {
+                            locked_cloned_web_socket_sink
+                                .send(Message::Bytes(
+                                    ClientMessage::ChooseAnswer(answer).try_into().unwrap(),
+                                ))
+                                .await
+                                .unwrap();
+                        }
+                        drop(locked_optional_cloned_web_socket_sink);
+                    });
+                }
+                GameState::Playing {
+                    playing_state: PlayingState::Solution { .. },
+                }
+                | GameState::InLobby
+                | GameState::Aftermath { .. } => {
+                    log::error!("Client wants to choose {answer:?}, but I am not in Playing GameState::Playing PlayingState::Question; doing nothing.");
+                }
+            },
+            PlayState::Connecting { .. } | PlayState::ConnectingError { .. } => {
+                log::error!(
+                    "Client wants to choose {answer:?}, but I am in {self:?}; doing nothing."
+                );
+            }
+        }
+    }
+
+    pub fn request_skip(&self) {
+        match &self {
+            PlayState::Playing {
+                web_socket_sink,
+                game,
+                ..
+            } => match game.game_state {
+                GameState::Playing {
+                    playing_state: PlayingState::Solution { .. },
+                } => {
+                    let cloned_web_socket_sink = Arc::clone(web_socket_sink);
+                    spawn_local(async move {
+                        let mut locked_optional_cloned_web_socket_sink =
+                            tokio::sync::Mutex::lock(&cloned_web_socket_sink).await;
+                        if let Some(locked_cloned_web_socket_sink) =
+                            &mut *locked_optional_cloned_web_socket_sink
+                        {
+                            locked_cloned_web_socket_sink
+                                .send(Message::Bytes(
+                                    ClientMessage::RequestSkip.try_into().unwrap(),
+                                ))
+                                .await
+                                .unwrap();
+                        }
+                        drop(locked_optional_cloned_web_socket_sink);
+                    });
+                }
+                GameState::Playing {
+                    playing_state: PlayingState::Question { .. },
+                }
+                | GameState::InLobby
+                | GameState::Aftermath { .. } => {
+                    log::error!("Client wants to skip, but I am not in Playing GameState::Playing PlayingState::Solution; doing nothing.");
+                }
+            },
+            PlayState::Connecting { .. } | PlayState::ConnectingError { .. } => {
+                log::error!("Client wants to skip, but I am in {self:?}; doing nothing.");
+            }
         }
     }
 

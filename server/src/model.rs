@@ -270,6 +270,15 @@ pub enum Answer {
     NotTheOnion,
 }
 
+impl From<shared_model::game::Answer> for Answer {
+    fn from(value: shared_model::game::Answer) -> Self {
+        match value {
+            shared_model::game::Answer::TheOnion => Self::TheOnion,
+            shared_model::game::Answer::NotTheOnion => Self::NotTheOnion,
+        }
+    }
+}
+
 // Allowing clippy::from_over_into, because don't want to and can't implement From<_> for shared_model.
 #[allow(clippy::from_over_into)]
 impl Into<shared_model::game::Answer> for Answer {

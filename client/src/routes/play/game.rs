@@ -77,7 +77,7 @@ impl GameComponent {
         }
     }
 
-    fn view_question_or_solution(&self) -> Html {
+    fn view_question_or_solution(&self, ctx: &Context<Self>) -> Html {
         let this_player_is_watcher = self.game.get_this_player().unwrap().is_watcher();
         if let GameState::Playing { playing_state } = &self.game.game_state {
             match playing_state {
@@ -102,15 +102,17 @@ impl GameComponent {
                             </h1>
                             {
                                 if !this_player_is_watcher {
+                                    let onclick_the_onion = ctx.link().callback(|_| GameComponentMsg::ChooseAnswer(Answer::TheOnion));
+                                    let onclick_not_the_onion = ctx.link().callback(|_| GameComponentMsg::ChooseAnswer(Answer::NotTheOnion));
                                     html! {
                                         <section class={classes!("question-the-onion-not-the-onion-forms-section")}>
                                             <div class={classes!("question-the-onion-form")}>
-                                                <button type="button" class={classes!("question-the-onion-form-submit-button", this_player_answer_is_the_onion)}>
+                                                <button type="button" class={classes!("question-the-onion-form-submit-button", this_player_answer_is_the_onion)} onclick={onclick_the_onion}>
                                                     <LocaleComponent keyid="game-view-question-playing-state-selection-button-the-onion" />
                                                 </button>
                                             </div>
                                             <div class={classes!("question-not-the-onion-form")}>
-                                                <button type="button" class={classes!("question-not-the-onion-form-submit-button", this_player_answer_is_not_the_onion)}>
+                                                <button type="button" class={classes!("question-not-the-onion-form-submit-button", this_player_answer_is_not_the_onion)} onclick={onclick_not_the_onion}>
                                                     <LocaleComponent keyid="game-view-question-playing-state-selection-button-not-the-onion" />
                                                 </button>
                                             </div>
@@ -226,6 +228,10 @@ impl Component for GameComponent {
                 ctx.props().on_exit_game_wish.emit(());
                 false
             }
+            GameComponentMsg::ChooseAnswer(answer) => {
+                ctx.props().on_choose_answer.emit(answer);
+                false
+            }
         }
     }
 
@@ -240,7 +246,7 @@ impl Component for GameComponent {
                 <section class={classes!("main-wrapper")}>
                     <PlayerNameTypeExitHeadlineComponent {on_exit_game_wished} />
                     { self.view_remaining_time() }
-                    { self.view_question_or_solution() }
+                    { self.view_question_or_solution(ctx) }
                     <PlayerListComponent />
                 </section>
             </main>
@@ -253,9 +259,12 @@ pub enum GameComponentMsg {
     UpdateByInterval,
 
     ExitGame,
+    ChooseAnswer(Answer),
 }
 
 #[derive(yew::Properties, PartialEq)]
 pub struct GameComponentProps {
     pub on_exit_game_wish: Callback<()>,
+    pub on_choose_answer: Callback<Answer>,
+    pub on_request_skip: Callback<()>,
 }
