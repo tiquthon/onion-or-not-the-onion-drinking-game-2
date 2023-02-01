@@ -258,6 +258,11 @@
     font-weight: bold;
 }
 
+.question-result-missing {
+    color: #675e00;
+    font-weight: bold;
+}
+
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 /*                              QUESTION HEADLINE                             */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */

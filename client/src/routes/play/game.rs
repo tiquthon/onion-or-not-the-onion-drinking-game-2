@@ -140,15 +140,18 @@ impl GameComponent {
                     let this_player_answer_correct = this_player_answer
                         .map(|player_answer| *player_answer == current_question.answer);
 
-                    let question_result_css_class =
-                        match (this_player_is_watcher, this_player_answer_correct) {
-                            (false, Some(true)) => "question-result-correct",
-                            (false, Some(false)) => "question-result-wrong",
-                            (true, _) | (false, None) => match current_question.answer {
-                                Answer::TheOnion => "question-result-correct",
-                                Answer::NotTheOnion => "question-result-wrong",
-                            },
-                        };
+                    let question_result_css_class = if this_player_is_watcher {
+                        match current_question.answer {
+                            Answer::TheOnion => "question-result-correct",
+                            Answer::NotTheOnion => "question-result-wrong",
+                        }
+                    } else {
+                        match this_player_answer_correct {
+                            Some(true) => "question-result-correct",
+                            Some(false) => "question-result-wrong",
+                            None => "question-result-missing",
+                        }
+                    };
 
                     let sub_headline_locale = match current_question.answer {
                         Answer::TheOnion => {
