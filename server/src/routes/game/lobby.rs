@@ -340,6 +340,45 @@ fn process_playing_update(game: &mut crate::model::Game) -> ProcessPlayingUpdate
                             .map(|time_until| *time_until < Utc::now())
                             .unwrap_or(false)
                     {
+                        // Give out points
+                        let correct_players: Vec<crate::model::PlayerId> = game
+                            .players
+                            .iter_mut()
+                            .filter_map(|player| {
+                                let player_answer_is_correct = answers
+                                    .get(&player.id)
+                                    .map(|answer| *answer == current_question.answer);
+                                match player_answer_is_correct {
+                                    Some(true) => {
+                                        match &mut player.play_type {
+                                            crate::model::PlayType::Player { points } => {
+                                                *points += 10;
+                                            }
+                                            crate::model::PlayType::Watcher => {}
+                                        }
+                                        Some(player.id)
+                                    }
+                                    Some(false) | None => None,
+                                }
+                            })
+                            .collect();
+
+                        // Reward minority correct players extra points
+                        let are_correct_players_a_minority =
+                            (correct_players.len() as f64).lt(&(game.players.len() as f64 / 2.0));
+                        if are_correct_players_a_minority {
+                            game.players
+                                .iter_mut()
+                                .filter(|player| correct_players.contains(&player.id))
+                                .for_each(|correct_player| match &mut correct_player.play_type {
+                                    crate::model::PlayType::Player { points } => {
+                                        *points += 5;
+                                    }
+                                    crate::model::PlayType::Watcher => {}
+                                });
+                        }
+
+                        // Switch to Solution
                         *playing_state = crate::model::PlayingState::Solution {
                             time_until: Utc::now()
                                 + chrono::Duration::seconds(

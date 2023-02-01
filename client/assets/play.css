@@ -410,16 +410,25 @@
     margin-bottom: 0;
 }
 
-.playerlist-listing-or-paragraph {
+.playerlist-aside {
     grid-column: 1 / span 1;
     grid-row: 10 / span 1;
 
     margin-top: 0;
     margin-bottom: 0;
     padding-left: 0;
+
+    display: grid;
+    grid-template-rows: min-content min-content;
 }
 
-.playerlist-listing-or-paragraph > li {
+.playerlist-listing {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+}
+
+.playerlist-listing > li {
     background-color: #bde552;
 
     border-radius: 5px;
@@ -473,6 +482,10 @@
     white-space: nowrap;
 }
 
+.sub-playerlist-points-explanation {
+    font-style: italic;
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
 /* > > > > > > >  Extra small devices (phones, 600px and down)  < < < < < < < */
@@ -520,7 +533,7 @@
         grid-column: 2 / span 1;
         grid-row: 1 / span 1;
     }
-    .playerlist-listing-or-paragraph {
+    .playerlist-aside {
         grid-column: 2 / span 1;
         grid-row: 2 / -1;
     }

@@ -17,21 +17,28 @@ impl PlayerListComponent {
     fn view_player_list(&self) -> Html {
         if self.game.players.is_empty() {
             html! {
-                <p class={classes!("playerlist-listing-or-paragraph")}>
+                <aside class={classes!("playerlist-aside")}>
                     <LocaleComponent keyid="play-view-players-no-one-here"/>
-                </p>
+                </aside>
             }
         } else {
             html! {
-                <ul class={classes!("playerlist-listing-or-paragraph")}>
-                    {
-                        self.game
-                            .players
-                            .iter()
-                            .map(|player: &Player| self.view_player(player))
-                            .collect::<Html>()
-                    }
-                </ul>
+                <>
+                    <aside class={classes!("playerlist-aside")}>
+                        <ul class={classes!("playerlist-listing")}>
+                            {
+                                self.game
+                                    .players
+                                    .iter()
+                                    .map(|player: &Player| self.view_player(player))
+                                    .collect::<Html>()
+                            }
+                        </ul>
+                        <aside class={classes!("sub-playerlist-points-explanation")}>
+                            <LocaleComponent keyid="play-view-players-points-explanation" />
+                        </aside>
+                    </aside>
+                </>
             }
         }
     }
