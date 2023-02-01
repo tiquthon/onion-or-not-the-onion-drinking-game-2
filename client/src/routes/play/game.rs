@@ -85,7 +85,7 @@ impl GameComponent {
 
     fn view_question_or_solution(&self, ctx: &Context<Self>) -> Html {
         let this_player_is_watcher = self.game.get_this_player().unwrap().is_watcher();
-        if let GameState::Playing { playing_state } = &self.game.game_state {
+        if let GameState::Playing { playing_state, .. } = &self.game.game_state {
             match playing_state {
                 PlayingState::Question {
                     current_question,

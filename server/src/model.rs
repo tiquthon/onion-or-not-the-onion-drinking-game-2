@@ -127,10 +127,11 @@ impl GameState {
         match self {
             GameState::InLobby => shared_model::game::GameState::InLobby,
             GameState::Playing {
+                previous_questions,
                 current_question,
                 playing_state,
-                ..
             } => shared_model::game::GameState::Playing {
+                index_of_current_question: previous_questions.len(),
                 playing_state: playing_state.into_shared_model_playing_state(
                     own_id,
                     &current_question,

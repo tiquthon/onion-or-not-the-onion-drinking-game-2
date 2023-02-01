@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::Game;
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Game, GameState};
 
 use yew::{classes, html, Callback, Component, Context, ContextHandle, Html};
 
@@ -56,6 +56,15 @@ impl Component for PlayerNameTypeExitHeadlineComponent {
             .map(ToString::to_string)
             .unwrap_or_else(|| "\u{221E}".to_string());
 
+        let number_of_current_question = match &self.game.game_state {
+            GameState::InLobby => "0".to_string(),
+            GameState::Playing {
+                index_of_current_question,
+                ..
+            } => (index_of_current_question + 1).to_string(),
+            GameState::Aftermath { questions, .. } => questions.len().to_string(),
+        };
+
         let onclick_exit_game = ctx
             .link()
             .callback(|_| PlayerNameTypeExitHeadlineComponentMsg::ExitGame);
@@ -71,7 +80,9 @@ impl Component for PlayerNameTypeExitHeadlineComponent {
                             html!{ <LocaleComponent keyid="play-view-type-of-player-player"/> }
                         }
                     }</span>
-                    {" | 0 / "}
+                    {" | "}
+                    {number_of_current_question}
+                    {" / "}
                     {count_of_questions}
                     {" | "}
                     <button type="button" class={classes!("exit-game-link")} onclick={onclick_exit_game}>

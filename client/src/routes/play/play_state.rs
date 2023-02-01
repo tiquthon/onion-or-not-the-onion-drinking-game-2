@@ -253,6 +253,7 @@ impl PlayState {
             } => match game.game_state {
                 GameState::Playing {
                     playing_state: PlayingState::Question { .. },
+                    ..
                 } => {
                     let cloned_web_socket_sink = Arc::clone(web_socket_sink);
                     spawn_local(async move {
@@ -273,6 +274,7 @@ impl PlayState {
                 }
                 GameState::Playing {
                     playing_state: PlayingState::Solution { .. },
+                    ..
                 }
                 | GameState::InLobby
                 | GameState::Aftermath { .. } => {
@@ -296,6 +298,7 @@ impl PlayState {
             } => match game.game_state {
                 GameState::Playing {
                     playing_state: PlayingState::Solution { .. },
+                    ..
                 } => {
                     let cloned_web_socket_sink = Arc::clone(web_socket_sink);
                     spawn_local(async move {
@@ -316,6 +319,7 @@ impl PlayState {
                 }
                 GameState::Playing {
                     playing_state: PlayingState::Question { .. },
+                    ..
                 }
                 | GameState::InLobby
                 | GameState::Aftermath { .. } => {

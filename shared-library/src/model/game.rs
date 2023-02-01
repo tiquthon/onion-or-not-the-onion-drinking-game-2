@@ -54,6 +54,7 @@ pub struct GameConfiguration {
 pub enum GameState {
     InLobby,
     Playing {
+        index_of_current_question: usize,
         playing_state: PlayingState,
     },
     Aftermath {
