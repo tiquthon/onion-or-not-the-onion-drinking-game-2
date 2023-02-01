@@ -1,11 +1,14 @@
-use fluent_templates::LanguageIdentifier;
+use std::collections::HashMap;
 use std::str::FromStr;
+
+use fluent_templates::LanguageIdentifier;
 
 use web_sys::{HtmlInputElement, SubmitEvent};
 
+use yew::platform::spawn_local;
 use yew::{classes, html, Callback, Component, Context, ContextHandle, Html, NodeRef};
 
-use crate::components::locale::{locale, LocaleComponent};
+use crate::components::locale::{locale, locale_args, LocaleComponent};
 
 pub struct IndexComponent {
     langid: LanguageIdentifier,
@@ -19,6 +22,8 @@ pub struct IndexComponent {
     just_watch_checkbox_node_ref: NodeRef,
 
     create_lobby_settings_visibility: CreateLobbySettingsVisibility,
+
+    question_scores_distribution: Option<HashMap<u64, usize>>,
 }
 
 impl Component for IndexComponent {
@@ -33,6 +38,24 @@ impl Component for IndexComponent {
                     .callback(IndexComponentMsg::MessageContextUpdated),
             )
             .expect("Missing LanguageIdentifier context.");
+
+        let question_scores_distribution_fetched_callback = ctx
+            .link()
+            .callback(IndexComponentMsg::QuestionScoresDistributionFetched);
+        spawn_local(async move {
+            let api_root_url =
+                option_env!("BUILD_BACKEND_ADDRESS").unwrap_or("http://localhost:8000/api");
+            let response_result =
+                gloo_net::http::Request::get(&format!("{api_root_url}/distribution"))
+                    .send()
+                    .await;
+            let response = match response_result {
+                Ok(response) => Ok(response.json::<HashMap<u64, usize>>().await),
+                Err(error) => Err(error),
+            };
+            question_scores_distribution_fetched_callback.emit(response);
+        });
+
         Self {
             langid,
             _context_listener: context_listener,
@@ -45,6 +68,8 @@ impl Component for IndexComponent {
             just_watch_checkbox_node_ref: NodeRef::default(),
 
             create_lobby_settings_visibility: CreateLobbySettingsVisibility::visible_default(),
+
+            question_scores_distribution: None,
         }
     }
 
@@ -54,6 +79,20 @@ impl Component for IndexComponent {
                 self.langid = langid;
                 true
             }
+            IndexComponentMsg::QuestionScoresDistributionFetched(result) => match result {
+                Ok(Ok(distribution)) => {
+                    self.question_scores_distribution = Some(distribution);
+                    true
+                }
+                Ok(Err(error)) => {
+                    log::error!("Failed parsing fetched question scores distribution ({error})");
+                    false
+                }
+                Err(error) => {
+                    log::error!("Failed fetching question scores distribution ({error})");
+                    false
+                }
+            },
             IndexComponentMsg::FormSubmitted => {
                 let mut error_found = false;
 
@@ -200,6 +239,10 @@ impl Component for IndexComponent {
                 };
                 true
             }
+            IndexComponentMsg::MinimumScoreValueChanged => {
+                // Just rerender the component
+                true
+            }
         }
     }
 
@@ -212,6 +255,22 @@ impl Component for IndexComponent {
         let invite_code_onkeyup = ctx
             .link()
             .callback(|_| IndexComponentMsg::InviteCodeValueChanged);
+
+        let last_player_name = self
+            .player_name_node_ref
+            .cast::<HtmlInputElement>()
+            .map(|element| element.value())
+            .unwrap_or_default();
+        let last_invite_code = self
+            .invite_code_node_ref
+            .cast::<HtmlInputElement>()
+            .map(|element| element.value())
+            .unwrap_or_default();
+        let last_just_watch = self
+            .just_watch_checkbox_node_ref
+            .cast::<HtmlInputElement>()
+            .map(|element| element.checked())
+            .unwrap_or(false);
         html! {
             <main class={classes!("index-main")}>
                 <p class={classes!("index-game-explanation")}><span style="font-weight: bold;"><LocaleComponent keyid="game-name"/></span>{" "}<LocaleComponent keyid="game-title-description"/></p>
@@ -225,7 +284,7 @@ impl Component for IndexComponent {
                         </span>
                         {" "}
                     </label>
-                    <input type="text" id="username_new_game" placeholder={locale("game-creation-form-username-placeholder", &self.langid)} ref={self.player_name_node_ref.clone()}/>
+                    <input type="text" id="username_new_game" value={last_player_name} placeholder={locale("game-creation-form-username-placeholder", &self.langid)} ref={self.player_name_node_ref.clone()}/>
                     if let Some(player_name_error_message_langkeyid) = &self.player_name_error_message_langkeyid {
                         <p class={classes!("index-form-error-paragraph")}>
                             <LocaleComponent keyid={player_name_error_message_langkeyid.clone()}/>
@@ -239,7 +298,7 @@ impl Component for IndexComponent {
                         </span>
                         {" "}
                     </label>
-                    <input type="text" id="invite_code" placeholder={locale("game-creation-form-invite-code-placeholder", &self.langid)} onkeyup={invite_code_onkeyup} ref={self.invite_code_node_ref.clone()}/>
+                    <input type="text" id="invite_code" value={last_invite_code} placeholder={locale("game-creation-form-invite-code-placeholder", &self.langid)} onkeyup={invite_code_onkeyup} ref={self.invite_code_node_ref.clone()}/>
                     if let Some(invite_code_error_message_langkeyid) = &self.invite_code_error_message_langkeyid {
                         <p class={classes!("index-form-error-paragraph")}>
                             <LocaleComponent keyid={invite_code_error_message_langkeyid.clone()}/>
@@ -249,7 +308,7 @@ impl Component for IndexComponent {
                     <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-starting-game-explanation"/></p>
 
                     <label class={classes!("just-watch-new-game-label")}>
-                        <input type="checkbox" ref={self.just_watch_checkbox_node_ref.clone()}/>
+                        <input type="checkbox" checked={last_just_watch} ref={self.just_watch_checkbox_node_ref.clone()}/>
                         {" "}
                         <LocaleComponent keyid="game-creation-form-just-watch-label"/>
                     </label>
@@ -264,44 +323,79 @@ impl Component for IndexComponent {
                                 max_questions_input_node_ref,
                                 minimum_score_input_node_ref,
                                 timer_wanted_input_node_ref,
-                            } => html! {
-                                <>
-                                    <label for="max-questions">
-                                        <LocaleComponent keyid="game-creation-form-max-questions-label"/>
-                                        {": "}
-                                    </label>
-                                    <input type="text" id="max-questions" value="10" placeholder={locale("game-creation-form-max-questions-placeholder", &self.langid)} ref={max_questions_input_node_ref.clone()}/>
-                                    if let Some(max_questions_error_message_langkeyid) = &max_questions_error_message_langkeyid {
-                                        <p class={classes!("index-form-error-paragraph")}>
-                                            <LocaleComponent keyid={max_questions_error_message_langkeyid.clone()}/>
-                                        </p>
-                                    }
-                                    <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-max-questions-explanation"/></p>
+                            } => {
+                                let last_max_questions = max_questions_input_node_ref.cast::<HtmlInputElement>()
+                                    .map(|element| element.value())
+                                    .unwrap_or_else(|| "10".to_string());
+                                let last_minimum_score = minimum_score_input_node_ref.cast::<HtmlInputElement>()
+                                    .map(|element| element.value())
+                                    .unwrap_or_default();
+                                let last_timer_wanted = timer_wanted_input_node_ref.cast::<HtmlInputElement>()
+                                    .map(|element| element.value())
+                                    .unwrap_or_default();
+                                let minimum_score_keyup = ctx
+                                    .link()
+                                    .callback(|_| IndexComponentMsg::MinimumScoreValueChanged);
+                                html! {
+                                    <>
+                                        <label for="max-questions">
+                                            <LocaleComponent keyid="game-creation-form-max-questions-label"/>
+                                            {": "}
+                                        </label>
+                                        <input type="text" id="max-questions" value={last_max_questions} placeholder={locale("game-creation-form-max-questions-placeholder", &self.langid)} ref={max_questions_input_node_ref.clone()}/>
+                                        if let Some(max_questions_error_message_langkeyid) = &max_questions_error_message_langkeyid {
+                                            <p class={classes!("index-form-error-paragraph")}>
+                                                <LocaleComponent keyid={max_questions_error_message_langkeyid.clone()}/>
+                                            </p>
+                                        }
+                                        <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-max-questions-explanation"/></p>
 
-                                    <label for="minimum-score">
-                                        <LocaleComponent keyid="game-creation-form-minimum-score-label"/>
-                                        {": "}
-                                    </label>
-                                    <input type="text" id="minimum-score" placeholder={locale("game-creation-form-minimum-score-placeholder", &self.langid)} ref={minimum_score_input_node_ref.clone()}/>
-                                    if let Some(minimum_score_error_message_langkeyid) = &minimum_score_error_message_langkeyid {
-                                        <p class={classes!("index-form-error-paragraph")}>
-                                            <LocaleComponent keyid={minimum_score_error_message_langkeyid.clone()}/>
+                                        <label for="minimum-score">
+                                            <LocaleComponent keyid="game-creation-form-minimum-score-label"/>
+                                            {": "}
+                                        </label>
+                                        <input type="text" id="minimum-score" value={last_minimum_score.clone()} placeholder={locale("game-creation-form-minimum-score-placeholder", &self.langid)} onkeyup={minimum_score_keyup} ref={minimum_score_input_node_ref.clone()}/>
+                                        if let Some(minimum_score_error_message_langkeyid) = &minimum_score_error_message_langkeyid {
+                                            <p class={classes!("index-form-error-paragraph")}>
+                                                <LocaleComponent keyid={minimum_score_error_message_langkeyid.clone()}/>
+                                            </p>
+                                        }
+                                        <p class={classes!("index-form-description-paragraph")}>
+                                            <LocaleComponent keyid="game-creation-form-minimum-score-explanation"/>
+                                            {
+                                                if let Some(question_scores_distribution) = &self.question_scores_distribution {
+                                                    let current_score = last_minimum_score.parse::<u64>().unwrap_or(0);
+                                                    let count_of_questions: usize = question_scores_distribution.iter()
+                                                        .filter(|(score, _)| **score >= current_score)
+                                                        .map(|(_, count)| *count)
+                                                        .sum();
+                                                    html! {
+                                                        <>
+                                                            <br/>
+                                                            <LocaleComponent
+                                                                keyid="game-creation-form-minimum-score-count-of-available"
+                                                                args={locale_args([("score", current_score.into()), ("count", count_of_questions.into())])} />
+                                                        </>
+                                                    }
+                                                } else {
+                                                    html! {}
+                                                }
+                                            }
                                         </p>
-                                    }
-                                    <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-minimum-score-explanation"/></p>
 
-                                    <label for="timer-wanted">
-                                        <LocaleComponent keyid="game-creation-form-timer-wanted-label"/>
-                                        {": "}
-                                    </label>
-                                    <input type="text" id="timer-wanted" placeholder={locale("game-creation-form-timer-wanted-placeholder", &self.langid)} ref={timer_wanted_input_node_ref.clone()}/>
-                                    if let Some(timer_wanted_error_message_langkeyid) = &timer_wanted_error_message_langkeyid {
-                                        <p class={classes!("index-form-error-paragraph")}>
-                                            <LocaleComponent keyid={timer_wanted_error_message_langkeyid.clone()}/>
-                                        </p>
-                                    }
-                                    <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-timer-wanted-explanation"/></p>
-                                </>
+                                        <label for="timer-wanted">
+                                            <LocaleComponent keyid="game-creation-form-timer-wanted-label"/>
+                                            {": "}
+                                        </label>
+                                        <input type="text" id="timer-wanted" value={last_timer_wanted} placeholder={locale("game-creation-form-timer-wanted-placeholder", &self.langid)} ref={timer_wanted_input_node_ref.clone()}/>
+                                        if let Some(timer_wanted_error_message_langkeyid) = &timer_wanted_error_message_langkeyid {
+                                            <p class={classes!("index-form-error-paragraph")}>
+                                                <LocaleComponent keyid={timer_wanted_error_message_langkeyid.clone()}/>
+                                            </p>
+                                        }
+                                        <p class={classes!("index-form-description-paragraph")}><LocaleComponent keyid="game-creation-form-timer-wanted-explanation"/></p>
+                                    </>
+                                }
                             },
                             CreateLobbySettingsVisibility::Hidden => html! {},
                         }
@@ -322,8 +416,12 @@ impl Component for IndexComponent {
 
 pub enum IndexComponentMsg {
     MessageContextUpdated(LanguageIdentifier),
+    QuestionScoresDistributionFetched(
+        Result<Result<HashMap<u64, usize>, gloo_net::Error>, gloo_net::Error>,
+    ),
     FormSubmitted,
     InviteCodeValueChanged,
+    MinimumScoreValueChanged,
 }
 
 #[derive(yew::Properties, PartialEq)]

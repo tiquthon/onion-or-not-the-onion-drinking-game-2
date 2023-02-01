@@ -47,6 +47,18 @@ lazy_static::lazy_static! {
             .chain(THE_ONION_BEST.keys().copied())
             .collect()
     };
+
+    static ref DISTRIBUTION: HashMap<u64, usize> = {
+        crate::data::ALL__KEYS.iter()
+                .map(get)
+                .map(|reddit_submission_data| reddit_submission_data.unwrap().score)
+                .fold(HashMap::new(), |mut output, score| {
+                    output.entry(score)
+                        .and_modify(|count| *count += 1)
+                        .or_insert(1);
+                    output
+                })
+    };
 }
 
 fn parse(data: &str) -> HashMap<QuestionId, RedditSubmissionData> {
@@ -55,6 +67,10 @@ fn parse(data: &str) -> HashMap<QuestionId, RedditSubmissionData> {
         .into_iter()
         .map(|submission_data| (QuestionId::generate(), submission_data))
         .collect()
+}
+
+pub fn distribution() -> &'static HashMap<u64, usize> {
+    &DISTRIBUTION
 }
 
 pub fn get(question_id: &QuestionId) -> Option<&RedditSubmissionData> {

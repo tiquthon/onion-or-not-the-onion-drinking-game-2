@@ -35,6 +35,10 @@ game-creation-form-max-questions-explanation = Leave Blank if you want to get al
 game-creation-form-minimum-score-label = Minimum Score of Questions
 game-creation-form-minimum-score-placeholder = { game-creation-form-minimum-score-label }
 game-creation-form-minimum-score-explanation = Leave Blank if you don't care how much score a question has
+game-creation-form-minimum-score-count-of-available = With a score of { $score } there { $count ->
+        [one] is { $count } question
+        *[other] are { $count } questions
+    } available.
 
 game-creation-form-timer-wanted-label = Timer
 game-creation-form-timer-wanted-placeholder = { game-creation-form-timer-wanted-label }

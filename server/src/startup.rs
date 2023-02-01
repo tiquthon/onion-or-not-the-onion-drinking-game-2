@@ -6,6 +6,7 @@ use actix_web::{web, App, HttpServer};
 use tracing_actix_web::TracingLogger;
 
 use crate::configuration::Configuration;
+use crate::routes::distribution::distribution;
 use crate::routes::game::lobbies_storage::LobbiesStorage;
 use crate::routes::game::{create_lobby, join_lobby};
 
@@ -39,6 +40,7 @@ async fn run(tcp_listener: TcpListener) -> anyhow::Result<Server> {
             .wrap(TracingLogger::default())
             .route("/create", web::get().to(create_lobby))
             .route("/join/{invite_code}", web::get().to(join_lobby))
+            .route("/distribution", web::get().to(distribution))
             .app_data(web::Data::new(lobbies_storage.clone()))
     })
     .listen(tcp_listener)?

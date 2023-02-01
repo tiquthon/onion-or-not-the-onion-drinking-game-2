@@ -41,6 +41,10 @@ game-creation-form-max-questions-explanation = Leer Lassen, wenn alle Fragen gew
 game-creation-form-minimum-score-label = { -minimum-score(inflection: "strong") }
 game-creation-form-minimum-score-placeholder = { game-creation-form-minimum-score-label }
 game-creation-form-minimum-score-explanation = Leer Lassen, wenn es egal ist, wie gut eine Frage sein muss
+game-creation-form-minimum-score-count-of-available = Mit einem Score von { $score } sind { $count ->
+        [one] ist { $count } Frage
+        *[other] sind { $count } Fragen
+    } verfügbar.
 
 game-creation-form-timer-wanted-label = Timer
 game-creation-form-timer-wanted-placeholder = { game-creation-form-timer-wanted-label }
