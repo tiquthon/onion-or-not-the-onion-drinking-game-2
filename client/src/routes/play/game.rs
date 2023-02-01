@@ -20,7 +20,7 @@ pub struct GameComponent {
 }
 
 impl GameComponent {
-    fn view_remaining_time(&self) -> Html {
+    fn view_remaining_time(&self, ctx: &Context<Self>) -> Html {
         let this_player_is_watcher = self.game.get_this_player().unwrap().is_watcher();
 
         if let GameState::Playing { playing_state, .. } = &self.game.game_state {
@@ -60,11 +60,17 @@ impl GameComponent {
                                     html! {}
                                 } else if skip_request.contains(&self.game.this_player_id) {
                                     html! {
-                                        {" - Skipping..."}
+                                        <>
+                                            {" - "}
+                                            <LocaleComponent keyid="game-view-solution-playing-state-continuing" />
+                                        </>
                                     }
                                 } else {
+                                    let onclick_skip_button = ctx.link().callback(|_| GameComponentMsg::RequestSkip);
                                     html! {
-                                        <a href="">{"Skip"}</a>
+                                        <button type="button" class={classes!("skip-button")} onclick={onclick_skip_button}>
+                                            <LocaleComponent keyid="game-view-solution-playing-state-continue" />
+                                        </button>
                                     }
                                 }
                             }
@@ -232,6 +238,10 @@ impl Component for GameComponent {
                 ctx.props().on_choose_answer.emit(answer);
                 false
             }
+            GameComponentMsg::RequestSkip => {
+                ctx.props().on_request_skip.emit(());
+                false
+            }
         }
     }
 
@@ -245,7 +255,7 @@ impl Component for GameComponent {
                 <JoinGameComponent {invite_code} />
                 <section class={classes!("main-wrapper")}>
                     <PlayerNameTypeExitHeadlineComponent {on_exit_game_wished} />
-                    { self.view_remaining_time() }
+                    { self.view_remaining_time(ctx) }
                     { self.view_question_or_solution(ctx) }
                     <PlayerListComponent />
                 </section>
@@ -260,6 +270,7 @@ pub enum GameComponentMsg {
 
     ExitGame,
     ChooseAnswer(Answer),
+    RequestSkip,
 }
 
 #[derive(yew::Properties, PartialEq)]

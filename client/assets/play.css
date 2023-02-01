@@ -124,6 +124,11 @@
     margin-top: 10px;
 }
 
+.skip-button {
+    margin-left: 5px;
+    padding: 5px;
+}
+
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 /*                       MAIN SECTION FRONTEND MESSAGES                       */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */

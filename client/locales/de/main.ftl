@@ -95,6 +95,8 @@ game-view-solution-playing-state-remaining-seconds = Es {$seconds ->
         [one] verbleibt { $seconds } Sekunde
         *[other] verbleiben { $seconds } Sekunden
     }
+game-view-solution-playing-state-continue = Weiter
+game-view-solution-playing-state-continuing = Weiter...
 
 game-view-solution-playing-state-sub-headline-the-onion = Es ist THE ONION
 game-view-solution-playing-state-sub-headline-not-the-onion = Es ist NOT THE ONION
