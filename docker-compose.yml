@@ -18,6 +18,9 @@ services:
     build:
       context: .
       dockerfile: client/Dockerfile
+      args:
+        BUILD_WEBSOCKET_ROOT_ADDRESS: ws://localhost:8000/api
+        BUILD_BACKEND_ROOT_ADDRESS: http://localhost:8000/api
     networks:
       - net
   backend:

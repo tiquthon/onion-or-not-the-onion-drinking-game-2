@@ -44,7 +44,7 @@ impl Component for IndexComponent {
             .callback(IndexComponentMsg::QuestionScoresDistributionFetched);
         spawn_local(async move {
             let api_root_url =
-                option_env!("BUILD_BACKEND_ADDRESS").unwrap_or("http://localhost:8000/api");
+                option_env!("BUILD_BACKEND_ROOT_ADDRESS").unwrap_or("http://localhost:8000/api");
             let response_result =
                 gloo_net::http::Request::get(&format!("{api_root_url}/distribution"))
                     .send()
