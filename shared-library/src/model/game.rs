@@ -43,7 +43,7 @@ impl Display for InviteCode {
     Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, serde::Serialize, serde::Deserialize,
 )]
 pub struct GameConfiguration {
-    pub count_of_questions: Option<u64>,
+    pub count_of_questions: u64,
     pub minimum_score_per_question: Option<i64>,
     pub maximum_answer_time_per_question: Option<u64>,
 }

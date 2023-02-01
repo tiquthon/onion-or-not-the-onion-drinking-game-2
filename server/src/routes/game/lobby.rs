@@ -26,7 +26,12 @@ pub async fn start_lobby_task(
     tokio::spawn(async move {
         let mut game = crate::model::Game {
             configuration: crate::model::GameConfiguration {
-                count_of_questions,
+                count_of_questions: count_of_questions.unwrap_or_else(|| {
+                    u64::try_from(crate::data::calculate_count_of_questions(
+                        minimum_score_per_question,
+                    ))
+                    .unwrap()
+                }),
                 minimum_score_per_question,
                 maximum_answer_time_per_question,
             },
@@ -403,15 +408,8 @@ fn process_playing_update(game: &mut crate::model::Game) -> ProcessPlayingUpdate
                         previous_questions.push((*current_question, answers.clone()));
 
                         // RENEW
-                        let maximum_questions = game
-                            .configuration
-                            .count_of_questions
-                            .map(|count_of_questions| usize::try_from(count_of_questions).unwrap())
-                            .unwrap_or_else(|| {
-                                crate::data::calculate_count_of_questions(
-                                    game.configuration.minimum_score_per_question,
-                                )
-                            });
+                        let maximum_questions =
+                            usize::try_from(game.configuration.count_of_questions).unwrap();
                         if previous_questions.len() < maximum_questions {
                             *current_question =
                                 crate::data_model_bridge::get_random_answered_question(

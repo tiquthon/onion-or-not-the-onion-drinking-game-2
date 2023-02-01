@@ -48,13 +48,7 @@ impl Component for PlayerNameTypeExitHeadlineComponent {
         let player_name = this_player.name.to_string();
         let is_watcher = this_player.is_watcher();
 
-        let count_of_questions = self
-            .game
-            .configuration
-            .count_of_questions
-            .as_ref()
-            .map(ToString::to_string)
-            .unwrap_or_else(|| "\u{221E}".to_string());
+        let count_of_questions = self.game.configuration.count_of_questions.to_string();
 
         let number_of_current_question = match &self.game.game_state {
             GameState::InLobby => "0".to_string(),

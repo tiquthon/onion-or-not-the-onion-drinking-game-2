@@ -30,7 +30,7 @@ game-creation-form-just-watch-label = I just want to watch it!
 
 game-creation-form-max-questions-label = Count of Questions
 game-creation-form-max-questions-placeholder = { game-creation-form-max-questions-label }
-game-creation-form-max-questions-explanation = Leave Blank if you want to get almost 2000 available questions
+game-creation-form-max-questions-explanation = Leave Blank if you want to get all available questions
 
 game-creation-form-minimum-score-label = Minimum Score of Questions
 game-creation-form-minimum-score-placeholder = { game-creation-form-minimum-score-label }

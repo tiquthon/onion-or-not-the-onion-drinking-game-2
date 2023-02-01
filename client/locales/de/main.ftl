@@ -31,7 +31,7 @@ game-creation-form-just-watch-label = Ich will es einfach nur anschauen!
 
 game-creation-form-max-questions-label = Anzahl an Fragen
 game-creation-form-max-questions-placeholder = { game-creation-form-max-questions-label }
-game-creation-form-max-questions-explanation = Leer Lassen, wenn bis zu 2000 Fragen gewollt sind
+game-creation-form-max-questions-explanation = Leer Lassen, wenn alle Fragen gewollt sind
 
 -minimum-score =
     { $inflection ->
