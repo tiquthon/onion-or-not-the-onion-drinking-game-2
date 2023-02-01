@@ -5,6 +5,7 @@ use crate::routes::game::lobbies_storage::LobbiesStorage;
 use crate::routes::game::lobby::start_lobby_task;
 
 pub mod client;
+pub mod from_lobby_message;
 pub mod lobbies_storage;
 pub mod lobby;
 pub mod to_lobby_message;

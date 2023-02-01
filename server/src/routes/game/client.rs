@@ -4,8 +4,9 @@ use futures_util::StreamExt;
 
 use onion_or_not_the_onion_drinking_game_2_shared_library::model as shared_model;
 
-use crate::routes::game::lobbies_storage::{ClientInfo, LobbiesStorage};
-use crate::routes::game::to_lobby_message::{RegisterType, ToLobbyMessage};
+use crate::routes::game::from_lobby_message::FromLobbyMessage;
+use crate::routes::game::lobbies_storage::LobbiesStorage;
+use crate::routes::game::to_lobby_message::{ClientInfo, RegisterType, ToLobbyMessage};
 
 pub async fn start_client_network_task(
     player_name: crate::model::PlayerName,
@@ -19,23 +20,27 @@ pub async fn start_client_network_task(
     let (unbounded_sender_to_lobby, mut broadcast_receiver_from_lobby) =
         lobbies.retrieve(&invite_code).await.unwrap();
     let (unbounded_sender_from_lobby, mut unbounded_receiver_from_lobby) =
-        tokio::sync::mpsc::unbounded_channel::<shared_model::network::ServerMessage>();
+        tokio::sync::mpsc::unbounded_channel::<FromLobbyMessage>();
 
     let this_player_id = crate::model::PlayerId::generate();
 
     let mut cloned_session = session.clone();
+    let cloned_invite_code = invite_code.clone();
     tokio::spawn(async move {
-        while let Ok(mut server_message) = broadcast_receiver_from_lobby.recv().await {
-            server_message.replace_this_player_id_with(this_player_id.into());
+        while let Ok(from_lobby_message) = broadcast_receiver_from_lobby.recv().await {
+            let server_message =
+                from_lobby_message.into_server_message(cloned_invite_code.clone(), this_player_id);
             let server_message: Vec<u8> = server_message.try_into().unwrap();
             cloned_session.binary(server_message).await.unwrap();
         }
     });
 
     let mut cloned_session = session.clone();
+    let cloned_invite_code = invite_code.clone();
     tokio::spawn(async move {
-        while let Some(mut server_message) = unbounded_receiver_from_lobby.recv().await {
-            server_message.replace_this_player_id_with(this_player_id.into());
+        while let Some(from_lobby_message) = unbounded_receiver_from_lobby.recv().await {
+            let server_message =
+                from_lobby_message.into_server_message(cloned_invite_code.clone(), this_player_id);
             let server_message: Vec<u8> = server_message.try_into().unwrap();
             cloned_session.binary(server_message).await.unwrap();
         }
@@ -43,17 +48,15 @@ pub async fn start_client_network_task(
 
     tokio::task::spawn_local(async move {
         unbounded_sender_to_lobby
-            .send((
-                ClientInfo {
+            .send(ToLobbyMessage::Register {
+                client_info: ClientInfo {
                     callback: unbounded_sender_from_lobby.clone(),
                     player_id: this_player_id,
                 },
-                ToLobbyMessage::Register {
-                    name: player_name,
-                    just_watch,
-                    register_type: client_type.into(),
-                },
-            ))
+                name: player_name,
+                just_watch,
+                register_type: client_type.into(),
+            })
             .unwrap();
 
         while let Some(Ok(msg)) = msg_stream.next().await {
@@ -62,13 +65,13 @@ pub async fn start_client_network_task(
                     match shared_model::network::ClientMessage::try_from(&*bytes) {
                         Ok(client_message) => {
                             unbounded_sender_to_lobby
-                                .send((
-                                    ClientInfo {
+                                .send(ToLobbyMessage::ClientMessage {
+                                    client_info: ClientInfo {
                                         callback: unbounded_sender_from_lobby.clone(),
                                         player_id: this_player_id,
                                     },
-                                    ToLobbyMessage::ClientMessage(client_message),
-                                ))
+                                    client_message,
+                                })
                                 .unwrap();
                         }
                         Err(error) => {
@@ -83,13 +86,12 @@ pub async fn start_client_network_task(
                         "WebSocket connection closed by client ({optional_close_reason:?})"
                     );
                     unbounded_sender_to_lobby
-                        .send((
-                            ClientInfo {
+                        .send(ToLobbyMessage::Disconnect {
+                            client_info: ClientInfo {
                                 callback: unbounded_sender_from_lobby.clone(),
                                 player_id: this_player_id,
                             },
-                            ToLobbyMessage::Disconnect,
-                        ))
+                        })
                         .unwrap();
                     break;
                 }

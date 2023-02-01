@@ -1,5 +1,15 @@
-pub fn get_random_answered_question() -> Option<crate::model::AnsweredQuestion> {
-    crate::data::get_random_id().and_then(get_answered_question)
+use std::collections::HashSet;
+
+pub fn get_random_answered_question(
+    minimum_score_per_question: Option<i64>,
+    blacklist: Option<&HashSet<crate::model::QuestionId>>,
+    timeout_retries: Option<u32>,
+) -> anyhow::Result<Option<crate::model::AnsweredQuestion>> {
+    Ok(get_answered_question(crate::data::get_random_question_id(
+        minimum_score_per_question,
+        blacklist,
+        timeout_retries,
+    )?))
 }
 
 pub fn get_answered_question(

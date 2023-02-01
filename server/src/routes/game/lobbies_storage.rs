@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use onion_or_not_the_onion_drinking_game_2_shared_library::model as shared_model;
-
 use crate::model::POSSIBLE_INVITE_CODE_COMBINATIONS;
+use crate::routes::game::from_lobby_message::FromLobbyMessage;
 use crate::routes::game::to_lobby_message::ToLobbyMessage;
 
 #[derive(Clone)]
@@ -16,8 +15,8 @@ impl LobbiesStorage {
         &self,
     ) -> (
         crate::model::InviteCode,
-        tokio::sync::mpsc::UnboundedReceiver<(ClientInfo, ToLobbyMessage)>,
-        tokio::sync::broadcast::Sender<shared_model::network::ServerMessage>,
+        tokio::sync::mpsc::UnboundedReceiver<ToLobbyMessage>,
+        tokio::sync::broadcast::Sender<FromLobbyMessage>,
     ) {
         let (broadcast_sender, broadcast_receiver) = tokio::sync::broadcast::channel(64);
         let (unbounded_sender, unbounded_receiver) = tokio::sync::mpsc::unbounded_channel();
@@ -69,8 +68,8 @@ impl LobbiesStorage {
         &self,
         invite_code: &crate::model::InviteCode,
     ) -> Option<(
-        tokio::sync::mpsc::UnboundedSender<(ClientInfo, ToLobbyMessage)>,
-        tokio::sync::broadcast::Receiver<shared_model::network::ServerMessage>,
+        tokio::sync::mpsc::UnboundedSender<ToLobbyMessage>,
+        tokio::sync::broadcast::Receiver<FromLobbyMessage>,
     )> {
         let locked_internal = tokio::sync::Mutex::lock(&self.internal).await;
 
@@ -108,15 +107,7 @@ struct InternalLobbiesStorage {
 }
 
 pub struct Lobby {
-    sender_to_lobby: tokio::sync::mpsc::UnboundedSender<(ClientInfo, ToLobbyMessage)>,
-    _broadcast_receiver_to_client:
-        tokio::sync::broadcast::Receiver<shared_model::network::ServerMessage>,
-    broadcast_sender_to_client:
-        tokio::sync::broadcast::Sender<shared_model::network::ServerMessage>,
-}
-
-#[derive(Debug)]
-pub struct ClientInfo {
-    pub callback: tokio::sync::mpsc::UnboundedSender<shared_model::network::ServerMessage>,
-    pub player_id: crate::model::PlayerId,
+    sender_to_lobby: tokio::sync::mpsc::UnboundedSender<ToLobbyMessage>,
+    _broadcast_receiver_to_client: tokio::sync::broadcast::Receiver<FromLobbyMessage>,
+    broadcast_sender_to_client: tokio::sync::broadcast::Sender<FromLobbyMessage>,
 }

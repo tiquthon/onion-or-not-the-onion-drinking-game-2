@@ -1,11 +1,15 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::time::Duration;
 
 use chrono::Utc;
 
 use onion_or_not_the_onion_drinking_game_2_shared_library::model as shared_model;
 
-use crate::routes::game::lobbies_storage::{ClientInfo, LobbiesStorage};
-use crate::routes::game::to_lobby_message::{RegisterType, ToLobbyMessage};
+use crate::routes::game::from_lobby_message::FromLobbyMessage;
+use crate::routes::game::lobbies_storage::LobbiesStorage;
+use crate::routes::game::to_lobby_message::{ClientInfo, RegisterType, ToLobbyMessage};
+
+const PLAYING_STATE_SOLUTION_TIME_IN_SECONDS: u64 = 30;
 
 pub async fn start_lobby_task(
     count_of_questions: Option<u64>,
@@ -16,6 +20,8 @@ pub async fn start_lobby_task(
     let (invite_code, mut unbounded_receiver, broadcast_sender) = lobbies_storage.create().await;
 
     let return_invite_code = invite_code.clone();
+
+    let (unbounded_sender, _) = lobbies_storage.retrieve(&invite_code).await.unwrap();
 
     tokio::spawn(async move {
         let mut game = crate::model::Game {
@@ -28,9 +34,8 @@ pub async fn start_lobby_task(
             players: vec![],
         };
 
-        while let Some((client_info, to_lobby_message)) = unbounded_receiver.recv().await {
+        while let Some(to_lobby_message) = unbounded_receiver.recv().await {
             let process_client_message_result = process_client_message(
-                client_info,
                 to_lobby_message,
                 &invite_code,
                 &mut game,
@@ -47,35 +52,41 @@ pub async fn start_lobby_task(
         }
     });
 
+    tokio::spawn(async move {
+        while !unbounded_sender.is_closed() {
+            unbounded_sender
+                .send(ToLobbyMessage::IntervalUpdate)
+                .unwrap();
+            tokio::time::sleep(Duration::from_millis(333)).await;
+        }
+    });
+
     return_invite_code
 }
 
 async fn process_client_message(
-    client_info: ClientInfo,
     to_lobby_message: ToLobbyMessage,
     invite_code: &crate::model::InviteCode,
     game: &mut crate::model::Game,
-    broadcast_sender: &tokio::sync::broadcast::Sender<shared_model::network::ServerMessage>,
+    broadcast_sender: &tokio::sync::broadcast::Sender<FromLobbyMessage>,
     lobbies_storage: &LobbiesStorage,
 ) -> ProcessClientMessageResult {
-    let generate_game_full_update = |game: crate::model::Game| -> shared_model::game::Game {
-        game.into_shared_model_game(invite_code.clone(), client_info.player_id, crate::data::get)
-    };
-
     let broadcast_game_update = |game: crate::model::Game| {
-        let game = generate_game_full_update(game);
-        let update_all_response = shared_model::network::ServerMessage::GameFullUpdate(game);
-        broadcast_sender.send(update_all_response).unwrap();
+        broadcast_sender
+            .send(FromLobbyMessage::GameFullUpdate(game))
+            .unwrap();
     };
 
-    let client_game_update = |game: crate::model::Game| {
-        let game = generate_game_full_update(game);
-        let response = shared_model::network::ServerMessage::GameFullUpdate(game);
-        client_info.callback.send(response).unwrap();
+    let client_game_update = |game: crate::model::Game, client_info: &ClientInfo| {
+        client_info
+            .callback
+            .send(FromLobbyMessage::GameFullUpdate(game))
+            .unwrap();
     };
 
     match to_lobby_message {
         ToLobbyMessage::Register {
+            client_info,
             name,
             just_watch,
             register_type,
@@ -94,24 +105,17 @@ async fn process_client_message(
             });
 
             // Respond
-            let game = generate_game_full_update(game.clone());
-
             let create_or_join_response = match register_type {
-                RegisterType::Creator => {
-                    shared_model::network::ServerMessage::LobbyCreated(game.clone())
-                }
-                RegisterType::Joiner => {
-                    shared_model::network::ServerMessage::LobbyJoined(game.clone())
-                }
+                RegisterType::Creator => FromLobbyMessage::LobbyCreated(game.clone()),
+                RegisterType::Joiner => FromLobbyMessage::LobbyJoined(game.clone()),
             };
             client_info.callback.send(create_or_join_response).unwrap();
 
-            let update_all_response = shared_model::network::ServerMessage::GameFullUpdate(game);
-            broadcast_sender.send(update_all_response).unwrap();
+            broadcast_game_update(game.clone());
 
             ProcessClientMessageResult::Continue
         }
-        ToLobbyMessage::Disconnect => {
+        ToLobbyMessage::Disconnect { client_info } => {
             // Process
             game.players
                 .retain(|player| player.id != client_info.player_id);
@@ -121,24 +125,71 @@ async fn process_client_message(
 
                 ProcessClientMessageResult::Exit
             } else {
+                // Update
+                match process_playing_update(game) {
+                    ProcessPlayingUpdateResult::Broadcast
+                    | ProcessPlayingUpdateResult::DoNothing => {
+                        // Do nothing; broadcasting anyway
+                    }
+                }
+
                 // Respond
                 broadcast_game_update(game.clone());
 
                 ProcessClientMessageResult::Continue
             }
         }
-        ToLobbyMessage::ClientMessage(shared_model::network::ClientMessage::RequestFullUpdate) => {
+        ToLobbyMessage::IntervalUpdate => {
+            match &mut game.game_state {
+                crate::model::GameState::InLobby | crate::model::GameState::Aftermath { .. } => {
+                    // Do nothing
+                    ProcessClientMessageResult::Continue
+                }
+                crate::model::GameState::Playing { playing_state, .. } => {
+                    let should_update = match playing_state {
+                        crate::model::PlayingState::Question { time_until, .. } => time_until
+                            .as_ref()
+                            .map(|time_until| *time_until < Utc::now())
+                            .unwrap_or(false),
+                        crate::model::PlayingState::Solution { time_until, .. } => {
+                            *time_until < Utc::now()
+                        }
+                    };
+                    if should_update {
+                        match process_playing_update(game) {
+                            ProcessPlayingUpdateResult::Broadcast => {
+                                broadcast_game_update(game.clone())
+                            }
+                            ProcessPlayingUpdateResult::DoNothing => {}
+                        }
+                    }
+                    ProcessClientMessageResult::Continue
+                }
+            }
+        }
+        ToLobbyMessage::ClientMessage {
+            client_info,
+            client_message: shared_model::network::ClientMessage::RequestFullUpdate,
+        } => {
             // Respond
-            client_game_update(game.clone());
+            client_game_update(game.clone(), &client_info);
 
             ProcessClientMessageResult::Continue
         }
-        ToLobbyMessage::ClientMessage(shared_model::network::ClientMessage::StartGame) => {
+        ToLobbyMessage::ClientMessage {
+            client_message: shared_model::network::ClientMessage::StartGame,
+            ..
+        } => {
             match game.game_state {
                 crate::model::GameState::InLobby => {
                     // Process
-                    let current_question =
-                        crate::data_model_bridge::get_random_answered_question().unwrap();
+                    let current_question = crate::data_model_bridge::get_random_answered_question(
+                        game.configuration.minimum_score_per_question,
+                        None,
+                        None,
+                    )
+                    .unwrap()
+                    .unwrap();
 
                     game.game_state = crate::model::GameState::Playing {
                         previous_questions: Vec::new(),
@@ -170,9 +221,10 @@ async fn process_client_message(
                 crate::model::GameState::Aftermath { .. } => todo!(),
             }
         }
-        ToLobbyMessage::ClientMessage(shared_model::network::ClientMessage::ChooseAnswer(
-            answer,
-        )) => {
+        ToLobbyMessage::ClientMessage {
+            client_info,
+            client_message: shared_model::network::ClientMessage::ChooseAnswer(answer),
+        } => {
             match &mut game.game_state {
                 crate::model::GameState::Playing {
                     playing_state:
@@ -190,6 +242,14 @@ async fn process_client_message(
                     if is_within_time_limit {
                         answers.insert(client_info.player_id, answer.into());
 
+                        // Update
+                        match process_playing_update(game) {
+                            ProcessPlayingUpdateResult::Broadcast
+                            | ProcessPlayingUpdateResult::DoNothing => {
+                                // Do nothing; broadcasting anyway
+                            }
+                        }
+
                         // Respond
                         broadcast_game_update(game.clone());
 
@@ -198,7 +258,7 @@ async fn process_client_message(
                         // Respond
                         client_info
                             .callback
-                            .send(shared_model::network::ServerMessage::AnswerNotInTimeLimit)
+                            .send(FromLobbyMessage::AnswerNotInTimeLimit)
                             .unwrap();
 
                         ProcessClientMessageResult::Continue
@@ -216,7 +276,10 @@ async fn process_client_message(
                 }
             }
         }
-        ToLobbyMessage::ClientMessage(shared_model::network::ClientMessage::RequestSkip) => {
+        ToLobbyMessage::ClientMessage {
+            client_info,
+            client_message: shared_model::network::ClientMessage::RequestSkip,
+        } => {
             match &mut game.game_state {
                 crate::model::GameState::Playing {
                     playing_state: crate::model::PlayingState::Solution { skip_request, .. },
@@ -224,7 +287,15 @@ async fn process_client_message(
                 } => {
                     // Process
                     if !skip_request.contains(&client_info.player_id) {
-                        skip_request.push(client_info.player_id);
+                        skip_request.insert(client_info.player_id);
+                    }
+
+                    // Update
+                    match process_playing_update(game) {
+                        ProcessPlayingUpdateResult::Broadcast
+                        | ProcessPlayingUpdateResult::DoNothing => {
+                            // Do nothing; broadcasting anyway
+                        }
                     }
 
                     // Respond
@@ -245,6 +316,112 @@ async fn process_client_message(
             }
         }
     }
+}
+
+#[must_use]
+fn process_playing_update(game: &mut crate::model::Game) -> ProcessPlayingUpdateResult {
+    match &mut game.game_state {
+        crate::model::GameState::InLobby | crate::model::GameState::Aftermath { .. } => {
+            ProcessPlayingUpdateResult::DoNothing
+        }
+        crate::model::GameState::Playing {
+            previous_questions,
+            current_question,
+            playing_state,
+        } => {
+            match playing_state {
+                crate::model::PlayingState::Question {
+                    time_until,
+                    answers,
+                } => {
+                    if answers.len() == game.players.len()
+                        || time_until
+                            .as_ref()
+                            .map(|time_until| *time_until < Utc::now())
+                            .unwrap_or(false)
+                    {
+                        *playing_state = crate::model::PlayingState::Solution {
+                            time_until: Utc::now()
+                                + chrono::Duration::seconds(
+                                    i64::try_from(PLAYING_STATE_SOLUTION_TIME_IN_SECONDS).unwrap(),
+                                ),
+                            answers: answers.clone(),
+                            skip_request: HashSet::new(),
+                        };
+
+                        ProcessPlayingUpdateResult::Broadcast
+                    } else {
+                        ProcessPlayingUpdateResult::DoNothing
+                    }
+                }
+                crate::model::PlayingState::Solution {
+                    time_until,
+                    answers,
+                    skip_request,
+                } => {
+                    if skip_request.len() == game.players.len() || *time_until < Utc::now() {
+                        // STORE
+                        previous_questions.push((*current_question, answers.clone()));
+
+                        // RENEW
+                        let maximum_questions = game
+                            .configuration
+                            .count_of_questions
+                            .map(|count_of_questions| usize::try_from(count_of_questions).unwrap())
+                            .unwrap_or_else(|| {
+                                crate::data::calculate_count_of_questions(
+                                    game.configuration.minimum_score_per_question,
+                                )
+                            });
+                        if previous_questions.len() < maximum_questions {
+                            *current_question =
+                                crate::data_model_bridge::get_random_answered_question(
+                                    game.configuration.minimum_score_per_question,
+                                    Some(
+                                        &previous_questions
+                                            .iter()
+                                            .map(|k| k.0.question_id)
+                                            .collect(),
+                                    ),
+                                    None,
+                                )
+                                .unwrap()
+                                .unwrap();
+                            *playing_state = crate::model::PlayingState::Question {
+                                time_until: game
+                                    .configuration
+                                    .maximum_answer_time_per_question
+                                    .map(|maximum_answer_time_per_question| {
+                                        Utc::now()
+                                            + chrono::Duration::seconds(
+                                                i64::try_from(maximum_answer_time_per_question)
+                                                    .unwrap(),
+                                            )
+                                    }),
+                                answers: HashMap::new(),
+                            };
+
+                            ProcessPlayingUpdateResult::Broadcast
+                        } else {
+                            game.game_state = crate::model::GameState::Aftermath {
+                                questions: previous_questions.clone(),
+                                restart_request: Vec::new(),
+                            };
+
+                            ProcessPlayingUpdateResult::Broadcast
+                        }
+                    } else {
+                        ProcessPlayingUpdateResult::DoNothing
+                    }
+                }
+            }
+        }
+    }
+}
+
+enum ProcessPlayingUpdateResult {
+    Broadcast,
+    DoNothing,
 }
 
 enum ProcessClientMessageResult {

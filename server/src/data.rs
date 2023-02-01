@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::model::{QuestionId, RedditSubmissionData};
 
@@ -65,7 +65,63 @@ pub fn get(question_id: &QuestionId) -> Option<&RedditSubmissionData> {
         .or_else(|| THE_ONION_TOP.get(question_id))
 }
 
-pub fn get_random_id() -> Option<QuestionId> {
-    use rand::seq::SliceRandom;
-    SliceRandom::choose(&ALL__KEYS[..], &mut rand::thread_rng()).copied()
+pub fn get_random_question_id(
+    minimum_score_per_question: Option<i64>,
+    blacklist: Option<&HashSet<QuestionId>>,
+    timeout_retries: Option<u32>,
+) -> Result<QuestionId, GetRandomQuestionIdError> {
+    use rand::distributions::Distribution;
+
+    let left_over_count = ALL__KEYS.len() - blacklist.map(|blacklist| blacklist.len()).unwrap_or(0);
+
+    for _ in 0..=timeout_retries.unwrap_or(100) {
+        let selected_optional_question_id = ALL__KEYS
+            .iter()
+            .filter(|question_id| match blacklist {
+                Some(blacklist) => !blacklist.contains(*question_id),
+                None => true,
+            })
+            .nth(
+                rand::distributions::uniform::Uniform::new(0, left_over_count - 1)
+                    .sample(&mut rand::thread_rng()),
+            )
+            .copied();
+
+        match selected_optional_question_id {
+            None => return Err(GetRandomQuestionIdError::NoneFound),
+            Some(selected_question_id) => {
+                let has_at_least_minimum_score = minimum_score_per_question
+                    .map(|min_score| {
+                        i64::try_from(get(&selected_question_id).unwrap().score).unwrap()
+                            >= min_score
+                    })
+                    .unwrap_or(true);
+                if has_at_least_minimum_score {
+                    return Ok(selected_question_id);
+                }
+            }
+        }
+    }
+
+    Err(GetRandomQuestionIdError::Timeout)
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum GetRandomQuestionIdError {
+    #[error("Could not select a question")]
+    NoneFound,
+    #[error("Reached timeout while sampling questions")]
+    Timeout,
+}
+
+pub fn calculate_count_of_questions(minimum_score_per_question: Option<i64>) -> usize {
+    match minimum_score_per_question {
+        None => ALL__KEYS.len(),
+        Some(min_score) => ALL__KEYS
+            .iter()
+            .filter(|question_id| {
+                i64::try_from(get(question_id).unwrap().score).unwrap() >= min_score
+            })
+            .count(),
+    }
 }

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 
 use chrono::{DateTime, Utc};
@@ -76,7 +76,7 @@ pub enum PlayingState {
         current_question: AnsweredQuestion,
         time_until: DateTime<Utc>,
         answers: HashMap<PlayerId, Answer>,
-        skip_request: Vec<PlayerId>,
+        skip_request: HashSet<PlayerId>,
     },
 }
 
