@@ -36,7 +36,7 @@ pub async fn start_lobby_task(
                 maximum_answer_time_per_question,
             },
             game_state: crate::model::GameState::InLobby,
-            players: vec![],
+            players: Vec::new(),
         };
 
         while let Some(to_lobby_message) = unbounded_receiver.recv().await {
@@ -152,10 +152,18 @@ async fn process_client_message(
                 }
                 crate::model::GameState::Playing { playing_state, .. } => {
                     let should_update = match playing_state {
-                        crate::model::PlayingState::Question { time_until, .. } => time_until
-                            .as_ref()
-                            .map(|time_until| *time_until < Utc::now())
-                            .unwrap_or(false),
+                        crate::model::PlayingState::Question { time_until, .. } => {
+                            let count_of_player_type_player = game
+                                .players
+                                .iter()
+                                .filter(|player| player.is_player())
+                                .count();
+                            count_of_player_type_player == 0
+                                || time_until
+                                    .as_ref()
+                                    .map(|time_until| *time_until < Utc::now())
+                                    .unwrap_or(false)
+                        }
                         crate::model::PlayingState::Solution { time_until, .. } => {
                             *time_until < Utc::now()
                         }
@@ -340,9 +348,15 @@ fn process_playing_update(game: &mut crate::model::Game) -> ProcessPlayingUpdate
             let count_of_players_wanting_restart = game
                 .players
                 .iter()
+                .filter(|player| player.is_player())
                 .filter(|player| restart_requests.contains(&player.id))
                 .count();
-            if count_of_players_wanting_restart * 2 >= game.players.len() {
+            let count_of_player_type_player = game
+                .players
+                .iter()
+                .filter(|player| player.is_player())
+                .count();
+            if count_of_players_wanting_restart * 2 >= count_of_player_type_player {
                 game.game_state = create_new_game_state_playing(game);
                 ProcessPlayingUpdateResult::Broadcast
             } else {
@@ -359,7 +373,18 @@ fn process_playing_update(game: &mut crate::model::Game) -> ProcessPlayingUpdate
                     time_until,
                     answers,
                 } => {
-                    if answers.len() == game.players.len()
+                    let count_of_player_type_player = game
+                        .players
+                        .iter()
+                        .filter(|player| player.is_player())
+                        .count();
+                    let all_non_watchers_have_answered = game
+                        .players
+                        .iter()
+                        .filter(|player| player.is_player())
+                        .all(|player| answers.contains_key(&player.id));
+                    if count_of_player_type_player == 0
+                        || all_non_watchers_have_answered
                         || time_until
                             .as_ref()
                             .map(|time_until| *time_until < Utc::now())
@@ -389,8 +414,8 @@ fn process_playing_update(game: &mut crate::model::Game) -> ProcessPlayingUpdate
                             .collect();
 
                         // Reward minority correct players extra points
-                        let are_correct_players_a_minority =
-                            (correct_players.len() as f64).lt(&(game.players.len() as f64 / 2.0));
+                        let are_correct_players_a_minority = (correct_players.len() as f64)
+                            .lt(&(count_of_player_type_player as f64 / 2.0));
                         if are_correct_players_a_minority {
                             game.players
                                 .iter_mut()
@@ -423,7 +448,12 @@ fn process_playing_update(game: &mut crate::model::Game) -> ProcessPlayingUpdate
                     answers,
                     skip_request,
                 } => {
-                    if skip_request.len() == game.players.len() || *time_until < Utc::now() {
+                    let all_non_watchers_have_requested_skip = game
+                        .players
+                        .iter()
+                        .filter(|player| player.is_player())
+                        .all(|player| skip_request.contains(&player.id));
+                    if all_non_watchers_have_requested_skip || *time_until < Utc::now() {
                         // STORE
                         previous_questions.push((*current_question, answers.clone()));
 

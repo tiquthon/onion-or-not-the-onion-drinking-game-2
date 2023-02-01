@@ -294,6 +294,15 @@ pub struct Player {
     pub play_type: PlayType,
 }
 
+impl Player {
+    pub fn is_player(&self) -> bool {
+        match self.play_type {
+            PlayType::Player { .. } => true,
+            PlayType::Watcher => false,
+        }
+    }
+}
+
 // Allowing clippy::from_over_into, because don't want to and can't implement From<_> for shared_model.
 #[allow(clippy::from_over_into)]
 impl Into<shared_model::game::Player> for Player {
