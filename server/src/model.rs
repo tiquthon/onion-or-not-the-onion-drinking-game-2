@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
 use chrono::{DateTime, Utc};
 
@@ -19,17 +20,23 @@ pub const POSSIBLE_INVITE_CODE_COMBINATIONS: usize = INVITE_CODE_CHARS.len()
 
 /* INVITE CODE */
 
+const INVITE_CODE_CHAR_COUNT: usize = 4;
+
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub struct InviteCode(pub String);
+pub struct InviteCode(String);
 
 impl InviteCode {
     pub fn generate() -> Self {
         use rand::seq::SliceRandom;
         Self(
             INVITE_CODE_CHARS
-                .choose_multiple(&mut rand::thread_rng(), 4)
+                .choose_multiple(&mut rand::thread_rng(), INVITE_CODE_CHAR_COUNT)
                 .collect::<String>(),
         )
+    }
+
+    pub fn into_inner(self) -> String {
+        self.0
     }
 }
 
@@ -39,12 +46,34 @@ impl Display for InviteCode {
     }
 }
 
+impl FromStr for InviteCode {
+    type Err = InviteCodeFromStrError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let trimmed = s.trim();
+        if trimmed.len() != INVITE_CODE_CHAR_COUNT {
+            Err(InviteCodeFromStrError::IncorrectCountOfChars {
+                is: trimmed.len(),
+                expected: INVITE_CODE_CHAR_COUNT,
+            })
+        } else {
+            Ok(Self(trimmed.to_uppercase()))
+        }
+    }
+}
+
 // Allowing clippy::from_over_into, because don't want to and can't implement From<_> for shared_model.
 #[allow(clippy::from_over_into)]
 impl Into<shared_model::game::InviteCode> for InviteCode {
     fn into(self) -> shared_model::game::InviteCode {
         shared_model::game::InviteCode(self.0)
     }
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum InviteCodeFromStrError {
+    #[error("Invite code has incorrect count of chars (is {is}, expected {expected})")]
+    IncorrectCountOfChars { is: usize, expected: usize },
 }
 
 /* GAME */
@@ -343,7 +372,13 @@ impl Into<shared_model::game::PlayerId> for PlayerId {
 /* PLAYER NAME */
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub struct PlayerName(pub String);
+pub struct PlayerName(String);
+
+impl PlayerName {
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+}
 
 impl Display for PlayerName {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -351,15 +386,23 @@ impl Display for PlayerName {
     }
 }
 
-impl TryFrom<String> for PlayerName {
-    type Error = ();
+impl FromStr for PlayerName {
+    type Err = PlayerNameFromStrError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value.trim().is_empty() {
-            panic!()
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let trimmed = s.trim();
+        if trimmed.is_empty() {
+            Err(PlayerNameFromStrError::EmptyAfterBeingTrimmed)
+        } else {
+            Ok(Self(trimmed.to_string()))
         }
-        Ok(Self(value.trim().to_string()))
     }
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum PlayerNameFromStrError {
+    #[error("Player name is empty after being trimmed")]
+    EmptyAfterBeingTrimmed,
 }
 
 // Allowing clippy::from_over_into, because don't want to and can't implement From<_> for shared_model.

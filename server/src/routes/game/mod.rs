@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use actix_web::{web, Error, HttpRequest, HttpResponse};
 
 use crate::routes::game::client::{start_client_network_task, ClientType};
@@ -42,7 +44,7 @@ pub async fn create_lobby(
     );
 
     start_client_network_task(
-        crate::model::PlayerName(player_name.clone()),
+        crate::model::PlayerName::from_str(&player_name).unwrap(),
         invite_code.clone(),
         just_watch,
         LobbiesStorage::clone(&lobbies),
@@ -85,8 +87,8 @@ pub async fn join_lobby(
     let (response, session, msg_stream) = actix_ws::handle(&req, body)?;
 
     start_client_network_task(
-        crate::model::PlayerName(player_name.clone()),
-        crate::model::InviteCode(invite_code.clone()),
+        crate::model::PlayerName::from_str(&player_name).unwrap(),
+        crate::model::InviteCode::from_str(&invite_code).unwrap(),
         just_watch,
         LobbiesStorage::clone(&lobbies),
         session,
