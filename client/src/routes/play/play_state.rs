@@ -70,6 +70,8 @@ impl PlayState {
                 invite_code,
                 just_watch,
             }) => {
+                let player_name = urlencoding::encode(player_name);
+                let invite_code = urlencoding::encode(invite_code);
                 format!("{web_socket_address_root}/join/{invite_code}?player_name={player_name}&just_watch={just_watch}")
             }
         };
