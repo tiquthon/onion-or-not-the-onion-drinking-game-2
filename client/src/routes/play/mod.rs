@@ -17,6 +17,7 @@ use play_state::PlayState;
 
 use crate::routes::index::{CreateLobby, JoinLobby};
 use crate::routes::play::connecting::ConnectingComponentState;
+use crate::routes::play::play_state::{ConnectingErrorLocaleKeyId, ShouldRender};
 
 pub mod aftermath;
 pub mod connecting;
@@ -68,7 +69,8 @@ impl Component for PlayComponent {
             PlayComponentMsg::WebSocketMessageReceived(msg) => match msg {
                 Ok(Message::Bytes(bytes)) => {
                     let server_message = ServerMessage::try_from(&bytes[..]).unwrap();
-                    self.state.handle_server_message(server_message)
+                    let should_render = self.state.handle_server_message(server_message);
+                    matches!(should_render, ShouldRender::Yes)
                 }
                 Ok(Message::Text(text)) => {
                     log::warn!("Received text from WebSocket \"{text}\"; ignoring it...");
@@ -77,7 +79,19 @@ impl Component for PlayComponent {
                 Err(error) => {
                     log::warn!("An error occurred: {error} ({error:?})");
                     self.state = PlayState::ConnectingError {
-                        error: error.into(),
+                        locale_keyid: match &error {
+                            WebSocketError::ConnectionError => {
+                                ConnectingErrorLocaleKeyId::MessageReceiveConnectionError
+                            }
+                            WebSocketError::ConnectionClose(_) => {
+                                ConnectingErrorLocaleKeyId::MessageReceiveConnectionClose
+                            }
+                            WebSocketError::MessageSendError(_) => {
+                                ConnectingErrorLocaleKeyId::MessageReceiveMessageSendError
+                            }
+                            _ => unimplemented!(),
+                        },
+                        error: Some(error.into()),
                     };
                     true
                 }
@@ -111,10 +125,17 @@ impl Component for PlayComponent {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         match &self.state {
-            PlayState::ConnectingError { error } => {
+            PlayState::ConnectingError {
+                locale_keyid,
+                error,
+            } => {
                 let on_go_back = ctx.link().callback(|_| PlayComponentMsg::GoBackToIndex);
+                let state = ConnectingComponentState::Failed {
+                    locale_key_id: locale_keyid.key_id().to_string(),
+                    error: error.as_ref().map(ToString::to_string),
+                };
 
-                html! { <ConnectingComponent state={ConnectingComponentState::Failed { error: error.to_string() }} {on_go_back} /> }
+                html! { <ConnectingComponent {state} {on_go_back} /> }
             }
             PlayState::Connecting { .. } => {
                 let on_cancel = ctx.link().callback(|_| PlayComponentMsg::ExitGame);

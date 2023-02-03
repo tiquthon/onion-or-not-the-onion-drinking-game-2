@@ -17,6 +17,14 @@ join-game-header-string-3 = bei!
 cancel-button-text = ABBRECHEN
 go-back-button-text = ZURÜCK
 
+## Errors
+
+error-web-socket-open = Es schlug fehl, die Verbindung zur Lobby zu öffnen.
+error-web-socket-message-receive-connection-error = Die Kommunikation mit der Lobby schlug fehl während eine Nachricht empfangen wurde.
+error-web-socket-message-receive-connection-close = Die Verbindung zur Lobby wurde geschlossen.
+error-web-socket-message-receive-message-send-error = Die Kommunikation mit der Lobby schlug fehl während eine Nachricht gesendet wurde.
+error-web-socket-handle-message-player-name-already-in-use = Der Spielername wird in der Lobby bereits verwendet, bitte wähle einen Anderen.
+
 ## Game Creation Form
 
 game-creation-form-username-label = Spielername

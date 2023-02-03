@@ -16,6 +16,15 @@ join-game-header-string-3 = {""}
 cancel-button-text = CANCEL
 go-back-button-text = GO BACK
 
+## Errors
+
+error-web-socket-open = Failed opening the connection to the lobby.
+error-web-socket-message-receive-connection-error = The communication with the lobby failed when receiving a message.
+error-web-socket-message-receive-connection-close = The connection to the lobby has been closed.
+error-web-socket-message-receive-message-send-error = The communication with the lobby failed when sending a message.
+error-web-socket-handle-message-player-name-already-in-use = The player name is already in use in this lobby, please choose another one.
+
+
 ## Game Creation Form
 
 game-creation-form-username-label = Playername

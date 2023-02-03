@@ -25,7 +25,8 @@ use crate::routes::play::CreateJoinLobby;
 
 pub enum PlayState {
     ConnectingError {
-        error: anyhow::Error,
+        locale_keyid: ConnectingErrorLocaleKeyId,
+        error: Option<anyhow::Error>,
     },
     Connecting {
         web_socket_stream: Arc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
@@ -160,14 +161,15 @@ impl PlayState {
                 }
             }
             Err(err) => PlayState::ConnectingError {
-                error: anyhow::Error::new(err).context(format!(
+                locale_keyid: ConnectingErrorLocaleKeyId::Open,
+                error: Some(anyhow::Error::new(err).context(format!(
                     "Failed opening WebSocket to {web_socket_address} connection."
-                )),
+                ))),
             },
         }
     }
 
-    pub fn handle_server_message(&mut self, server_message: ServerMessage) -> bool {
+    pub fn handle_server_message(&mut self, server_message: ServerMessage) -> ShouldRender {
         // bool is ShouldRender
         match &server_message {
             ServerMessage::LobbyCreated(game) | ServerMessage::LobbyJoined(game) => {
@@ -181,14 +183,14 @@ impl PlayState {
                             web_socket_sink: Arc::clone(web_socket_sink),
                             game: Box::new(game.clone()),
                         };
-                        true
+                        ShouldRender::Yes
                     }
                     PlayState::ConnectingError { .. } | PlayState::Playing { .. } => {
                         log::warn!(
                             "Received {server_message:?} but I am in {self:?}; so doing nothing."
                         );
                         // No-Op
-                        false
+                        ShouldRender::No
                     }
                 }
             }
@@ -197,21 +199,42 @@ impl PlayState {
                     PlayState::Playing { game, .. } => {
                         log::info!("Received Game Full Update");
                         *game = Box::new(game_update.clone());
-                        true
+
+                        ShouldRender::Yes
                     }
                     PlayState::Connecting { .. } | PlayState::ConnectingError { .. } => {
                         log::warn!(
                             "Received {server_message:?} but I am in {self:?}; so doing nothing."
                         );
                         // No-Op
-                        false
+                        ShouldRender::No
                     }
                 }
             }
             ServerMessage::AnswerNotInTimeLimit => {
                 log::error!("Sent answer not in time limit.");
                 // TODO: Maybe handle error better?
-                false
+                ShouldRender::No
+            }
+            ServerMessage::PlayerNameAlreadyInUse => {
+                match &mut *self {
+                    PlayState::Connecting { .. } => {
+                        self.exit(Default::default());
+                        *self = PlayState::ConnectingError {
+                            locale_keyid:
+                                ConnectingErrorLocaleKeyId::HandleMessagePlayerNameAlreadyInUse,
+                            error: None,
+                        };
+                        ShouldRender::Yes
+                    }
+                    PlayState::ConnectingError { .. } | PlayState::Playing { .. } => {
+                        log::warn!(
+                            "Received {server_message:?} but I am in {self:?}; so doing nothing."
+                        );
+                        // No-Op
+                        ShouldRender::No
+                    }
+                }
             }
         }
     }
@@ -357,8 +380,12 @@ impl PlayState {
 impl Debug for PlayState {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            PlayState::ConnectingError { error } => f
+            PlayState::ConnectingError {
+                locale_keyid,
+                error,
+            } => f
                 .debug_struct("PlayState:ConnectingError")
+                .field("locale_keyid", locale_keyid)
                 .field("error", error)
                 .finish(),
             PlayState::Connecting { .. } => f.debug_struct("PlayState::Connecting").finish(),
@@ -366,6 +393,35 @@ impl Debug for PlayState {
                 .debug_struct("PlayState::Lobby")
                 .field("game", game)
                 .finish(),
+        }
+    }
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
+pub enum ConnectingErrorLocaleKeyId {
+    Open,
+    MessageReceiveConnectionError,
+    MessageReceiveConnectionClose,
+    MessageReceiveMessageSendError,
+    HandleMessagePlayerNameAlreadyInUse,
+}
+
+impl ConnectingErrorLocaleKeyId {
+    pub fn key_id(&self) -> &'static str {
+        match self {
+            ConnectingErrorLocaleKeyId::Open => "error-web-socket-open",
+            ConnectingErrorLocaleKeyId::MessageReceiveConnectionError => {
+                "error-web-socket-message-receive-connection-error"
+            }
+            ConnectingErrorLocaleKeyId::MessageReceiveConnectionClose => {
+                "error-web-socket-message-receive-connection-close"
+            }
+            ConnectingErrorLocaleKeyId::MessageReceiveMessageSendError => {
+                "error-web-socket-message-receive-message-send-error"
+            }
+            ConnectingErrorLocaleKeyId::HandleMessagePlayerNameAlreadyInUse => {
+                "error-web-socket-handle-message-player-name-already-in-use"
+            }
         }
     }
 }
@@ -386,4 +442,9 @@ fn send_to_server(
         }
         drop(locked_optional_web_socket_sink);
     });
+}
+
+pub enum ShouldRender {
+    Yes,
+    No,
 }

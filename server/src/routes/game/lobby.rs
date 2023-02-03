@@ -97,28 +97,38 @@ async fn process_client_message(
             register_type,
         } => {
             // Process
-            game.players
-                .retain(|player| player.id != client_info.player_id);
-            game.players.push(crate::model::Player {
-                id: client_info.player_id,
-                name,
-                play_type: if just_watch {
-                    crate::model::PlayType::Watcher
-                } else {
-                    crate::model::PlayType::Player { points: 0 }
-                },
-            });
+            if game.players.iter().any(|player| player.name == name) {
+                // Respond
+                client_info
+                    .callback
+                    .send(FromLobbyMessage::PlayerNameAlreadyInUse)
+                    .unwrap();
 
-            // Respond
-            let create_or_join_response = match register_type {
-                RegisterType::Creator => FromLobbyMessage::LobbyCreated(game.clone()),
-                RegisterType::Joiner => FromLobbyMessage::LobbyJoined(game.clone()),
-            };
-            client_info.callback.send(create_or_join_response).unwrap();
+                ProcessClientMessageResult::Continue
+            } else {
+                game.players
+                    .retain(|player| player.id != client_info.player_id);
+                game.players.push(crate::model::Player {
+                    id: client_info.player_id,
+                    name,
+                    play_type: if just_watch {
+                        crate::model::PlayType::Watcher
+                    } else {
+                        crate::model::PlayType::Player { points: 0 }
+                    },
+                });
 
-            broadcast_game_update(game.clone());
+                // Respond
+                let create_or_join_response = match register_type {
+                    RegisterType::Creator => FromLobbyMessage::LobbyCreated(game.clone()),
+                    RegisterType::Joiner => FromLobbyMessage::LobbyJoined(game.clone()),
+                };
+                client_info.callback.send(create_or_join_response).unwrap();
 
-            ProcessClientMessageResult::Continue
+                broadcast_game_update(game.clone());
+
+                ProcessClientMessageResult::Continue
+            }
         }
         ToLobbyMessage::Disconnect { client_info } => {
             // Process

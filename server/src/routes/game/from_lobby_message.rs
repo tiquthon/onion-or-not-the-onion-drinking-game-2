@@ -8,6 +8,7 @@ pub enum FromLobbyMessage {
     GameFullUpdate(crate::model::Game),
 
     AnswerNotInTimeLimit,
+    PlayerNameAlreadyInUse,
 }
 
 impl FromLobbyMessage {
@@ -40,6 +41,9 @@ impl FromLobbyMessage {
             }
             FromLobbyMessage::AnswerNotInTimeLimit => {
                 shared_model::network::ServerMessage::AnswerNotInTimeLimit
+            }
+            FromLobbyMessage::PlayerNameAlreadyInUse => {
+                shared_model::network::ServerMessage::PlayerNameAlreadyInUse
             }
         }
     }

@@ -58,19 +58,7 @@ pub enum ServerMessage {
     GameFullUpdate(Game),
 
     AnswerNotInTimeLimit,
-}
-
-impl ServerMessage {
-    pub fn replace_this_player_id_with(&mut self, this_player_id: crate::model::game::PlayerId) {
-        match self {
-            Self::LobbyCreated(game) | Self::LobbyJoined(game) | Self::GameFullUpdate(game) => {
-                game.this_player_id = this_player_id;
-            }
-            Self::AnswerNotInTimeLimit => {
-                // Do nothing
-            }
-        }
-    }
+    PlayerNameAlreadyInUse,
 }
 
 impl TryFrom<&[u8]> for ServerMessage {

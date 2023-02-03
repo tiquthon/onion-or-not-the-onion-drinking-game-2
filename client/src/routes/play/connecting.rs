@@ -40,16 +40,31 @@ impl Component for ConnectingComponent {
                     </main>
                 }
             }
-            ConnectingComponentState::Failed { error } => {
+            ConnectingComponentState::Failed {
+                locale_key_id,
+                error,
+            } => {
                 let go_back_button_onclick =
                     ctx.link().callback(|_| ConnectingComponentMsg::GoBack);
                 html! {
                     <main class={classes!("connecting-main")}>
                         <span class={classes!("connecting-text")}>
                             <LocaleComponent keyid="connecting-view-error-occurred-string" />
+                            <br/>
+                            <LocaleComponent keyid={locale_key_id.clone()} />
                         </span>
                         <span class={classes!("connecting-sub-text")}>
-                            {"("}{ error.clone() }{")"}
+                            {
+                                if let Some(error) = error.clone() {
+                                    html! {
+                                        <>
+                                            {"("}{error}{")"}
+                                        </>
+                                    }
+                                } else {
+                                    html! {}
+                                }
+                            }
                         </span>
                         <button type="button" onclick={go_back_button_onclick}>
                             <LocaleComponent keyid="go-back-button-text" />
@@ -78,5 +93,8 @@ pub struct ConnectingComponentProps {
 #[derive(PartialEq)]
 pub enum ConnectingComponentState {
     Connecting,
-    Failed { error: String },
+    Failed {
+        locale_key_id: String,
+        error: Option<String>,
+    },
 }
