@@ -56,6 +56,13 @@ impl FromStr for InviteCode {
                 is: trimmed.len(),
                 expected: INVITE_CODE_CHAR_COUNT,
             })
+        } else if trimmed
+            .chars()
+            .all(|char| INVITE_CODE_CHARS.contains(&char))
+        {
+            Err(InviteCodeFromStrError::InvalidCharInInviteCode {
+                allowed: &INVITE_CODE_CHARS,
+            })
         } else {
             Ok(Self(trimmed.to_uppercase()))
         }
@@ -74,6 +81,8 @@ impl Into<shared_model::game::InviteCode> for InviteCode {
 pub enum InviteCodeFromStrError {
     #[error("Invite code has incorrect count of chars (is {is}, expected {expected})")]
     IncorrectCountOfChars { is: usize, expected: usize },
+    #[error("Invite code contains invalid character (allowed ones are {allowed:?})")]
+    InvalidCharInInviteCode { allowed: &'static [char] },
 }
 
 /* GAME */
