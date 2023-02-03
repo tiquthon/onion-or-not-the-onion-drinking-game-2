@@ -60,11 +60,11 @@ impl FromStr for InviteCode {
             .chars()
             .all(|char| INVITE_CODE_CHARS.contains(&char))
         {
+            Ok(Self(trimmed.to_uppercase()))
+        } else {
             Err(InviteCodeFromStrError::InvalidCharInInviteCode {
                 allowed: &INVITE_CODE_CHARS,
             })
-        } else {
-            Ok(Self(trimmed.to_uppercase()))
         }
     }
 }
