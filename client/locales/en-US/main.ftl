@@ -72,7 +72,7 @@ play-view-players-points = { $points } { $points ->
         [one] Point
         *[other] Points
     }
-play-view-players-points-explanation = You get 10 points on a correct answer, and 5 additional points if less than the half of the players are correct.
+play-view-players-points-explanation = You get 10 points on a correct answer, and 5 additional points if less than half of players guessed correctly.
 
 lobby-view-welcome-headline = Welcome!
 lobby-view-start-game-button = START
