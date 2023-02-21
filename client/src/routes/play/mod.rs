@@ -18,6 +18,7 @@ use play_state::PlayState;
 use crate::routes::index::{CreateLobby, JoinLobby};
 use crate::routes::play::connecting::ConnectingComponentState;
 use crate::routes::play::play_state::{ConnectingErrorLocaleKeyId, ShouldRender};
+use crate::utils::{retrieve_browser_location, REPLACE_PROTOCOL_WEBSOCKET};
 
 pub mod aftermath;
 pub mod connecting;
@@ -42,12 +43,16 @@ impl Component for PlayComponent {
             .context(ctx.link().callback(PlayComponentMsg::MessageContextUpdated))
             .expect("Missing LanguageIdentifier context.");
 
+        let web_socket_address_root =
+            retrieve_browser_location(Some(REPLACE_PROTOCOL_WEBSOCKET), Some("/api"));
+        log::debug!("web_socket_address_root: {web_socket_address_root}");
+
         Self {
             langid,
             _context_listener: context_listener,
 
             state: PlayState::connect(
-                option_env!("BUILD_WEBSOCKET_ROOT_ADDRESS").unwrap_or("ws://localhost:8000/api"),
+                &web_socket_address_root,
                 ctx.link()
                     .callback(PlayComponentMsg::WebSocketMessageReceived),
                 ctx.link().callback(|_| PlayComponentMsg::WebSocketClosed),

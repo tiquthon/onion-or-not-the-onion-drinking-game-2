@@ -27,12 +27,11 @@ COPY ./shared-library/. /app/shared-library/.
 
 RUN cargo chef cook --release --target wasm32-unknown-unknown --recipe-path recipe.json
 
-ARG BUILD_WEBSOCKET_ROOT_ADDRESS
-ARG BUILD_BACKEND_ROOT_ADDRESS
-
 COPY ./client/. /app/client/.
 
-RUN trunk build --release
+ARG BUILD_URL_PATH_PREFIX=/
+
+RUN trunk build --release --public-url "${BUILD_URL_PATH_PREFIX}"
 
 
 FROM nginx:1.23-alpine

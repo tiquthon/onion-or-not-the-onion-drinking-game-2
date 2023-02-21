@@ -37,7 +37,8 @@ web-sys = { version = "0.3", features = [
     "Event",
 
     "Window",
-    "Navigator"
+    "Navigator",
+    "Location",
 ] }
 
 # network transport

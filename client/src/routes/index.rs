@@ -9,6 +9,7 @@ use yew::platform::spawn_local;
 use yew::{classes, html, Callback, Component, Context, ContextHandle, Html, NodeRef};
 
 use crate::components::locale::{locale, locale_args, LocaleComponent};
+use crate::utils::retrieve_browser_location;
 
 pub struct IndexComponent {
     langid: LanguageIdentifier,
@@ -43,8 +44,9 @@ impl Component for IndexComponent {
             .link()
             .callback(IndexComponentMsg::QuestionScoresDistributionFetched);
         spawn_local(async move {
-            let api_root_url =
-                option_env!("BUILD_BACKEND_ROOT_ADDRESS").unwrap_or("http://localhost:8000/api");
+            let api_root_url = retrieve_browser_location(None, Some("/api"));
+            log::debug!("api_root_url: {api_root_url}");
+
             let response_result =
                 gloo_net::http::Request::get(&format!("{api_root_url}/distribution"))
                     .send()

@@ -17,6 +17,7 @@ use crate::routes::play::PlayComponent;
 
 pub mod components;
 pub mod routes;
+pub mod utils;
 
 pub struct AppComponent {
     langid: LanguageIdentifier,
