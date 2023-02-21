@@ -15,7 +15,9 @@ FROM chef as builder
 
 RUN rustup target add wasm32-unknown-unknown
 
-RUN cargo install trunk
+# Need to manually install wasm-bindgen-cli, because on arm64 the auto-download of trunk is x86_64
+RUN cargo install --locked wasm-bindgen-cli@0.2.83
+RUN cargo install --locked trunk@0.16.0
 
 COPY --from=planner /app/client/recipe.json /app/client/recipe.json
 
