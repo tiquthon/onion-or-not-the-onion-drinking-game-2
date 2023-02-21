@@ -3,7 +3,7 @@ services:
   reverse-proxy:
     build: reverse-proxy/.
     ports:
-      - 8000:80
+      - 6362:80
     networks:
       - net
     environment:
@@ -19,8 +19,8 @@ services:
       context: .
       dockerfile: client/Dockerfile
       args:
-        BUILD_WEBSOCKET_ROOT_ADDRESS: ws://localhost:8000/api
-        BUILD_BACKEND_ROOT_ADDRESS: http://localhost:8000/api
+        BUILD_WEBSOCKET_ROOT_ADDRESS: ws://localhost:6362/api
+        BUILD_BACKEND_ROOT_ADDRESS: http://localhost:6362/api
     networks:
       - net
   backend:
