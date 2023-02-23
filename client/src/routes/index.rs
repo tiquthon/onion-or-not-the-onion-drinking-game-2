@@ -286,7 +286,7 @@ impl Component for IndexComponent {
                         </span>
                         {" "}
                     </label>
-                    <input type="text" id="username_new_game" value={last_player_name} placeholder={locale("game-creation-form-username-placeholder", &self.langid)} ref={self.player_name_node_ref.clone()}/>
+                    <input type="text" required={true} id="username_new_game" value={last_player_name} placeholder={locale("game-creation-form-username-placeholder", &self.langid)} ref={self.player_name_node_ref.clone()}/>
                     if let Some(player_name_error_message_langkeyid) = &self.player_name_error_message_langkeyid {
                         <p class={classes!("index-form-error-paragraph")}>
                             <LocaleComponent keyid={player_name_error_message_langkeyid.clone()}/>
@@ -300,7 +300,7 @@ impl Component for IndexComponent {
                         </span>
                         {" "}
                     </label>
-                    <input type="text" id="invite_code" value={last_invite_code} placeholder={locale("game-creation-form-invite-code-placeholder", &self.langid)} onkeyup={invite_code_onkeyup} ref={self.invite_code_node_ref.clone()}/>
+                    <input type="text" maxlength="4" autocomplete="off" id="invite_code" value={last_invite_code} placeholder={locale("game-creation-form-invite-code-placeholder", &self.langid)} onkeyup={invite_code_onkeyup} ref={self.invite_code_node_ref.clone()}/>
                     if let Some(invite_code_error_message_langkeyid) = &self.invite_code_error_message_langkeyid {
                         <p class={classes!("index-form-error-paragraph")}>
                             <LocaleComponent keyid={invite_code_error_message_langkeyid.clone()}/>
@@ -326,25 +326,52 @@ impl Component for IndexComponent {
                                 minimum_score_input_node_ref,
                                 timer_wanted_input_node_ref,
                             } => {
+                                let (minimum_available_score, maximum_available_score) = if let Some(question_scores_distribution) = &self.question_scores_distribution {
+                                    let min_score = question_scores_distribution.keys().min().map(|n| n.to_string()).unwrap_or_default();
+                                    let max_score = question_scores_distribution.keys().max().map(|n| n.to_string()).unwrap_or_default();
+                                    (min_score, max_score)
+                                } else {
+                                    (String::new(), String::new())
+                                };
+
                                 let last_max_questions = max_questions_input_node_ref.cast::<HtmlInputElement>()
                                     .map(|element| element.value())
                                     .unwrap_or_else(|| "10".to_string());
                                 let last_minimum_score = minimum_score_input_node_ref.cast::<HtmlInputElement>()
                                     .map(|element| element.value())
-                                    .unwrap_or_default();
+                                    .unwrap_or_else(|| minimum_available_score.clone());
                                 let last_timer_wanted = timer_wanted_input_node_ref.cast::<HtmlInputElement>()
                                     .map(|element| element.value())
                                     .unwrap_or_default();
                                 let minimum_score_keyup = ctx
                                     .link()
                                     .callback(|_| IndexComponentMsg::MinimumScoreValueChanged);
+
+                                let minimum_score_count_of_available_html = if let Some(question_scores_distribution) = &self.question_scores_distribution {
+                                    let current_score = last_minimum_score.parse::<u64>().unwrap_or(0);
+                                    let count_of_questions: usize = question_scores_distribution.iter()
+                                        .filter(|(score, _)| **score >= current_score)
+                                        .map(|(_, count)| *count)
+                                        .sum();
+                                    html! {
+                                        <>
+                                            <br/>
+                                            <LocaleComponent
+                                                keyid="game-creation-form-minimum-score-count-of-available"
+                                                args={locale_args([("score", current_score.into()), ("count", count_of_questions.into())])} />
+                                        </>
+                                    }
+                                } else {
+                                    html! {}
+                                };
+
                                 html! {
                                     <>
                                         <label for="max-questions">
                                             <LocaleComponent keyid="game-creation-form-max-questions-label"/>
                                             {": "}
                                         </label>
-                                        <input type="text" id="max-questions" value={last_max_questions} placeholder={locale("game-creation-form-max-questions-placeholder", &self.langid)} ref={max_questions_input_node_ref.clone()}/>
+                                        <input type="number" autocomplete="off" id="max-questions" value={last_max_questions} placeholder={locale("game-creation-form-max-questions-placeholder", &self.langid)} ref={max_questions_input_node_ref.clone()}/>
                                         if let Some(max_questions_error_message_langkeyid) = &max_questions_error_message_langkeyid {
                                             <p class={classes!("index-form-error-paragraph")}>
                                                 <LocaleComponent keyid={max_questions_error_message_langkeyid.clone()}/>
@@ -356,7 +383,7 @@ impl Component for IndexComponent {
                                             <LocaleComponent keyid="game-creation-form-minimum-score-label"/>
                                             {": "}
                                         </label>
-                                        <input type="text" id="minimum-score" value={last_minimum_score.clone()} placeholder={locale("game-creation-form-minimum-score-placeholder", &self.langid)} onkeyup={minimum_score_keyup} ref={minimum_score_input_node_ref.clone()}/>
+                                        <input type="number" min={minimum_available_score} max={maximum_available_score} autocomplete="off" id="minimum-score" value={last_minimum_score.clone()} placeholder={locale("game-creation-form-minimum-score-placeholder", &self.langid)} onkeyup={minimum_score_keyup} ref={minimum_score_input_node_ref.clone()}/>
                                         if let Some(minimum_score_error_message_langkeyid) = &minimum_score_error_message_langkeyid {
                                             <p class={classes!("index-form-error-paragraph")}>
                                                 <LocaleComponent keyid={minimum_score_error_message_langkeyid.clone()}/>
@@ -364,32 +391,14 @@ impl Component for IndexComponent {
                                         }
                                         <p class={classes!("index-form-description-paragraph")}>
                                             <LocaleComponent keyid="game-creation-form-minimum-score-explanation"/>
-                                            {
-                                                if let Some(question_scores_distribution) = &self.question_scores_distribution {
-                                                    let current_score = last_minimum_score.parse::<u64>().unwrap_or(0);
-                                                    let count_of_questions: usize = question_scores_distribution.iter()
-                                                        .filter(|(score, _)| **score >= current_score)
-                                                        .map(|(_, count)| *count)
-                                                        .sum();
-                                                    html! {
-                                                        <>
-                                                            <br/>
-                                                            <LocaleComponent
-                                                                keyid="game-creation-form-minimum-score-count-of-available"
-                                                                args={locale_args([("score", current_score.into()), ("count", count_of_questions.into())])} />
-                                                        </>
-                                                    }
-                                                } else {
-                                                    html! {}
-                                                }
-                                            }
+                                            { minimum_score_count_of_available_html }
                                         </p>
 
                                         <label for="timer-wanted">
                                             <LocaleComponent keyid="game-creation-form-timer-wanted-label"/>
                                             {": "}
                                         </label>
-                                        <input type="text" id="timer-wanted" value={last_timer_wanted} placeholder={locale("game-creation-form-timer-wanted-placeholder", &self.langid)} ref={timer_wanted_input_node_ref.clone()}/>
+                                        <input type="number" autocomplete="off" id="timer-wanted" value={last_timer_wanted} placeholder={locale("game-creation-form-timer-wanted-placeholder", &self.langid)} ref={timer_wanted_input_node_ref.clone()}/>
                                         if let Some(timer_wanted_error_message_langkeyid) = &timer_wanted_error_message_langkeyid {
                                             <p class={classes!("index-form-error-paragraph")}>
                                                 <LocaleComponent keyid={timer_wanted_error_message_langkeyid.clone()}/>
