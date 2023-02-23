@@ -35,21 +35,22 @@ game-creation-form-invite-code-placeholder = { game-creation-form-invite-code-la
 
 game-creation-form-starting-game-explanation = With no invite code a new game will be started. Otherwise the game with the code will be joined.
 
-game-creation-form-just-watch-label = I just want to watch it!
+game-creation-form-just-watch-label = I just want to watch!
 
 game-creation-form-max-questions-label = Count of Questions
 game-creation-form-max-questions-placeholder = { game-creation-form-max-questions-label }
 game-creation-form-max-questions-explanation = Leave Blank if you want to get all available questions
 
-game-creation-form-minimum-score-label = Minimum Score of Questions
+-minimum-score = Minimum Reddit Score of Questions
+game-creation-form-minimum-score-label = { -minimum-score }
 game-creation-form-minimum-score-placeholder = { game-creation-form-minimum-score-label }
 game-creation-form-minimum-score-explanation = Leave Blank if you don't care how much score a question has
-game-creation-form-minimum-score-count-of-available = With a score of { $score } there { $count ->
+game-creation-form-minimum-score-count-of-available = With a minimum score of { $score } there { $count ->
         [one] is { $count } question
         *[other] are { $count } questions
     } available.
 
-game-creation-form-timer-wanted-label = Timer
+game-creation-form-timer-wanted-label = Seconds to answer
 game-creation-form-timer-wanted-placeholder = { game-creation-form-timer-wanted-label }
 game-creation-form-timer-wanted-explanation = Leave Blank if no timer while answering is wished
 
@@ -59,7 +60,7 @@ game-creation-form-submit-value-join = JOIN
 game-creation-form-error-message-player-name-empty = Playername is missing.
 game-creation-form-error-message-invite-code-empty = Invite Code is missing.
 game-creation-form-error-message-max-questions-invalid = Count of Questions could not be parsed.
-game-creation-form-error-message-minimum-score-invalid = Minimum Score of Questions could not be parsed.
+game-creation-form-error-message-minimum-score-invalid = { -minimum-score } could not be parsed.
 game-creation-form-error-message-timer-wanted-invalid = Timer could not be parsed.
 
 ## Connecting View
