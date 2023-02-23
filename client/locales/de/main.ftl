@@ -39,12 +39,12 @@ game-creation-form-just-watch-label = Ich will einfach nur zuschauen!
 
 game-creation-form-max-questions-label = Anzahl an Fragen
 game-creation-form-max-questions-placeholder = { game-creation-form-max-questions-label }
-game-creation-form-max-questions-explanation = Leer Lassen, wenn alle Fragen gewollt sind
+game-creation-form-max-questions-explanation = Leer Lassen, wenn alle Fragen gewollt sind.
 
 -minimum-score = Minimale Reddit-Bewertung der Fragen
 game-creation-form-minimum-score-label = { -minimum-score }
 game-creation-form-minimum-score-placeholder = { game-creation-form-minimum-score-label }
-game-creation-form-minimum-score-explanation = Leer Lassen, wenn es egal ist, wie gut eine Frage sein muss
+game-creation-form-minimum-score-explanation = Leer Lassen, wenn es egal ist, wie gut eine Frage sein muss.
 game-creation-form-minimum-score-count-of-available = Mit einer minimalen Bewertung von { $score } { $count ->
         [one] ist { $count } Frage
         *[other] sind { $count } Fragen
@@ -52,7 +52,7 @@ game-creation-form-minimum-score-count-of-available = Mit einer minimalen Bewert
 
 game-creation-form-timer-wanted-label = Sekunden zum Beantworten
 game-creation-form-timer-wanted-placeholder = { game-creation-form-timer-wanted-label }
-game-creation-form-timer-wanted-explanation = Leer Lassen, wenn kein Timer zum Beantworten erwünscht ist
+game-creation-form-timer-wanted-explanation = Leer Lassen, wenn kein Timer zum Beantworten erwünscht ist.
 
 game-creation-form-submit-value-create = ERSTELLEN
 game-creation-form-submit-value-join = BEITRETEN
