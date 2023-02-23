@@ -51,8 +51,6 @@ impl Component for FooterComponent {
                 html! {
                     <button type="button" disabled={is_selected} {onclick}>
                         {locale("language-name", language_identifier)}
-                        {" / "}
-                        {locale("language-name-en-us", language_identifier)}
                     </button>
                 }
             })

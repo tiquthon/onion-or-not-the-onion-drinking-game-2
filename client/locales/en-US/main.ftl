@@ -1,5 +1,4 @@
 language-name = English (US)
-language-name-en-us = English (US)
 
 game-name = The Onion Or Not The Onion
 
