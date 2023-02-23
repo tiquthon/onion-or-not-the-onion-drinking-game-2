@@ -6,7 +6,7 @@ game-name = The Onion Or Not The Onion
 game-title = { game-name }
 game-subtitle = Drinking Game
 game-title-description = is a web game in which your mobile devices are your controllers.
-    Just create a lobby and play. Furthermore you can host a screen which provides a view for
+    Just create a lobby and play. Furthermore you can host a screen which provides a view for the
     rest of your party which doesn't want to play.
 
 join-game-header-string-1 = Join Game with
