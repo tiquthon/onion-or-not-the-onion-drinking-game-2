@@ -49,8 +49,6 @@ impl Component for ConnectingComponent {
                 html! {
                     <main class={classes!("connecting-main")}>
                         <span class={classes!("connecting-text")}>
-                            <LocaleComponent keyid="connecting-view-error-occurred-string" />
-                            <br/>
                             <LocaleComponent keyid={locale_key_id.clone()} />
                         </span>
                         <span class={classes!("connecting-sub-text")}>

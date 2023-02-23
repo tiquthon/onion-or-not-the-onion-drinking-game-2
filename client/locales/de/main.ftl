@@ -66,7 +66,6 @@ game-creation-form-error-message-timer-wanted-invalid = Der { game-creation-form
 ## Connecting View
 
 connecting-view-connecting-string = Verbinden...
-connecting-view-error-occurred-string = Ein Verbindungs-Fehler trat auf.
 
 ## Play View
 
