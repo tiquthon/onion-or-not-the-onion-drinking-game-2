@@ -22,9 +22,9 @@ impl Application {
             "{}:{}",
             configuration.application.host, configuration.application.port
         );
-        let tcp_listener = TcpListener::bind(&application_address)?;
+        let tcp_listener = TcpListener::bind(application_address)?;
         let port = tcp_listener.local_addr().unwrap().port();
-        let server = run(tcp_listener).await?;
+        let server = run(tcp_listener)?;
         Ok(Self { port, server })
     }
 
@@ -33,7 +33,7 @@ impl Application {
     }
 }
 
-async fn run(tcp_listener: TcpListener) -> anyhow::Result<Server> {
+fn run(tcp_listener: TcpListener) -> anyhow::Result<Server> {
     let lobbies_storage = LobbiesStorage::default();
     let server = HttpServer::new(move || {
         App::new()

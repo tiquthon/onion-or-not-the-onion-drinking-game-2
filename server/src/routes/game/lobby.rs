@@ -171,8 +171,7 @@ async fn process_client_message(
                             count_of_player_type_player == 0
                                 || time_until
                                     .as_ref()
-                                    .map(|time_until| *time_until < Utc::now())
-                                    .unwrap_or(false)
+                                    .map_or(false, |time_until| *time_until < Utc::now())
                         }
                         crate::model::PlayingState::Solution { time_until, .. } => {
                             *time_until < Utc::now()
@@ -181,7 +180,7 @@ async fn process_client_message(
                     if should_update {
                         match process_playing_update(game) {
                             ProcessPlayingUpdateResult::Broadcast => {
-                                broadcast_game_update(game.clone())
+                                broadcast_game_update(game.clone());
                             }
                             ProcessPlayingUpdateResult::DoNothing => {}
                         }
@@ -237,8 +236,7 @@ async fn process_client_message(
                     // Process
                     let is_within_time_limit = time_until
                         .as_ref()
-                        .map(|time_until| *time_until >= Utc::now())
-                        .unwrap_or(true);
+                        .map_or(true, |time_until| *time_until >= Utc::now());
                     if is_within_time_limit {
                         answers.insert(client_info.player_id, answer.into());
 
@@ -397,8 +395,7 @@ fn process_playing_update(game: &mut crate::model::Game) -> ProcessPlayingUpdate
                         || all_non_watchers_have_answered
                         || time_until
                             .as_ref()
-                            .map(|time_until| *time_until < Utc::now())
-                            .unwrap_or(false)
+                            .map_or(false, |time_until| *time_until < Utc::now())
                     {
                         // Give out points
                         let correct_players: Vec<crate::model::PlayerId> = game
@@ -478,7 +475,7 @@ fn process_playing_update(game: &mut crate::model::Game) -> ProcessPlayingUpdate
                                         &previous_questions
                                             .iter()
                                             .map(|k| k.0.question_id)
-                                            .collect(),
+                                            .collect::<HashSet<_>>(),
                                     ),
                                     None,
                                 )

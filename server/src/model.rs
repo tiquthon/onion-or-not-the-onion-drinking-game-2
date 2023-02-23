@@ -26,6 +26,7 @@ const INVITE_CODE_CHAR_COUNT: usize = 4;
 pub struct InviteCode(String);
 
 impl InviteCode {
+    #[must_use]
     pub fn generate() -> Self {
         use rand::seq::SliceRandom;
         Self(
@@ -35,6 +36,7 @@ impl InviteCode {
         )
     }
 
+    #[must_use]
     pub fn into_inner(self) -> String {
         self.0
     }
@@ -256,6 +258,7 @@ impl PlayingState {
 pub struct QuestionId(pub Uuid);
 
 impl QuestionId {
+    #[must_use]
     pub fn generate() -> Self {
         Self(Uuid::new_v4())
     }
@@ -333,6 +336,7 @@ pub struct Player {
 }
 
 impl Player {
+    #[must_use]
     pub fn is_player(&self) -> bool {
         match self.play_type {
             PlayType::Player { .. } => true,
@@ -359,6 +363,7 @@ impl Into<shared_model::game::Player> for Player {
 pub struct PlayerId(pub Uuid);
 
 impl PlayerId {
+    #[must_use]
     pub fn generate() -> Self {
         Self(Uuid::new_v4())
     }
@@ -384,6 +389,7 @@ impl Into<shared_model::game::PlayerId> for PlayerId {
 pub struct PlayerName(String);
 
 impl PlayerName {
+    #[must_use]
     pub fn into_inner(self) -> String {
         self.0
     }

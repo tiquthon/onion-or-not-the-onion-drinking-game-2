@@ -12,6 +12,7 @@ pub fn get_random_answered_question(
     )?))
 }
 
+#[must_use]
 pub fn get_answered_question(
     question_id: crate::model::QuestionId,
 ) -> Option<crate::model::AnsweredQuestion> {
@@ -20,7 +21,7 @@ pub fn get_answered_question(
             let answer = match reddit_submission_data.subreddit.to_lowercase().as_str() {
                 "nottheonion" => crate::model::Answer::NotTheOnion,
                 "theonion" => crate::model::Answer::TheOnion,
-                other => unreachable!("the dataset should only contain subreddit = \"nottheonion\" or \"theonion\" and not \"{other}\""),
+                other => panic!("the dataset should only contain subreddit = \"nottheonion\" or \"theonion\" and not \"{other}\""),
             };
             crate::model::AnsweredQuestion {
                 question_id,
