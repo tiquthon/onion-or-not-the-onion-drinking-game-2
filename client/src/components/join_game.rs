@@ -1,3 +1,4 @@
+use crate::utils::{retrieve_browser_location, ReplaceProtocol};
 use yew::{classes, html, Component, Context, Html};
 
 use super::locale::LocaleComponent;
@@ -17,7 +18,7 @@ impl Component for JoinGameComponent {
             <aside class={classes!("join-panel")}>
                 <LocaleComponent keyid="join-game-header-string-1"/>
                 {" "}
-                <span style="font-weight: bold;">{"tkprog.de/onto"}</span>
+                <span style="font-weight: bold;">{get_view_target_url_string()}</span>
                 {" "}
                 <LocaleComponent keyid="join-game-header-string-2"/>
                 {" "}
@@ -32,4 +33,17 @@ impl Component for JoinGameComponent {
 #[derive(yew::Properties, PartialEq)]
 pub struct JoinGameComponentProps {
     pub invite_code: String,
+}
+
+fn get_view_target_url_string() -> String {
+    retrieve_browser_location(
+        Some(ReplaceProtocol {
+            secure: "remove:",
+            unsecure: "remove:",
+        }),
+        None,
+    )
+    .strip_prefix("remove://")
+    .unwrap()
+    .to_owned()
 }
