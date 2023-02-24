@@ -1,0 +1,12 @@
+
+all-features = true
+
+[advisories]
+vulnerability = "deny"
+unmaintained = "warn"
+yanked = "warn"
+notice = "warn"
+ignore = [
+    # Ignoring RUSTSEC-2020-0071 from chrono, because from my perspective it's not that critical (yet)
+    "RUSTSEC-2020-0071",
+]

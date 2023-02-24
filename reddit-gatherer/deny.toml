@@ -1,0 +1,8 @@
+
+all-features = true
+
+[advisories]
+vulnerability = "deny"
+unmaintained = "warn"
+yanked = "warn"
+notice = "warn"
