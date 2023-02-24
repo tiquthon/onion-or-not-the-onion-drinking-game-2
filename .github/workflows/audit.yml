@@ -1,0 +1,51 @@
+name: Security Audit
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  push:
+    paths:
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+  pull_request:
+    paths:
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+
+jobs:
+  security-audit-client:
+    name: Security Audit Client
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: taiki-e/install-action@cargo-deny
+      - name: Scan for vulnerabilities
+        run: cargo deny check --show-stats advisories
+        working-directory: client
+  security-audit-reddit-gatherer:
+    name: Security Audit Reddit Gatherer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: taiki-e/install-action@cargo-deny
+      - name: Scan for vulnerabilities
+        run: cargo deny check --show-stats advisories
+        working-directory: reddit-gatherer
+  security-audit-server:
+    name: Security Audit Server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: taiki-e/install-action@cargo-deny
+      - name: Scan for vulnerabilities
+        run: cargo deny check --show-stats advisories
+        working-directory: server
+  security-audit-shared-library:
+    name: Security Audit Shared Library
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: taiki-e/install-action@cargo-deny
+      - name: Scan for vulnerabilities
+        run: cargo deny check --show-stats advisories
+        working-directory: shared-library
