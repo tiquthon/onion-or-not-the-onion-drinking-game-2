@@ -27,7 +27,7 @@ function check_directory {
 		exit 1
 	fi
 
-	if ! cargo audit --ignore RUSTSEC-2020-0071
+	if ! cargo deny check --show-stats advisories
 	then
 		echo "There are some vulnerabilities in $1."
 		exit 1
