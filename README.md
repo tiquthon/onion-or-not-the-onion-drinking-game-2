@@ -2,7 +2,7 @@
 
 [https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2](https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2)
 
-Copyright Thimo "Tiquthon" Neumann 2023
+By Thimo "Tiquthon" Neumann 2023
 
 "Onion Or Not The Onion Drinking Game 2" is a web base game which presents newspaper headlines from the satirical newspaper [the ONION](https://www.theonion.com/) and non-satirical ones.
 The players have to guess if it's from the ONION or a non satirical newspaper and get points for being right.
