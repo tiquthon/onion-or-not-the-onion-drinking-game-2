@@ -1,5 +1,8 @@
 # Onion Or Not The Onion Drinking Game 2
 
+[![CI](https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2/actions/workflows/general.yml/badge.svg)](https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2/actions/workflows/general.yml)
+[![Security Audit](https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2/actions/workflows/audit.yml/badge.svg)](https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2/actions/workflows/audit.yml)
+
 [https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2](https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2)
 
 By Thimo "Tiquthon" Neumann 2023
