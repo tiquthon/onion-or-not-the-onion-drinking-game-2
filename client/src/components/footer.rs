@@ -1,74 +1,37 @@
 use fluent_templates::{LanguageIdentifier, Loader};
 
-use yew::{classes, html, Callback, Component, Context, ContextHandle, Html};
+use yew::{classes, function_component, html, use_context, Callback, Html};
 
-use super::locale::{locale, LOCALES};
+use crate::components::locale::{locale, LOCALES};
 
-pub struct FooterComponent {
-    langid: LanguageIdentifier,
-    _context_listener: ContextHandle<LanguageIdentifier>,
-}
+#[function_component(FooterComponent)]
+pub fn footer_component(props: &FooterProps) -> Html {
+    let langid = use_context::<LanguageIdentifier>().expect("Missing LanguageIdentifier context.");
 
-impl Component for FooterComponent {
-    type Message = FooterComponentMsg;
-    type Properties = FooterProps;
-
-    fn create(ctx: &Context<Self>) -> Self {
-        let (langid, context_listener) = ctx
-            .link()
-            .context(
-                ctx.link()
-                    .callback(FooterComponentMsg::MessageContextUpdated),
-            )
-            .expect("Missing LanguageIdentifier context.");
-        Self {
-            langid,
-            _context_listener: context_listener,
-        }
-    }
-
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            FooterComponentMsg::MessageContextUpdated(langid) => {
-                self.langid = langid;
-                true
+    let locale_change_buttons: Vec<Html> = LOCALES
+        .locales()
+        .map(|language_identifier| {
+            let on_change_language_identifier = props.on_change_language_identifier.clone();
+            let onclick = Callback::from(move |_| {
+                on_change_language_identifier.emit(language_identifier.clone());
+            });
+            let is_selected = langid == *language_identifier;
+            html! {
+                <button type="button" class={classes!("button", "locale-selection__button")} disabled={is_selected} {onclick}>
+                    {locale("language-name", language_identifier)}
+                </button>
             }
-            FooterComponentMsg::ChangeLanguageIdentifier(lid) => {
-                ctx.props().on_change_language_identifier.emit(lid);
-                false
-            }
-        }
-    }
+        })
+        .collect();
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let locale_change_buttons: Vec<Html> = LOCALES
-            .locales()
-            .map(|language_identifier| {
-                let onclick = ctx.link().callback(move |_| {
-                    FooterComponentMsg::ChangeLanguageIdentifier(language_identifier.clone())
-                });
-                let is_selected = self.langid == *language_identifier;
-                html! {
-                    <button type="button" disabled={is_selected} {onclick}>
-                        {locale("language-name", language_identifier)}
-                    </button>
-                }
-            })
-            .collect();
-        html! {
-            <footer>
-                <nav class={classes!("footer-links")}>
-                    {locale_change_buttons}
-                </nav>
-                <p class={classes!("footer-copyright")}>{"\u{00a9} 2023 Thimo \"Tiquthon\" Neumann"}</p>
-            </footer>
-        }
+    html! {
+        <footer class={classes!("footer")}>
+            <nav class={classes!("locales-selection", "footer__locales-selection")}>
+                {locale_change_buttons}
+            </nav>
+            <span class={classes!("footer__copyright")}>{"\u{00a9} 2023 Thimo \"Tiquthon\" Neumann"}</span>
+        </footer>
     }
-}
-
-pub enum FooterComponentMsg {
-    MessageContextUpdated(LanguageIdentifier),
-    ChangeLanguageIdentifier(LanguageIdentifier),
 }
 
 #[derive(yew::Properties, PartialEq)]

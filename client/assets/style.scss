@@ -4,16 +4,57 @@ $boulder: #787878;
 $siam: #5a6450;
 $chelsea-cucumber: #78a04b;
 
-$header-fg-color: #333333;
+$header-fg-color: #222222;
 $header-bg-color: $chelsea-cucumber;
 
-$main-fg-color: #333333;
+$main-fg-color: #222222;
 $main-bg-color: $celery;
 
 $footer-fg-color: #eeeeee;
 $footer-bg-color: #648c46;
 
-$general-fg-color: #222222;
+.button {
+  background-color: $siam;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  padding: 10px;
+  text-decoration: none;
+}
+
+.button:hover {
+  filter: brightness(120%);
+}
+
+.button:focus {
+  filter: brightness(80%);
+}
+
+.button:disabled {
+  cursor: default;
+  filter: brightness(60%);
+}
+
+.footer {
+  background-color: $footer-bg-color;
+  color: $footer-fg-color;
+  display: grid;
+  grid-row-gap: 10px;
+  grid-template-columns: 100%;
+  padding: 10px 5px 10px 5px;
+}
+
+.footer__locales-selection {
+  text-align: center;
+}
+
+.footer__copyright {
+  color: $footer-fg-color;
+  text-align: center;
+}
 
 .header {
   background-color: $header-bg-color;
@@ -22,15 +63,22 @@ $general-fg-color: #222222;
 }
 
 .header__title {
+  color: $header-fg-color;
   font-size: 1.1em;
   margin: 0;
   text-align: center;
 }
 
 .header__subtitle {
+  color: $header-fg-color;
   font-style: italic;
   font-size: 1em;
   font-weight: normal;
   margin: 0;
   text-align: center;
+}
+
+.locale-selection__button {
+  margin-left: 3px;
+  margin-right: 3px;
 }
