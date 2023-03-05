@@ -12,6 +12,8 @@ game-title-description = ist ein Online Spiel, in welchem dein Handy dein Contro
 join-game-header-string-1 = Tritt dem Spiel auf
 join-game-header-string-2 = mit dem Code
 join-game-header-string-3 = bei!
+join-game-header-missing-url-string-1 = Tritt dem Spiel mit dem Code
+join-game-header-missing-url-string-2 = bei!
 
 cancel-button-text = ABBRECHEN
 go-back-button-text = ZURÜCK

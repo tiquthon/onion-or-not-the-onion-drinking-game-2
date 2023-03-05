@@ -78,6 +78,21 @@ $footer-bg-color: #648c46;
   text-align: center;
 }
 
+.join-panel {
+  background-color: #84ab4a;
+  margin: 0;
+  padding: 10px;
+  text-align: center;
+}
+
+.join-panel__invite-url {
+  font-weight: bold;
+}
+
+.join-panel__invite-code {
+  font-weight: bold;
+}
+
 .locale-selection__button {
   margin-left: 3px;
   margin-right: 3px;

@@ -11,6 +11,8 @@ game-title-description = is a web game in which your mobile devices are your con
 join-game-header-string-1 = Join Game with
 join-game-header-string-2 = and Code
 join-game-header-string-3 = {""}
+join-game-header-missing-url-string-1 = Join Game with Code
+join-game-header-missing-url-string-2 = {""}
 
 cancel-button-text = CANCEL
 go-back-button-text = GO BACK
