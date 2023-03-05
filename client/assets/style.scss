@@ -1,0 +1,36 @@
+$celery: #96be50;
+$white: #ffffff;
+$boulder: #787878;
+$siam: #5a6450;
+$chelsea-cucumber: #78a04b;
+
+$header-fg-color: #333333;
+$header-bg-color: $chelsea-cucumber;
+
+$main-fg-color: #333333;
+$main-bg-color: $celery;
+
+$footer-fg-color: #eeeeee;
+$footer-bg-color: #648c46;
+
+$general-fg-color: #222222;
+
+.header {
+  background-color: $header-bg-color;
+  color: $header-fg-color;
+  padding: 10px;
+}
+
+.header__title {
+  font-size: 1.1em;
+  margin: 0;
+  text-align: center;
+}
+
+.header__subtitle {
+  font-style: italic;
+  font-size: 1em;
+  font-weight: normal;
+  margin: 0;
+  text-align: center;
+}

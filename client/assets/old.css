@@ -103,50 +103,6 @@ body {
     grid-template-rows: min-content 1fr min-content;
 }
 
-/* - - - - - - - - - - - - - - - - - HEADER - - - - - - - - - - - - - - - - - */
-
-body > header {
-    /*
-     * Fit the header into the parents Grid.
-     */
-    grid-column: 1 / span 1;
-    grid-row: 1 / span 1;
-
-    /*
-     * Define the Grid for the header.
-     */
-    display: grid;
-    grid-template-columns: 100%;
-    grid-template-rows: min-content;
-
-    /*
-     * Add the removed border from the body to the header:
-     */
-    padding: 10px;
-
-    /*
-     * Set the color.
-     */
-    background-color: var(--std-layout-header-bg-color);
-    color: var(--std-layout-header-fg-color);
-}
-
-.header-headline {
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.1em;
-    margin: 0;
-    padding: 0 !important;
-}
-
-.header-sub-headline {
-    text-align: center;
-    font-style: italic;
-    font-size: 1em;
-    margin: 0;
-    padding: 0 !important;
-}
-
 /* - - - - - - - - - - - - - - - - -  MAIN  - - - - - - - - - - - - - - - - - */
 
 body > main {
