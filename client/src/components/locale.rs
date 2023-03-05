@@ -7,7 +7,7 @@ use fluent_templates::{LanguageIdentifier, Loader};
 use gloo_storage::errors::StorageError;
 use gloo_storage::{LocalStorage, Storage};
 
-use yew::{html, AttrValue, Component, Context, ContextHandle, Html};
+use yew::{function_component, html, use_context, AttrValue, Html};
 
 fluent_templates::static_loader! {
     pub static LOCALES = {
@@ -19,48 +19,17 @@ fluent_templates::static_loader! {
 
 const LOCAL_STORAGE_KEY_LANGUAGE_IDENTIFIER: &str = "language_identifier";
 
-pub struct LocaleComponent {
-    langid: LanguageIdentifier,
-    _context_listener: ContextHandle<LanguageIdentifier>,
-}
-
-impl Component for LocaleComponent {
-    type Message = LocaleComponentMsg;
-    type Properties = LocaleProps;
-
-    fn create(ctx: &Context<Self>) -> Self {
-        let (langid, context_listener) = ctx
-            .link()
-            .context(
-                ctx.link()
-                    .callback(LocaleComponentMsg::MessageContextUpdated),
-            )
-            .expect("Missing LanguageIdentifier context.");
-        Self {
-            langid,
-            _context_listener: context_listener,
+#[function_component(LocaleComponent)]
+pub fn locale_component(props: &LocaleProps) -> Html {
+    let langid = use_context::<LanguageIdentifier>().expect("Missing LanguageIdentifier context.");
+    let optional_locale: Option<String> =
+        LOCALES.lookup_with_args(&langid, &props.keyid, &props.args);
+    match optional_locale {
+        None => {
+            log::warn!("Could not find {} in language files.", props.keyid);
+            Default::default()
         }
-    }
-
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            LocaleComponentMsg::MessageContextUpdated(langid) => {
-                self.langid = langid;
-                true
-            }
-        }
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let locale: Option<String> =
-            LOCALES.lookup_with_args(&self.langid, &ctx.props().keyid, &ctx.props().args);
-        match locale {
-            None => {
-                log::warn!("Could not find {} in language files.", ctx.props().keyid);
-                Default::default()
-            }
-            Some(locale) => html! { <>{locale}</> },
-        }
+        Some(locale) => html! { <>{locale}</> },
     }
 }
 
@@ -69,10 +38,6 @@ pub struct LocaleProps {
     pub keyid: AttrValue,
     #[prop_or_default]
     pub args: HashMap<String, FluentValue<'static>>,
-}
-
-pub enum LocaleComponentMsg {
-    MessageContextUpdated(LanguageIdentifier),
 }
 
 pub fn locale_args<const N: usize, KEY>(
