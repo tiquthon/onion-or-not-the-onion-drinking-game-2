@@ -64,37 +64,8 @@
 }
 
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
-/*                            PLAYER NAME HEADLINE                            */
-/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
-
-.player-name-headline {
-    grid-column: 1 / span 1;
-    grid-row: 1 / span 1;
-
-    margin: 0;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 /*                            PLAYER TYPE AND EXIT                            */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
-
-.player-type-and-exit {
-    grid-column: 1 / span 1;
-    grid-row: 2 / span 1;
-
-    text-align: center;
-    margin: 0;
-}
-
-.exit-game-link {
-    padding: 4px;
-}
-
-.player-type {
-    font-style: italic;
-}
 
 .remaining-time-question-state {
     grid-column: 1 / span 1;

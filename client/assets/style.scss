@@ -97,3 +97,21 @@ $footer-bg-color: #648c46;
   margin-left: 3px;
   margin-right: 3px;
 }
+
+.player-name-headline {
+  margin: 0 0 10px;
+  text-align: center;
+}
+
+.player-type-and-exit {
+  margin: 0;
+  text-align: center;
+}
+
+.player-type-and-exit__exit-game-link {
+  padding: 4px;
+}
+
+.player-type-and-exit__player-type {
+  font-style: italic;
+}
