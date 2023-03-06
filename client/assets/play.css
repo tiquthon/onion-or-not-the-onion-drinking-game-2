@@ -357,93 +357,6 @@
     background-color: #ffffff;
 }
 
-/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
-/* >   >   >   >   >   >   >       PLAYERLIST       <   <   <   <   <   <   < */
-/* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
-
-.playerlist-headline {
-    grid-column: 1 / span 1;
-    grid-row: 9 / span 1;
-
-    margin-bottom: 0;
-}
-
-.playerlist-aside {
-    grid-column: 1 / span 1;
-    grid-row: 10 / span 1;
-
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-left: 0;
-
-    display: grid;
-    grid-template-rows: min-content min-content;
-}
-
-.playerlist-listing {
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-left: 0;
-}
-
-.playerlist-listing > li {
-    background-color: #bde552;
-
-    border-radius: 5px;
-    padding: 5px;
-
-    list-style: none;
-
-    margin-bottom: 2px;
-    margin-top: 2px;
-
-    display: grid;
-    grid-template-columns: auto min-content min-content min-content min-content;
-    grid-column-gap: 5px;
-}
-
-.playerlist-username {
-    grid-column: 1 / span 1;
-}
-
-.playerlist-actual-user-is-username {
-    font-weight: bold;
-}
-
-.playerlist-user-wants-to-skip {
-    grid-column: 2 / span 1;
-}
-
-.playerlist-user-wants-to-skip > img {
-    height: 1em;
-}
-
-.playerlist-user-has-answered {
-    grid-column: 3 / span 1;
-}
-
-.playerlist-user-has-answered > img {
-    height: 1em;
-}
-
-.playerlist-users-answer {
-    grid-column: 4 / span 1;
-}
-
-.playerlist-users-answer > img {
-    height: 1em;
-}
-
-.playerlist-points-or-watching {
-    grid-column: 5 / span 1;
-
-    white-space: nowrap;
-}
-
-.sub-playerlist-points-explanation {
-    font-style: italic;
-}
-
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
 /* > > > > > > >  Extra small devices (phones, 600px and down)  < < < < < < < */
@@ -486,14 +399,6 @@
 
         grid-template-columns: 1fr min-content;
         grid-column-gap: 10px;
-    }
-    .playerlist-headline {
-        grid-column: 2 / span 1;
-        grid-row: 1 / span 1;
-    }
-    .playerlist-aside {
-        grid-column: 2 / span 1;
-        grid-row: 2 / -1;
     }
 }
 

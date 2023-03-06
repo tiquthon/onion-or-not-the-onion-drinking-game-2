@@ -98,6 +98,64 @@ $footer-bg-color: #648c46;
   margin-right: 3px;
 }
 
+.player-list {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-left: 0;
+}
+
+.player-list-container__empty {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-left: 0;
+}
+
+.player-list-container__headline {
+  margin-bottom: 0;
+}
+
+.player-list-container__list {
+  margin-top: 5px;
+}
+
+.player-list-container__points-explanation {
+  font-style: italic;
+  margin: 0;
+}
+
+.player-list-element {
+  background-color: #bde552;
+  border-radius: 5px;
+  display: grid;
+  grid-template-columns: auto min-content min-content min-content min-content;
+  grid-column-gap: 5px;
+  list-style: none;
+  margin-bottom: 2px;
+  margin-top: 2px;
+  padding: 5px;
+}
+
+.player-list-element__players-answer {
+  height: 1em;
+}
+
+.player-list-element__player-has-answered {
+  height: 1em;
+}
+
+.player-list-element__player-name--is-current-user {
+  font-weight: bold;
+}
+
+.player-list-element__player-wants-to-skip {
+  height: 1em;
+}
+
+.player-list-element__points-or-watching {
+  grid-column: 5 / span 1;
+  white-space: nowrap;
+}
+
 .player-name-headline {
   margin: 0 0 10px;
   text-align: center;

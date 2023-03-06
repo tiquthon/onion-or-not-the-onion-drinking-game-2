@@ -1,213 +1,156 @@
 use std::rc::Rc;
 
+use fluent_templates::LanguageIdentifier;
+
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{
     Game, GameState, PlayType, Player, PlayingState,
 };
 
-use yew::{classes, html, Component, Context, ContextHandle, Html};
+use yew::{classes, function_component, html, use_context, Html};
 
 use crate::components::locale::{locale_args, LocaleComponent};
 
-pub struct PlayerListComponent {
-    game: Rc<Game>,
-    _context_listener: ContextHandle<Rc<Game>>,
+#[function_component(PlayerListComponent)]
+pub fn player_list_component() -> Html {
+    let _langid: LanguageIdentifier = use_context().expect("Missing LanguageIdentifier context.");
+    let game: Rc<Game> = use_context().expect("Missing Game context.");
+
+    html! {
+        <aside class={classes!("player-list-container")}>
+            <h3 class={classes!("player-list-container__headline")}>
+                <LocaleComponent keyid="play-view-players-headline"/>
+            </h3>
+            { view_player_list(&game) }
+            <p class={classes!("player-list-container__points-explanation")}>
+                <LocaleComponent keyid="play-view-players-points-explanation" />
+            </p>
+        </aside>
+    }
 }
 
-impl PlayerListComponent {
-    fn view_player_list(&self) -> Html {
-        if self.game.players.is_empty() {
+fn view_player_list(game: &Rc<Game>) -> Html {
+    if game.players.is_empty() {
+        html! {
+            <p class={classes!("player-list-container__empty")}>
+                <LocaleComponent keyid="play-view-players-no-one-here"/>
+            </p>
+        }
+    } else {
+        let player_list_items = game
+            .players
+            .iter()
+            .map(|player: &Player| view_player(game, player))
+            .collect::<Html>();
+        html! {
+            <ul class={classes!("player-list-container__list", "player-list")}>
+                { player_list_items }
+            </ul>
+        }
+    }
+}
+
+fn view_player(game: &Rc<Game>, player: &Player) -> Html {
+    let is_this_player = player.id == game.this_player_id;
+
+    let points_or_watching_html = match &player.play_type {
+        PlayType::Player { points } => {
             html! {
-                <aside class={classes!("playerlist-aside")}>
-                    <LocaleComponent keyid="play-view-players-no-one-here"/>
-                </aside>
+                <LocaleComponent keyid="play-view-players-points" args={locale_args([("points", points.into())])}/>
             }
-        } else {
+        }
+        PlayType::Watcher => {
             html! {
                 <>
-                    <aside class={classes!("playerlist-aside")}>
-                        <ul class={classes!("playerlist-listing")}>
-                            {
-                                self.game
-                                    .players
-                                    .iter()
-                                    .map(|player: &Player| self.view_player(player))
-                                    .collect::<Html>()
-                            }
-                        </ul>
-                        <aside class={classes!("sub-playerlist-points-explanation")}>
-                            <LocaleComponent keyid="play-view-players-points-explanation" />
-                        </aside>
-                    </aside>
+                    {" ("}
+                    <LocaleComponent keyid="play-view-players-is-watching"/>
+                    {")"}
                 </>
             }
         }
-    }
+    };
 
-    fn view_player(&self, player: &Player) -> Html {
-        let is_this_player = player.id == self.game.this_player_id;
-        html! {
-            <li>
-                <span class={classes!(
-                    "playerlist-username",
-                    is_this_player.then_some("playerlist-actual-user-is-username")
-                )}>
-                    {player.name.to_string()}
-                </span>
-                { self.view_player_state(player) }
-                <span class={classes!("playerlist-points-or-watching")}>
-                    {
-                        match &player.play_type {
-                            PlayType::Player { points } => {
-                                html! {
-                                    <LocaleComponent
-                                        keyid="play-view-players-points"
-                                        args={locale_args([("points", points.into())])}/>
-                                }
-                            }
-                            PlayType::Watcher => {
-                                html! {
-                                    <>
-                                        {" ("}
-                                        <LocaleComponent keyid="play-view-players-is-watching"/>
-                                        {")"}
-                                    </>
-                                }
-                            }
-                        }
-                    }
-                </span>
-            </li>
-        }
+    html! {
+        <li class={classes!("player-list-element")}>
+            <span class={classes!(is_this_player.then_some("player-list-element__player-name--is-current-user"))}>
+                {player.name.to_string()}
+            </span>
+            { view_player_state(game, player) }
+            <span class={classes!("player-list-element__points-or-watching")}>
+                { points_or_watching_html }
+            </span>
+        </li>
     }
+}
 
-    fn view_player_state(&self, player: &Player) -> Html {
-        match &self.game.game_state {
-            GameState::InLobby => html! {},
-            GameState::Playing {
-                playing_state: PlayingState::Question { answers, .. },
-                ..
-            } => {
-                let user_has_answered: bool = answers.contains(&player.id);
-                if user_has_answered {
-                    html! {
-                        <span class={classes!("playerlist-user-has-answered")}>
-                            <img src="pencil_icon.png"/>
-                        </span>
-                    }
-                } else {
-                    html! {}
-                }
-            }
-            GameState::Playing {
-                playing_state:
-                    PlayingState::Solution {
-                        current_question,
-                        answers,
-                        skip_request,
-                        ..
-                    },
-                ..
-            } => {
-                let user_has_answered: bool = answers.contains_key(&player.id);
-                let user_has_correct_answer: Option<bool> = answers
-                    .get(&player.id)
-                    .map(|player_answer| *player_answer == current_question.answer);
-                let user_wants_skip: bool = skip_request.contains(&player.id);
+fn view_player_state(game: &Rc<Game>, player: &Player) -> Html {
+    match &game.game_state {
+        GameState::InLobby => html! {},
+        GameState::Playing {
+            playing_state: PlayingState::Question { answers, .. },
+            ..
+        } => {
+            let user_has_answered: bool = answers.contains(&player.id);
+            if user_has_answered {
                 html! {
-                    <>
-                        {
-                            if user_wants_skip {
-                                html! {
-                                    <span class={classes!("playerlist-user-wants-to-skip")}>
-                                        <img src="fastforward.png"/>
-                                    </span>
-                                }
-                            } else {
-                                html! {}
-                            }
-                        }
-                        {
-                            if user_has_answered {
-                                html! {
-                                    <span class={classes!("playerlist-user-has-answered")}>
-                                        <img src="pencil_icon.png"/>
-                                    </span>
-                                }
-                            } else {
-                                html! {}
-                            }
-                        }
-                        {
-                            match user_has_correct_answer {
-                                Some(true) => {
-                                    html! {
-                                        <span class={classes!("playerlist-users-answer")}>
-                                            <img src="correct.png"/>
-                                        </span>
-                                    }
-                                }
-                                Some(false) => {
-                                    html! {
-                                        <span class={classes!("playerlist-users-answer")}>
-                                            <img src="incorrect.png"/>
-                                        </span>
-                                    }
-                                }
-                                None => {
-                                    html! {}
-                                }
-                            }
-                        }
-                    </>
+                    <img class={classes!("player-list-element__player-has-answered")} src="pencil_icon.png"/>
                 }
-            }
-            GameState::Aftermath { .. } => {
-                html! {}
-            }
-        }
-    }
-}
-
-impl Component for PlayerListComponent {
-    type Message = PlayerListComponentMsg;
-    type Properties = ();
-
-    fn create(ctx: &Context<Self>) -> Self {
-        let (game, context_listener) = ctx
-            .link()
-            .context(
-                ctx.link()
-                    .callback(PlayerListComponentMsg::MessageContextUpdated),
-            )
-            .expect("Missing Game context.");
-
-        Self {
-            game,
-            _context_listener: context_listener,
-        }
-    }
-
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            PlayerListComponentMsg::MessageContextUpdated(game) => {
-                self.game = game;
-                true
+            } else {
+                Html::default()
             }
         }
-    }
+        GameState::Playing {
+            playing_state:
+                PlayingState::Solution {
+                    current_question,
+                    answers,
+                    skip_request,
+                    ..
+                },
+            ..
+        } => {
+            let user_wants_to_skip: bool = skip_request.contains(&player.id);
+            let user_wants_to_skip_html = if user_wants_to_skip {
+                html! {
+                    <img class={classes!("player-list-element__player-wants-to-skip")} src="fastforward.png"/>
+                }
+            } else {
+                Html::default()
+            };
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
-        html! {
-            <>
-                <h3 class={classes!("playerlist-headline")}>
-                    <LocaleComponent keyid="play-view-players-headline"/>
-                </h3>
-                { self.view_player_list() }
-            </>
+            let user_has_answered: bool = answers.contains_key(&player.id);
+            let user_has_answered_html = if user_has_answered {
+                html! {
+                    <img class={classes!("player-list-element__player-has-answered")} src="pencil_icon.png"/>
+                }
+            } else {
+                Html::default()
+            };
+
+            let user_has_correct_answer: Option<bool> = answers
+                .get(&player.id)
+                .map(|player_answer| *player_answer == current_question.answer);
+            let user_has_correct_answer_html = match user_has_correct_answer {
+                Some(true) => {
+                    html! {
+                        <img class={classes!("player-list-element__players-answer")} src="correct.png"/>
+                    }
+                }
+                Some(false) => {
+                    html! {
+                        <img class={classes!("player-list-element__players-answer")} src="incorrect.png"/>
+                    }
+                }
+                None => Html::default(),
+            };
+
+            html! {
+                <>
+                    { user_wants_to_skip_html }
+                    { user_has_answered_html }
+                    { user_has_correct_answer_html }
+                </>
+            }
         }
+        GameState::Aftermath { .. } => Html::default(),
     }
-}
-
-pub enum PlayerListComponentMsg {
-    MessageContextUpdated(Rc<Game>),
 }
