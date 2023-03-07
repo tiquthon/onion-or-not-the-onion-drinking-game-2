@@ -73,13 +73,11 @@ pub fn app_component() -> Html {
     });
 
     html! {
-        <>
-            <ContextProvider<LanguageIdentifier> context={(*langid).clone()}>
-                <HeaderComponent />
-                { inner_components }
-                <FooterComponent {on_change_language_identifier} />
-            </ContextProvider<LanguageIdentifier>>
-        </>
+        <ContextProvider<LanguageIdentifier> context={(*langid).clone()}>
+            <HeaderComponent />
+            { inner_components }
+            <FooterComponent {on_change_language_identifier} />
+        </ContextProvider<LanguageIdentifier>>
     }
 }
 

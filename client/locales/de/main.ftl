@@ -62,7 +62,7 @@ game-creation-form-error-message-player-name-empty = Der { game-creation-form-us
 game-creation-form-error-message-invite-code-empty = Der { game-creation-form-invite-code-label } fehlt.
 game-creation-form-error-message-max-questions-invalid = Die { game-creation-form-max-questions-label } konnte nicht verarbeitet werden.
 game-creation-form-error-message-minimum-score-invalid = Die { -minimum-score } konnte nicht verarbeitet werden.
-game-creation-form-error-message-timer-wanted-invalid = Der { game-creation-form-timer-wanted-label } konnte nicht verarbeitet werden.
+game-creation-form-error-message-timer-wanted-invalid = Die { game-creation-form-timer-wanted-label } konnte nicht verarbeitet werden.
 
 ## Connecting View
 

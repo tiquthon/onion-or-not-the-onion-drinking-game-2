@@ -13,6 +13,40 @@ $main-bg-color: $celery;
 $footer-fg-color: #eeeeee;
 $footer-bg-color: #648c46;
 
+html {
+  /*
+   * The 'height' definition is needed to stretch the page to the given
+   * view height. With this the footer is being pressed against the bottom
+   * of the page.
+   */
+  height: 100%;
+
+  font-family: Verdana, Geneva, sans-serif;
+}
+
+body {
+  /*
+   * Remove the space at the edges of the body.
+   * This is because otherwise the background-color of the header
+   * does not fill the full width.
+   */
+  margin: 0;
+
+  /*
+   * This 'min-height' definition is needed to stretch the page
+   * to the given view height. With this the footer is being pressed against
+   * the bottom of the page.
+   */
+  min-height: 100%;
+
+  /*
+   * Define the Grid for the body containing header, main and footer.
+   * Needed for the page to be using the full size.
+   */
+  display: grid;
+  grid-template-rows: min-content 1fr min-content;
+}
+
 .button {
   background-color: $siam;
   border: none;
@@ -56,6 +90,54 @@ $footer-bg-color: #648c46;
   text-align: center;
 }
 
+.form-description-paragraph {
+  font-style: italic;
+  text-align: right;
+  margin-top: 0;
+}
+
+.form-error-paragraph {
+  color: #aa0000;
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.form-input-label {
+  text-decoration: underline;
+}
+
+.form-just-watch-label {
+  background-color: #749b4c;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.form-just-watch-label:hover {
+  background-color: #82ab51;
+}
+
+.form-just-watch-label:focus,
+.form-just-watch-label:active {
+  background-color: #668b46;
+}
+
+.game-create-join-form {
+  display: grid;
+  grid-template-columns: 100%;
+  grid-row-gap: 5px;
+}
+
+.game-explanation {
+  font-size: 1.05rem;
+  text-align: center;
+}
+
+.game-explanation__game-name {
+  font-weight: bold;
+}
+
 .header {
   background-color: $header-bg-color;
   color: $header-fg-color;
@@ -78,6 +160,12 @@ $footer-bg-color: #648c46;
   text-align: center;
 }
 
+.input-field {
+  padding: 7px;
+  border-radius: 5px;
+  border: none;
+}
+
 .join-panel {
   background-color: #84ab4a;
   margin: 0;
@@ -96,6 +184,12 @@ $footer-bg-color: #648c46;
 .locale-selection__button {
   margin-left: 3px;
   margin-right: 3px;
+}
+
+.main {
+  background-color: $main-bg-color;
+  color: $main-fg-color;
+  padding: 10px;
 }
 
 .player-list {
@@ -196,6 +290,26 @@ $footer-bg-color: #648c46;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 @media only screen and (min-width: 768px) {
+  .game-create-join-form {
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: 5px;
+  }
+
+  .game-create-join-form__description-paragraph {
+    grid-column: 1 / span 2;
+  }
+
+  .game-create-join-form__just-watch-label {
+    grid-column: 1 / span 2;
+  }
+
+  .game-create-join-form__submit-button {
+    grid-column: 1 / span 2;
+  }
+
+  .game-create-join-form__error_paragraph {
+    grid-column: 1 / span 2;
+  }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -204,6 +318,10 @@ $footer-bg-color: #648c46;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 @media only screen and (min-width: 992px) {
+  .main {
+    padding-right: 15%;
+    padding-left: 15%;
+  }
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -212,4 +330,8 @@ $footer-bg-color: #648c46;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 @media only screen and (min-width: 1200px) {
+  .main {
+    padding-right: 20%;
+    padding-left: 20%;
+  }
 }
