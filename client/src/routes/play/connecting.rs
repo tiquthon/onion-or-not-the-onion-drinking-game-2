@@ -1,9 +1,13 @@
-use yew::{classes, function_component, html, Callback, Html};
+use fluent_templates::LanguageIdentifier;
+
+use yew::{classes, function_component, html, use_context, Callback, Html};
 
 use crate::components::locale::LocaleComponent;
 
 #[function_component(ConnectingComponent)]
 pub fn connecting_component(props: &ConnectingComponentProps) -> Html {
+    let _langid = use_context::<LanguageIdentifier>().expect("Missing LanguageIdentifier context.");
+
     match &props.state {
         ConnectingComponentState::Connecting => {
             let cloned_on_cancel = props.on_cancel.clone();
