@@ -1,23 +1,24 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use fluent_templates::LanguageIdentifier;
 
 use gloo_net::websocket::{Message, WebSocketError};
 
-use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Answer, Game, GameState};
+use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{Game, GameState};
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::network::ServerMessage;
 
-use yew::{html, Callback, Component, Context, ContextHandle, ContextProvider, Html};
-
-use aftermath::AftermathComponent;
-use connecting::ConnectingComponent;
-use game::GameComponent;
-use lobby::LobbyComponent;
-use play_state::PlayState;
+use yew::{
+    function_component, html, use_context, use_effect_with_deps, use_force_update, use_state,
+    Callback, ContextProvider, Html,
+};
 
 use crate::routes::index::{CreateLobby, JoinLobby};
-use crate::routes::play::connecting::ConnectingComponentState;
-use crate::routes::play::play_state::{ConnectingErrorLocaleKeyId, ShouldRender};
+use crate::routes::play::aftermath::AftermathComponent;
+use crate::routes::play::connecting::{ConnectingComponent, ConnectingComponentState};
+use crate::routes::play::game::GameComponent;
+use crate::routes::play::lobby::LobbyComponent;
+use crate::routes::play::play_state::{ConnectingErrorLocaleKeyId, PlayState};
 use crate::utils::{retrieve_browser_location, REPLACE_PROTOCOL_WEBSOCKET};
 
 pub mod aftermath;
@@ -26,64 +27,42 @@ pub mod game;
 pub mod lobby;
 pub mod play_state;
 
-pub struct PlayComponent {
-    langid: LanguageIdentifier,
-    _context_listener: ContextHandle<LanguageIdentifier>,
+#[function_component(PlayComponent)]
+pub fn play_component(props: &PlayComponentProps) -> Html {
+    let _langid = use_context::<LanguageIdentifier>().expect("Missing LanguageIdentifier context.");
 
-    state: PlayState,
-}
+    let force_update = use_force_update();
 
-impl Component for PlayComponent {
-    type Message = PlayComponentMsg;
-    type Properties = PlayComponentProps;
+    let play_state = Rc::clone(&*use_state(|| Rc::new(RefCell::new(PlayState::None))));
 
-    fn create(ctx: &Context<Self>) -> Self {
-        let (langid, context_listener) = ctx
-            .link()
-            .context(ctx.link().callback(PlayComponentMsg::MessageContextUpdated))
-            .expect("Missing LanguageIdentifier context.");
+    let cloned_create_join_lobby = props.create_join_lobby.clone();
+    let cloned_play_state = Rc::clone(&play_state);
+    use_effect_with_deps(
+        move |_| {
+            let web_socket_address_root =
+                retrieve_browser_location(Some(REPLACE_PROTOCOL_WEBSOCKET), Some("/api"));
+            log::debug!("Retrieved web_socket_address_root as {web_socket_address_root}");
 
-        let web_socket_address_root =
-            retrieve_browser_location(Some(REPLACE_PROTOCOL_WEBSOCKET), Some("/api"));
-        log::debug!("web_socket_address_root: {web_socket_address_root}");
-
-        Self {
-            langid,
-            _context_listener: context_listener,
-
-            state: PlayState::connect(
-                &web_socket_address_root,
-                ctx.link()
-                    .callback(PlayComponentMsg::WebSocketMessageReceived),
-                ctx.link().callback(|_| PlayComponentMsg::WebSocketClosed),
-                &ctx.props().create_join_lobby,
-            ),
-        }
-    }
-
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            PlayComponentMsg::MessageContextUpdated(langid) => {
-                self.langid = langid;
-                true
-            }
-            PlayComponentMsg::WebSocketClosed => {
-                log::info!("Web Socket Closed");
-                true
-            }
-            PlayComponentMsg::WebSocketMessageReceived(msg) => match msg {
+            let cloned_force_update = force_update.clone();
+            let cloned_cloned_play_state = Rc::clone(&cloned_play_state);
+            let on_message_received = Callback::from(move |msg| match msg {
                 Ok(Message::Bytes(bytes)) => {
                     let server_message = ServerMessage::try_from(&bytes[..]).unwrap();
-                    let should_render = self.state.handle_server_message(server_message);
-                    matches!(should_render, ShouldRender::Yes)
+                    let optional_new_play_state = {
+                        RefCell::borrow(&cloned_cloned_play_state)
+                            .handle_server_message(server_message)
+                    };
+                    if let Some(new_play_state) = optional_new_play_state {
+                        *RefCell::borrow_mut(&cloned_cloned_play_state) = new_play_state;
+                        cloned_force_update.force_update();
+                    }
                 }
                 Ok(Message::Text(text)) => {
                     log::warn!("Received text from WebSocket \"{text}\"; ignoring it...");
-                    false
                 }
                 Err(error) => {
                     log::warn!("An error occurred: {error} ({error:?})");
-                    self.state = PlayState::ConnectingError {
+                    let new_play_state = PlayState::ConnectingError {
                         locale_keyid: match &error {
                             WebSocketError::ConnectionError => {
                                 ConnectingErrorLocaleKeyId::MessageReceiveConnectionError
@@ -98,108 +77,107 @@ impl Component for PlayComponent {
                         },
                         error: Some(error.into()),
                     };
-                    true
+                    *RefCell::borrow_mut(&cloned_cloned_play_state) = new_play_state;
+                    cloned_force_update.force_update();
                 }
-            },
-            PlayComponentMsg::GoBackToIndex => {
-                ctx.props().on_go_back_to_index.emit(());
-                false
-            }
-            PlayComponentMsg::ExitGame => {
-                self.state.exit(ctx.props().on_go_back_to_index.clone());
-                false
-            }
-            PlayComponentMsg::StartGame => {
-                self.state.wish_for_game_start();
-                false
-            }
-            PlayComponentMsg::ChooseAnswer(answer) => {
-                self.state.choose_answer(answer);
-                false
-            }
-            PlayComponentMsg::RequestSkip => {
-                self.state.request_skip();
-                false
-            }
-            PlayComponentMsg::RequestPlayAgain => {
-                self.state.request_play_again();
-                false
-            }
+            });
+
+            let cloned_force_update = force_update.clone();
+            let on_connection_closed = Callback::from(move |_| cloned_force_update.force_update());
+
+            *RefCell::borrow_mut(&cloned_play_state) = PlayState::connect(
+                &web_socket_address_root,
+                on_message_received,
+                on_connection_closed,
+                &cloned_create_join_lobby,
+            );
+            force_update.force_update();
+        },
+        (),
+    );
+
+    let borrowed_play_state = RefCell::borrow(&play_state);
+    match &*borrowed_play_state {
+        PlayState::Connecting { .. } => {
+            let cloned_play_state = Rc::clone(&play_state);
+            let cloned_on_go_back_to_index = props.on_go_back_to_index.clone();
+            let on_cancel = Callback::from(move |_| {
+                RefCell::borrow(&cloned_play_state).exit(cloned_on_go_back_to_index.clone())
+            });
+
+            html! { <ConnectingComponent state={ConnectingComponentState::Connecting} {on_cancel} /> }
         }
-    }
+        PlayState::Playing { game, .. } => {
+            let cloned_play_state = Rc::clone(&play_state);
+            let cloned_on_go_back_to_index = props.on_go_back_to_index.clone();
+            let on_exit_game_wish = Callback::from(move |_| {
+                RefCell::borrow(&cloned_play_state).exit(cloned_on_go_back_to_index.clone())
+            });
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        match &self.state {
-            PlayState::ConnectingError {
-                locale_keyid,
-                error,
-            } => {
-                let on_go_back = ctx.link().callback(|_| PlayComponentMsg::GoBackToIndex);
-                let state = ConnectingComponentState::Failed {
-                    locale_key_id: locale_keyid.key_id().to_string(),
-                    error: error.as_ref().map(ToString::to_string),
-                };
+            match game.game_state {
+                GameState::InLobby => {
+                    let cloned_play_state = Rc::clone(&play_state);
+                    let on_start_game = Callback::from(move |_| {
+                        RefCell::borrow(&cloned_play_state).wish_for_game_start()
+                    });
 
-                html! { <ConnectingComponent {state} {on_go_back} /> }
-            }
-            PlayState::Connecting { .. } => {
-                let on_cancel = ctx.link().callback(|_| PlayComponentMsg::ExitGame);
-
-                html! { <ConnectingComponent state={ConnectingComponentState::Connecting} {on_cancel} /> }
-            }
-            PlayState::Playing { game, .. } => {
-                let on_exit_game_wish = ctx.link().callback(|_| PlayComponentMsg::ExitGame);
-
-                match game.game_state {
-                    GameState::InLobby => {
-                        let on_start_game = ctx.link().callback(|_| PlayComponentMsg::StartGame);
-
-                        let game_rc = Rc::new(AsRef::as_ref(game).clone());
-                        html! {
-                            <ContextProvider<Rc<Game>> context={game_rc}>
-                                <LobbyComponent {on_exit_game_wish} {on_start_game} />
-                            </ContextProvider<Rc<Game>>>
-                        }
+                    let game_rc = Rc::new(AsRef::as_ref(game).clone());
+                    html! {
+                        <ContextProvider<Rc<Game>> context={game_rc}>
+                            <LobbyComponent {on_exit_game_wish} {on_start_game} />
+                        </ContextProvider<Rc<Game>>>
                     }
-                    GameState::Playing { .. } => {
-                        let game_rc = Rc::new(AsRef::as_ref(game).clone());
-                        let on_choose_answer = ctx.link().callback(PlayComponentMsg::ChooseAnswer);
-                        let on_request_skip =
-                            ctx.link().callback(|_| PlayComponentMsg::RequestSkip);
-                        html! {
-                            <ContextProvider<Rc<Game>> context={game_rc}>
-                                <GameComponent {on_exit_game_wish} {on_choose_answer} {on_request_skip} />
-                            </ContextProvider<Rc<Game>>>
-                        }
+                }
+                GameState::Playing { .. } => {
+                    let game_rc = Rc::new(AsRef::as_ref(game).clone());
+
+                    let cloned_play_state = Rc::clone(&play_state);
+                    let on_choose_answer = Callback::from(move |answer| {
+                        RefCell::borrow(&cloned_play_state).choose_answer(answer)
+                    });
+
+                    let cloned_play_state = Rc::clone(&play_state);
+                    let on_request_skip =
+                        Callback::from(move |_| RefCell::borrow(&cloned_play_state).request_skip());
+
+                    html! {
+                        <ContextProvider<Rc<Game>> context={game_rc}>
+                            <GameComponent {on_exit_game_wish} {on_choose_answer} {on_request_skip} />
+                        </ContextProvider<Rc<Game>>>
                     }
-                    GameState::Aftermath { .. } => {
-                        let game_rc = Rc::new(AsRef::as_ref(game).clone());
-                        let on_play_again_wish =
-                            ctx.link().callback(|_| PlayComponentMsg::RequestPlayAgain);
-                        html! {
-                            <ContextProvider<Rc<Game>> context={game_rc}>
-                                <AftermathComponent {on_exit_game_wish} {on_play_again_wish}/>
-                            </ContextProvider<Rc<Game>>>
-                        }
+                }
+                GameState::Aftermath { .. } => {
+                    let game_rc = Rc::new(AsRef::as_ref(game).clone());
+
+                    let cloned_play_state = Rc::clone(&play_state);
+                    let on_play_again_wish = Callback::from(move |_| {
+                        RefCell::borrow(&cloned_play_state).request_play_again()
+                    });
+
+                    html! {
+                        <ContextProvider<Rc<Game>> context={game_rc}>
+                            <AftermathComponent {on_exit_game_wish} {on_play_again_wish}/>
+                        </ContextProvider<Rc<Game>>>
                     }
                 }
             }
         }
+        PlayState::ConnectingError {
+            locale_keyid,
+            error,
+        } => {
+            let cloned_on_go_back_to_index = props.on_go_back_to_index.clone();
+            let on_go_back = Callback::from(move |_| cloned_on_go_back_to_index.emit(()));
+
+            let state = ConnectingComponentState::Failed {
+                locale_key_id: locale_keyid.key_id().to_string(),
+                error: error.as_ref().map(ToString::to_string),
+            };
+
+            html! { <ConnectingComponent {state} {on_go_back} /> }
+        }
+        PlayState::None => Default::default(),
     }
-}
-
-pub enum PlayComponentMsg {
-    MessageContextUpdated(LanguageIdentifier),
-    WebSocketClosed,
-    WebSocketMessageReceived(Result<Message, WebSocketError>),
-
-    GoBackToIndex,
-    ExitGame,
-    StartGame,
-
-    ChooseAnswer(Answer),
-    RequestSkip,
-    RequestPlayAgain,
 }
 
 #[derive(yew::Properties, PartialEq)]

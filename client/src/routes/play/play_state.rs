@@ -28,6 +28,7 @@ pub enum PlayState {
         locale_keyid: ConnectingErrorLocaleKeyId,
         error: Option<anyhow::Error>,
     },
+    None,
     Connecting {
         web_socket_stream: Arc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
         web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
@@ -83,18 +84,18 @@ impl PlayState {
             Ok(web_socket) => {
                 let (sink, stream) = web_socket.split();
 
-                let stream_arc = Arc::new(tokio::sync::Mutex::new(Some(stream)));
-                let cloned_stream_arc = Arc::clone(&stream_arc);
+                let web_socket_stream = Arc::new(tokio::sync::Mutex::new(Some(stream)));
+                let web_socket_sink = Arc::new(tokio::sync::Mutex::new(Some(sink)));
 
-                let sink_arc = Arc::new(tokio::sync::Mutex::new(Some(sink)));
-                let cloned_sink_arc = Arc::clone(&sink_arc);
+                let cloned_web_socket_stream = Arc::clone(&web_socket_stream);
+                let cloned_web_socket_sink = Arc::clone(&web_socket_sink);
 
                 spawn_local(async move {
                     let mut last_game_updated_requested_on = wasm_timer::Instant::now();
 
                     loop {
                         let mut locked_optional_stream =
-                            tokio::sync::Mutex::lock(&cloned_stream_arc).await;
+                            tokio::sync::Mutex::lock(&cloned_web_socket_stream).await;
                         match &mut *locked_optional_stream {
                             Some(locked_stream) => {
                                 let stream_result_optional_poll = futures_util::poll!(
@@ -121,7 +122,8 @@ impl PlayState {
                                                 wasm_timer::Instant::now();
 
                                             let mut locked_optional_sink =
-                                                tokio::sync::Mutex::lock(&cloned_sink_arc).await;
+                                                tokio::sync::Mutex::lock(&cloned_web_socket_sink)
+                                                    .await;
                                             if let Some(locked_sink) = &mut *locked_optional_sink {
                                                 locked_sink
                                                     .send(Message::Bytes(
@@ -156,8 +158,8 @@ impl PlayState {
                 });
 
                 PlayState::Connecting {
-                    web_socket_stream: stream_arc,
-                    web_socket_sink: sink_arc,
+                    web_socket_stream,
+                    web_socket_sink,
                 }
             }
             Err(err) => PlayState::ConnectingError {
@@ -169,70 +171,77 @@ impl PlayState {
         }
     }
 
-    pub fn handle_server_message(&mut self, server_message: ServerMessage) -> ShouldRender {
-        // bool is ShouldRender
+    #[must_use]
+    pub fn handle_server_message(&self, server_message: ServerMessage) -> Option<Self> {
         match &server_message {
             ServerMessage::LobbyCreated(game) | ServerMessage::LobbyJoined(game) => {
                 match &self {
-                    PlayState::Connecting {
+                    Self::Connecting {
                         web_socket_stream,
                         web_socket_sink,
-                    } => {
-                        *self = PlayState::Playing {
-                            web_socket_stream: Arc::clone(web_socket_stream),
-                            web_socket_sink: Arc::clone(web_socket_sink),
-                            game: Box::new(game.clone()),
-                        };
-                        ShouldRender::Yes
-                    }
-                    PlayState::ConnectingError { .. } | PlayState::Playing { .. } => {
+                        ..
+                    } => Some(Self::Playing {
+                        web_socket_stream: Arc::clone(web_socket_stream),
+                        web_socket_sink: Arc::clone(web_socket_sink),
+                        game: Box::new(game.clone()),
+                    }),
+                    Self::ConnectingError { .. } | PlayState::Playing { .. } | PlayState::None => {
                         log::warn!(
                             "Received {server_message:?} but I am in {self:?}; so doing nothing."
                         );
                         // No-Op
-                        ShouldRender::No
+                        None
                     }
                 }
             }
             ServerMessage::GameFullUpdate(game_update) => {
-                match &mut *self {
-                    PlayState::Playing { game, .. } => {
-                        log::info!("Received Game Full Update");
-                        *game = Box::new(game_update.clone());
-
-                        ShouldRender::Yes
+                match self {
+                    Self::Playing {
+                        web_socket_stream,
+                        web_socket_sink,
+                        ..
+                    } => {
+                        // log::info!("Received full Game update");
+                        Some(Self::Playing {
+                            web_socket_stream: Arc::clone(web_socket_stream),
+                            web_socket_sink: Arc::clone(web_socket_sink),
+                            game: Box::new(game_update.clone()),
+                        })
                     }
-                    PlayState::Connecting { .. } | PlayState::ConnectingError { .. } => {
+                    PlayState::Connecting { .. }
+                    | PlayState::ConnectingError { .. }
+                    | PlayState::None => {
                         log::warn!(
                             "Received {server_message:?} but I am in {self:?}; so doing nothing."
                         );
                         // No-Op
-                        ShouldRender::No
+                        None
                     }
                 }
             }
             ServerMessage::AnswerNotInTimeLimit => {
                 log::error!("Sent answer not in time limit.");
                 // TODO: Maybe handle error better?
-                ShouldRender::No
+                None
             }
             ServerMessage::PlayerNameAlreadyInUse => {
-                match &mut *self {
+                match self {
                     PlayState::Connecting { .. } => {
                         self.exit(Default::default());
-                        *self = PlayState::ConnectingError {
+                        Some(Self::ConnectingError {
                             locale_keyid:
                                 ConnectingErrorLocaleKeyId::HandleMessagePlayerNameAlreadyInUse,
                             error: None,
-                        };
-                        ShouldRender::Yes
+                        })
                     }
-                    PlayState::ConnectingError { .. } | PlayState::Playing { .. } => {
+                    PlayState::ConnectingError { .. }
+                    | PlayState::Playing { .. }
+                    | PlayState::None => {
                         log::warn!(
                             "Received {server_message:?} but I am in {self:?}; so doing nothing."
                         );
                         // No-Op
-                        ShouldRender::No
+                        None
                     }
                 }
             }
@@ -284,7 +293,7 @@ impl PlayState {
                     log::error!("Client wants to choose {answer:?}, but I am not in Playing GameState::Playing PlayingState::Question; doing nothing.");
                 }
             },
-            PlayState::Connecting { .. } | PlayState::ConnectingError { .. } => {
+            PlayState::Connecting { .. } | PlayState::ConnectingError { .. } | PlayState::None => {
                 log::error!(
                     "Client wants to choose {answer:?}, but I am in {self:?}; doing nothing."
                 );
@@ -314,7 +323,7 @@ impl PlayState {
                     log::error!("Client wants to skip, but I am not in GameState::Playing PlayingState::Solution; doing nothing.");
                 }
             },
-            PlayState::Connecting { .. } | PlayState::ConnectingError { .. } => {
+            PlayState::Connecting { .. } | PlayState::ConnectingError { .. } | PlayState::None => {
                 log::error!("Client wants to skip, but I am in {self:?}; doing nothing.");
             }
         }
@@ -334,17 +343,18 @@ impl PlayState {
                     log::error!("Client wants to play again, but I am not in GameState::Aftermath; doing nothing.");
                 }
             },
-            PlayState::Connecting { .. } | PlayState::ConnectingError { .. } => {
+            PlayState::Connecting { .. } | PlayState::ConnectingError { .. } | PlayState::None => {
                 log::error!("Client wants to play again, but I am in {self:?}; doing nothing.");
             }
         }
     }
 
-    pub fn exit(&mut self, on_closed: Callback<()>) {
+    pub fn exit(&self, on_closed: Callback<()>) {
         match &self {
             PlayState::Connecting {
                 web_socket_stream,
                 web_socket_sink,
+                ..
             }
             | PlayState::Playing {
                 web_socket_stream,
@@ -372,7 +382,7 @@ impl PlayState {
                     on_closed.emit(());
                 });
             }
-            PlayState::ConnectingError { .. } => {}
+            PlayState::ConnectingError { .. } | PlayState::None => on_closed.emit(()),
         }
     }
 }
@@ -380,7 +390,7 @@ impl PlayState {
 impl Debug for PlayState {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            PlayState::ConnectingError {
+            Self::ConnectingError {
                 locale_keyid,
                 error,
             } => f
@@ -388,11 +398,12 @@ impl Debug for PlayState {
                 .field("locale_keyid", locale_keyid)
                 .field("error", error)
                 .finish(),
-            PlayState::Connecting { .. } => f.debug_struct("PlayState::Connecting").finish(),
-            PlayState::Playing { game, .. } => f
-                .debug_struct("PlayState::Lobby")
+            Self::Connecting { .. } => f.debug_struct("PlayState::Connecting").finish(),
+            Self::Playing { game, .. } => f
+                .debug_struct("PlayState::Playing")
                 .field("game", game)
                 .finish(),
+            Self::None => f.debug_struct("PlayState::None").finish(),
         }
     }
 }
@@ -442,9 +453,4 @@ fn send_to_server(
         }
         drop(locked_optional_web_socket_sink);
     });
-}
-
-pub enum ShouldRender {
-    Yes,
-    No,
 }
