@@ -55,7 +55,7 @@ pub fn index_component(props: &IndexComponentProps) -> Html {
     );
 
     html! {
-        <main class={classes!("main")}>
+        <main class={classes!("main", "centered-primary-content")}>
             <p class={classes!("game-explanation")}>
                 <span class={classes!("game-explanation__game-name")}>
                     <LocaleComponent keyid="game-name"/>

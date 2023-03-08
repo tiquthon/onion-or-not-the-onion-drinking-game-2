@@ -72,6 +72,14 @@ body {
   filter: brightness(60%);
 }
 
+.button--width-full {
+  width: 100%;
+}
+
+.centered-primary-content {
+  padding: 10px;
+}
+
 .connecting-view {
 }
 
@@ -206,7 +214,6 @@ body {
 .main {
   background-color: $main-bg-color;
   color: $main-fg-color;
-  padding: 10px;
 }
 
 .player-list {
@@ -285,6 +292,10 @@ body {
   font-style: italic;
 }
 
+.welcome-headline {
+  text-align: center;
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* > > > > > > > > > > > > >     RESPONSIVE CSS     < < < < < < < < < < < < < */
 /* > > > > > > >  Extra small devices (phones, 600px and down)  < < < < < < < */
@@ -335,9 +346,20 @@ body {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 @media only screen and (min-width: 992px) {
-  .main {
+  .centered-primary-content {
     padding-right: 15%;
     padding-left: 15%;
+  }
+
+  .play-primary-content {
+    display: grid;
+    grid-column-gap: 10px;
+    grid-template-columns: auto min-content;
+  }
+
+  .play-primary-content__player-list {
+    grid-column: 2 / span 1;
+    grid-row: 1 / span 99;
   }
 }
 
@@ -347,8 +369,8 @@ body {
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 @media only screen and (min-width: 1200px) {
-  .main {
-    padding-right: 20%;
-    padding-left: 20%;
+  .centered-primary-content {
+    padding-right: 15%;
+    padding-left: 15%;
   }
 }

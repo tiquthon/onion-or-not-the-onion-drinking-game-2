@@ -6,17 +6,17 @@ use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{
     Game, GameState, PlayType, Player, PlayingState,
 };
 
-use yew::{classes, function_component, html, use_context, Html};
+use yew::{classes, function_component, html, use_context, Classes, Html};
 
 use crate::components::locale::{locale_args, LocaleComponent};
 
 #[function_component(PlayerListComponent)]
-pub fn player_list_component() -> Html {
+pub fn player_list_component(props: &PlayerListProps) -> Html {
     let _langid: LanguageIdentifier = use_context().expect("Missing LanguageIdentifier context.");
     let game: Rc<Game> = use_context().expect("Missing Game context.");
 
     html! {
-        <aside class={classes!("player-list-container")}>
+        <aside class={classes!("player-list-container", props.class.clone())}>
             <h3 class={classes!("player-list-container__headline")}>
                 <LocaleComponent keyid="play-view-players-headline"/>
             </h3>
@@ -153,4 +153,10 @@ fn view_player_state(game: &Rc<Game>, player: &Player) -> Html {
         }
         GameState::Aftermath { .. } => Html::default(),
     }
+}
+
+#[derive(yew::Properties, PartialEq)]
+pub struct PlayerListProps {
+    #[prop_or_default]
+    pub class: Classes,
 }

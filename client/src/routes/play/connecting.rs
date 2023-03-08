@@ -13,7 +13,7 @@ pub fn connecting_component(props: &ConnectingComponentProps) -> Html {
             let cloned_on_cancel = props.on_cancel.clone();
             let cancel_button_onclick = Callback::from(move |_| cloned_on_cancel.emit(()));
             html! {
-                <main class={classes!("main", "connecting-view")}>
+                <main class={classes!("main", "main--padding-normal", "connecting-view")}>
                     <p class={classes!("connecting-view__main-text")}>
                         <LocaleComponent keyid="connecting-view-connecting-string" />
                     </p>
