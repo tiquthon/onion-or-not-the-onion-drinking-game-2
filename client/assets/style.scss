@@ -47,6 +47,10 @@ body {
   grid-template-rows: min-content 1fr min-content;
 }
 
+.aftermath-play-again {
+  font-style: italic;
+}
+
 .button {
   background-color: $siam;
   border: none;
@@ -207,6 +211,7 @@ body {
 }
 
 .link-to-original-news-article {
+  color: $main-fg-color;
   white-space: nowrap;
 }
 
@@ -286,6 +291,34 @@ body {
 .player-type-and-exit {
   margin: 0;
   text-align: center;
+}
+
+.player-ranking {
+  padding-left: 0;
+}
+
+.player-ranking__placement {
+  border-radius: 5px;
+  list-style: none;
+  margin-bottom: 2px;
+  margin-top: 2px;
+  padding: 5px;
+}
+
+.player-ranking__placement--first_place {
+  background-color: #D4AF37;
+}
+
+.player-ranking__placement--second_place {
+  background-color: #c4c7ce;
+}
+
+.player-ranking__placement--third_place {
+  background-color: #a36e27;
+}
+
+.player-ranking__placement--other_place {
+  background-color: #ffffff;
 }
 
 .player-type-and-exit__exit-game-link {
