@@ -206,6 +206,10 @@ body {
   font-weight: bold;
 }
 
+.link-to-original-news-article {
+  white-space: nowrap;
+}
+
 .locale-selection__button {
   margin-left: 3px;
   margin-right: 3px;
@@ -292,6 +296,82 @@ body {
   font-style: italic;
 }
 
+.play-primary-content {
+  display: grid;
+  grid-column-gap: 10px;
+  grid-row-gap: 10px;
+  grid-template-columns: auto;
+}
+
+.question-button--chosen {
+  border: 4px solid #000000;
+}
+
+.question-button--not-the-onion {
+  width: 100%;
+  background-color: #b50000;
+}
+
+.question-button--the-onion {
+  width: 100%;
+  background-color: #00b500;
+}
+
+.question-headline {
+  display: inline-block;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+.question-picture {
+  width: 100%;
+}
+
+.question-result {
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+
+.question-buttons-container {
+  display: grid;
+  grid-column-gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.question-result--correct {
+  color: #006700;
+}
+
+.question-result--wrong {
+  color: #670000;
+}
+
+.question-result--missing {
+  color: #675e00;
+}
+
+.remaining-question-time {
+  font-style: italic;
+  text-align: center;
+}
+
+.remaining-solution-time {
+  font-style: italic;
+  margin-top: 30px;
+  text-align: center;
+}
+
+.solution-skip-button {
+  margin-left: 5px;
+  padding: 5px;
+}
+
 .welcome-headline {
   text-align: center;
 }
@@ -352,14 +432,12 @@ body {
   }
 
   .play-primary-content {
-    display: grid;
-    grid-column-gap: 10px;
     grid-template-columns: auto min-content;
   }
 
   .play-primary-content__player-list {
     grid-column: 2 / span 1;
-    grid-row: 1 / span 99;
+    grid-row: 1 / span 9;
   }
 }
 

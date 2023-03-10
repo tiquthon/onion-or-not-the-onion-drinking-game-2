@@ -174,43 +174,6 @@
 /* ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  */
 
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
-/*                                RESULT LINE                                 */
-/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
-
-.question-result {
-    grid-column: 1 / span 1;
-    grid-row: 5 / span 1;
-
-    text-align: center;
-
-    margin: 0;
-}
-
-.question-result-correct {
-    color: #006700;
-    font-weight: bold;
-}
-
-.question-result-wrong {
-    color: #670000;
-    font-weight: bold;
-}
-
-.question-result-missing {
-    color: #675e00;
-    font-weight: bold;
-}
-
-/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
-/*                              QUESTION HEADLINE                             */
-/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
-
-.question-headline-at-aftermath-state {
-    grid-column: 1 / span 1;
-    grid-row: 6 / span 1;
-}
-
-/* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 /*                               QUESTION SUBLINE                             */
 /* ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~   ~  */
 

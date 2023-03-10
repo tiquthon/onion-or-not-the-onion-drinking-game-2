@@ -1,279 +1,229 @@
-use chrono::Utc;
 use std::rc::Rc;
+
+use chrono::Utc;
 
 use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{
     Answer, Game, GameState, PlayingState,
 };
 
-use yew::{classes, html, Callback, Component, Context, ContextHandle, Html};
+use yew::{
+    classes, function_component, html, use_context, use_effect_with_deps, use_force_update,
+    use_state, Callback, Html,
+};
 
 use crate::components::join_game::JoinGameComponent;
 use crate::components::locale::{locale_args, LocaleComponent};
 use crate::components::player_name_type_exit_headline::PlayerNameTypeExitHeadlineComponent;
 use crate::components::playerlist::PlayerListComponent;
 
-pub struct GameComponent {
-    game: Rc<Game>,
-    _context_listener: ContextHandle<Rc<Game>>,
+#[function_component(GameComponent)]
+pub fn game_component(props: &GameComponentProps) -> Html {
+    let game: Rc<Game> = use_context().expect("Missing Game context.");
 
-    _update_timer: gloo_timers::callback::Interval,
+    let update_timer = use_state::<Option<gloo_timers::callback::Interval>, _>(|| None);
+    let force_update = use_force_update();
+    let update_by_interval_callback = Callback::from(move |_| force_update.force_update());
+    use_effect_with_deps(
+        move |_| {
+            update_timer.set(Some(gloo_timers::callback::Interval::new(500, move || {
+                update_by_interval_callback.emit(());
+            })))
+        },
+        (),
+    );
+
+    let invite_code = game.invite_code.to_string();
+
+    let cloned_on_exit_game_wish = props.on_exit_game_wish.clone();
+    let on_exit_game_wished = Callback::from(move |_| cloned_on_exit_game_wish.emit(()));
+
+    html! {
+        <main class={classes!("main")}>
+            <JoinGameComponent {invite_code} />
+            <section class={classes!("centered-primary-content", "play-primary-content")}>
+                <PlayerNameTypeExitHeadlineComponent {on_exit_game_wished} />
+                { view_remaining_time(props, &game) }
+                { view_question_or_solution(props, &game) }
+                <PlayerListComponent class={classes!("play-primary-content__player-list")} />
+            </section>
+        </main>
+    }
 }
+fn view_remaining_time(props: &GameComponentProps, game: &Rc<Game>) -> Html {
+    let this_player_is_watcher = game.get_this_player().unwrap().is_watcher();
 
-impl GameComponent {
-    fn view_remaining_time(&self, ctx: &Context<Self>) -> Html {
-        let this_player_is_watcher = self.game.get_this_player().unwrap().is_watcher();
-
-        if let GameState::Playing { playing_state, .. } = &self.game.game_state {
-            match playing_state {
-                PlayingState::Question { time_until, .. } => match time_until {
-                    Some(some_time_until) => {
-                        let duration = *some_time_until - Utc::now();
-                        html! {
-                            <section class={classes!("remaining-time-question-state")}>
-                                <LocaleComponent
-                                    keyid="game-view-question-playing-state-remaining-seconds"
-                                    args={locale_args([("seconds", duration.num_seconds().into())])} />
-                            </section>
-                        }
-                    }
-                    None => {
-                        html! {
-                            <section class={classes!("remaining-time-question-state")}>
-                                <LocaleComponent keyid="game-view-question-playing-state-infinite-remaining-seconds" />
-                            </section>
-                        }
-                    }
-                },
-                PlayingState::Solution {
-                    time_until,
-                    skip_request,
-                    ..
-                } => {
-                    let duration = *time_until - Utc::now();
+    if let GameState::Playing { playing_state, .. } = &game.game_state {
+        match playing_state {
+            PlayingState::Question { time_until, .. } => match time_until {
+                Some(some_time_until) => {
+                    let duration = *some_time_until - Utc::now();
                     html! {
-                        <section class={classes!("remaining-time-aftermath-state")}>
-                            <LocaleComponent
-                                keyid="game-view-solution-playing-state-remaining-seconds"
+                        <section class={classes!("remaining-question-time")}>
+                            <LocaleComponent keyid="game-view-question-playing-state-remaining-seconds"
                                 args={locale_args([("seconds", duration.num_seconds().into())])} />
-                            {
-                                if this_player_is_watcher {
-                                    html! {}
-                                } else if skip_request.contains(&self.game.this_player_id) {
-                                    html! {
-                                        <>
-                                            {" - "}
-                                            <LocaleComponent keyid="game-view-solution-playing-state-continuing" />
-                                        </>
-                                    }
-                                } else {
-                                    let onclick_skip_button = ctx.link().callback(|_| GameComponentMsg::RequestSkip);
-                                    html! {
-                                        <button type="button" class={classes!("skip-button")} onclick={onclick_skip_button}>
-                                            <LocaleComponent keyid="game-view-solution-playing-state-continue" />
-                                        </button>
-                                    }
-                                }
-                            }
                         </section>
                     }
                 }
-            }
-        } else {
-            unreachable!()
-        }
-    }
-
-    fn view_question_or_solution(&self, ctx: &Context<Self>) -> Html {
-        let this_player_is_watcher = self.game.get_this_player().unwrap().is_watcher();
-        if let GameState::Playing { playing_state, .. } = &self.game.game_state {
-            match playing_state {
-                PlayingState::Question {
-                    current_question,
-                    own_answer,
-                    ..
-                } => {
-                    let this_player_answer_is_the_onion = own_answer
-                        .map(|answer| answer == Answer::TheOnion)
-                        .unwrap_or(false)
-                        .then_some("button-chosen-outline");
-                    let this_player_answer_is_not_the_onion = own_answer
-                        .map(|answer| answer == Answer::NotTheOnion)
-                        .unwrap_or(false)
-                        .then_some("button-chosen-outline");
-
+                None => {
                     html! {
-                        <>
-                            <h1 class={classes!("question-headline-at-question-state", "question-headline")}>
-                                {current_question.title.clone()}
-                            </h1>
-                            {
-                                if !this_player_is_watcher {
-                                    let onclick_the_onion = ctx.link().callback(|_| GameComponentMsg::ChooseAnswer(Answer::TheOnion));
-                                    let onclick_not_the_onion = ctx.link().callback(|_| GameComponentMsg::ChooseAnswer(Answer::NotTheOnion));
-                                    html! {
-                                        <section class={classes!("question-the-onion-not-the-onion-forms-section")}>
-                                            <div class={classes!("question-the-onion-form")}>
-                                                <button type="button" class={classes!("question-the-onion-form-submit-button", this_player_answer_is_the_onion)} onclick={onclick_the_onion}>
-                                                    <LocaleComponent keyid="game-view-question-playing-state-selection-button-the-onion" />
-                                                </button>
-                                            </div>
-                                            <div class={classes!("question-not-the-onion-form")}>
-                                                <button type="button" class={classes!("question-not-the-onion-form-submit-button", this_player_answer_is_not_the_onion)} onclick={onclick_not_the_onion}>
-                                                    <LocaleComponent keyid="game-view-question-playing-state-selection-button-not-the-onion" />
-                                                </button>
-                                            </div>
-                                        </section>
-                                    }
-                                } else {
-                                    html! {}
+                        <section class={classes!("remaining-question-time")}>
+                            <LocaleComponent keyid="game-view-question-playing-state-infinite-remaining-seconds" />
+                        </section>
+                    }
+                }
+            },
+            PlayingState::Solution {
+                time_until,
+                skip_request,
+                ..
+            } => {
+                let duration = *time_until - Utc::now();
+                html! {
+                    <section class={classes!("remaining-solution-time")}>
+                        <LocaleComponent keyid="game-view-solution-playing-state-remaining-seconds"
+                            args={locale_args([("seconds", duration.num_seconds().into())])} />
+                        {
+                            if this_player_is_watcher {
+                                html! {}
+                            } else if skip_request.contains(&game.this_player_id) {
+                                html! {
+                                    <>
+                                        {" - "}
+                                        <LocaleComponent keyid="game-view-solution-playing-state-continuing" />
+                                    </>
+                                }
+                            } else {
+                                let cloned_on_request_skip = props.on_request_skip.clone();
+                                let onclick_skip_button = Callback::from(move |_| cloned_on_request_skip.emit(()));
+                                html! {
+                                    <button type="button" class={classes!("button", "solution-skip-button")} onclick={onclick_skip_button}>
+                                        <LocaleComponent keyid="game-view-solution-playing-state-continue" />
+                                    </button>
                                 }
                             }
-                        </>
-                    }
+                        }
+                    </section>
                 }
-                PlayingState::Solution {
-                    current_question,
-                    answers,
-                    ..
-                } => {
-                    let this_player_answer = answers.get(&self.game.this_player_id);
-                    let this_player_answer_correct = this_player_answer
-                        .map(|player_answer| *player_answer == current_question.answer);
+            }
+        }
+    } else {
+        unreachable!()
+    }
+}
 
-                    let question_result_css_class = if this_player_is_watcher {
-                        match current_question.answer {
-                            Answer::TheOnion => "question-result-correct",
-                            Answer::NotTheOnion => "question-result-wrong",
-                        }
-                    } else {
-                        match this_player_answer_correct {
-                            Some(true) => "question-result-correct",
-                            Some(false) => "question-result-wrong",
-                            None => "question-result-missing",
-                        }
-                    };
+fn view_question_or_solution(props: &GameComponentProps, game: &Rc<Game>) -> Html {
+    let this_player_is_watcher = game.get_this_player().unwrap().is_watcher();
+    if let GameState::Playing { playing_state, .. } = &game.game_state {
+        match playing_state {
+            PlayingState::Question {
+                current_question,
+                own_answer,
+                ..
+            } => {
+                let this_player_answer_is_the_onion = own_answer
+                    .map(|answer| answer == Answer::TheOnion)
+                    .unwrap_or(false)
+                    .then_some("question-button--chosen");
+                let this_player_answer_is_not_the_onion = own_answer
+                    .map(|answer| answer == Answer::NotTheOnion)
+                    .unwrap_or(false)
+                    .then_some("question-button--chosen");
 
-                    let sub_headline_locale = match current_question.answer {
-                        Answer::TheOnion => {
-                            "game-view-solution-playing-state-sub-headline-the-onion"
+                html! {
+                    <>
+                        <h1 class={classes!("question-headline")}>
+                            {current_question.title.clone()}
+                        </h1>
+                        {
+                            if !this_player_is_watcher {
+                                let cloned_on_choose_answer = props.on_choose_answer.clone();
+                                let onclick_the_onion = Callback::from(move |_| cloned_on_choose_answer.emit(Answer::TheOnion));
+                                let cloned_on_choose_answer = props.on_choose_answer.clone();
+                                let onclick_not_the_onion = Callback::from(move |_| cloned_on_choose_answer.emit(Answer::NotTheOnion));
+                                html! {
+                                    <section class={classes!("question-buttons-container")}>
+                                        <button type="button" class={classes!("button", "question-button--the-onion", this_player_answer_is_the_onion)} onclick={onclick_the_onion}>
+                                            <LocaleComponent keyid="game-view-question-playing-state-selection-button-the-onion" />
+                                        </button>
+                                        <button type="button" class={classes!("button", "question-button--not-the-onion", this_player_answer_is_not_the_onion)} onclick={onclick_not_the_onion}>
+                                            <LocaleComponent keyid="game-view-question-playing-state-selection-button-not-the-onion" />
+                                        </button>
+                                    </section>
+                                }
+                            } else {
+                                html! {}
+                            }
                         }
-                        Answer::NotTheOnion => {
-                            "game-view-solution-playing-state-sub-headline-not-the-onion"
-                        }
-                    };
+                    </>
+                }
+            }
+            PlayingState::Solution {
+                current_question,
+                answers,
+                ..
+            } => {
+                let this_player_answer = answers.get(&game.this_player_id);
+                let this_player_answer_correct = this_player_answer
+                    .map(|player_answer| *player_answer == current_question.answer);
 
-                    html! {
-                        <>
-                            <p class={classes!("question-result", question_result_css_class)}>
-                                <LocaleComponent keyid={sub_headline_locale} />
-                                {
-                                    if this_player_is_watcher {
-                                        html! {}
-                                    } else {
-                                        let this_player_answer_locale = match this_player_answer_correct {
-                                            Some(true) => "game-view-solution-playing-state-sub-headline-player-answer-correct",
-                                            Some(false) => "game-view-solution-playing-state-sub-headline-player-answer-wrong",
-                                            None => "game-view-solution-playing-state-sub-headline-player-answer-missing",
-                                        };
-                                        html! {
-                                            <>
-                                                <br/>
-                                                <LocaleComponent keyid={this_player_answer_locale} />
-                                            </>
-                                        }
+                let question_result_css_class = if this_player_is_watcher {
+                    match current_question.answer {
+                        Answer::TheOnion => "question-result--correct",
+                        Answer::NotTheOnion => "question-result--wrong",
+                    }
+                } else {
+                    match this_player_answer_correct {
+                        Some(true) => "question-result--correct",
+                        Some(false) => "question-result--wrong",
+                        None => "question-result--missing",
+                    }
+                };
+
+                let sub_headline_locale = match current_question.answer {
+                    Answer::TheOnion => "game-view-solution-playing-state-sub-headline-the-onion",
+                    Answer::NotTheOnion => {
+                        "game-view-solution-playing-state-sub-headline-not-the-onion"
+                    }
+                };
+
+                html! {
+                    <>
+                        <p class={classes!("question-result", question_result_css_class)}>
+                            <LocaleComponent keyid={sub_headline_locale} />
+                            {
+                                if this_player_is_watcher {
+                                    html! {}
+                                } else {
+                                    let this_player_answer_locale = match this_player_answer_correct {
+                                        Some(true) => "game-view-solution-playing-state-sub-headline-player-answer-correct",
+                                        Some(false) => "game-view-solution-playing-state-sub-headline-player-answer-wrong",
+                                        None => "game-view-solution-playing-state-sub-headline-player-answer-missing",
+                                    };
+                                    html! {
+                                        <>
+                                            <br/>
+                                            <LocaleComponent keyid={this_player_answer_locale} />
+                                        </>
                                     }
                                 }
-                            </p>
-                            <h1 class={classes!("question-headline-at-aftermath-state", "question-headline")}>
-                                {current_question.question.title.clone()}
-                            </h1>
-                            <section class={classes!("question-subline")}>
-                                <a class={classes!("question-subline-link-to-post")} href={current_question.url.clone()} target="_blank">
-                                    <LocaleComponent keyid="game-view-solution-playing-state-link-to-newspaper-posting-anchor-text"/>
-                                </a>
-                            </section>
-                            <img class={classes!("question-picture")} src={current_question.preview_image_url.clone().unwrap_or_default()}/>
-                        </>
-                    }
+                            }
+                        </p>
+                        <h1 class={classes!("question-headline")}>
+                            {current_question.question.title.clone()}
+                        </h1>
+                        <section>
+                            <a class={classes!("link-to-original-news-article")} href={current_question.url.clone()} target="_blank">
+                                <LocaleComponent keyid="game-view-solution-playing-state-link-to-newspaper-posting-anchor-text"/>
+                            </a>
+                        </section>
+                        <img class={classes!("question-picture")} src={current_question.preview_image_url.clone().unwrap_or_default()}/>
+                    </>
                 }
             }
-        } else {
-            unreachable!()
         }
+    } else {
+        unreachable!()
     }
-}
-
-impl Component for GameComponent {
-    type Message = GameComponentMsg;
-    type Properties = GameComponentProps;
-
-    fn create(ctx: &Context<Self>) -> Self {
-        let (game, context_listener) = ctx
-            .link()
-            .context(ctx.link().callback(GameComponentMsg::MessageContextUpdated))
-            .expect("Missing Game context.");
-
-        let update_by_interval_callback =
-            ctx.link().callback(|_| GameComponentMsg::UpdateByInterval);
-
-        Self {
-            game,
-            _context_listener: context_listener,
-
-            _update_timer: gloo_timers::callback::Interval::new(500, move || {
-                update_by_interval_callback.emit(());
-            }),
-        }
-    }
-
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            GameComponentMsg::MessageContextUpdated(game) => {
-                self.game = game;
-                true
-            }
-            GameComponentMsg::UpdateByInterval => true,
-            GameComponentMsg::ExitGame => {
-                ctx.props().on_exit_game_wish.emit(());
-                false
-            }
-            GameComponentMsg::ChooseAnswer(answer) => {
-                ctx.props().on_choose_answer.emit(answer);
-                false
-            }
-            GameComponentMsg::RequestSkip => {
-                ctx.props().on_request_skip.emit(());
-                false
-            }
-        }
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let invite_code = self.game.invite_code.to_string();
-
-        let on_exit_game_wished = ctx.link().callback(|_| GameComponentMsg::ExitGame);
-
-        html! {
-            <main class={classes!("play-main")}>
-                <JoinGameComponent {invite_code} />
-                <section class={classes!("main-wrapper")}>
-                    <PlayerNameTypeExitHeadlineComponent {on_exit_game_wished} />
-                    { self.view_remaining_time(ctx) }
-                    { self.view_question_or_solution(ctx) }
-                    <PlayerListComponent />
-                </section>
-            </main>
-        }
-    }
-}
-
-pub enum GameComponentMsg {
-    MessageContextUpdated(Rc<Game>),
-    UpdateByInterval,
-
-    ExitGame,
-    ChooseAnswer(Answer),
-    RequestSkip,
 }
 
 #[derive(yew::Properties, PartialEq)]
