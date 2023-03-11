@@ -14,13 +14,18 @@ fn main() {
 fn run_trunk() {
     let client_public_path_prefix =
         option_env!("ONION2_BUILD_CLIENT_PUBLIC_PATH_PREFIX").unwrap_or("/");
+    let mut args = vec![
+        "build",
+        "--public-url",
+        client_public_path_prefix,
+        "--features",
+        "hydration",
+    ];
+    if Ok("release".to_owned()) == std::env::var("PROFILE") {
+        args.push("--release");
+    }
     let output = Command::new("trunk")
-        .args([
-            "build",
-            "--release",
-            "--public-url",
-            client_public_path_prefix,
-        ])
+        .args(&args)
         .current_dir(std::fs::canonicalize("../client").unwrap())
         .status()
         .unwrap();

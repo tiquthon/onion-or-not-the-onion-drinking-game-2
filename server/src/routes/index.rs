@@ -19,8 +19,13 @@ static INDEX_HTML_AFTER: Lazy<String> =
     Lazy::new(|| INDEX_HTML.split_once("<body>").unwrap().1.to_owned());
 
 static TRUNK_DIST_DIRECTORY: Lazy<PathBuf> = Lazy::new(|| {
-    std::fs::canonicalize(option_env!("ONION2_RUN_CLIENT_DIST_DIR").unwrap_or("../client/dist"))
-        .unwrap()
+    let trunk_dist_directory =
+        option_env!("ONION2_RUN_CLIENT_DIST_DIR").unwrap_or("../client/dist");
+    tracing::info!("Initializing TRUNK_DIST_DIRECTORY with \"{trunk_dist_directory}\"...");
+    match std::fs::canonicalize(trunk_dist_directory) {
+        Ok(canonical_trunk_dist_directory) => canonical_trunk_dist_directory,
+        Err(error) => panic!("Failed initializing TRUNK_DIST_DIRECTORY ({error})"),
+    }
 });
 
 #[tracing::instrument(name = "Index")]

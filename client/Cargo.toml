@@ -15,7 +15,6 @@ path = "src/lib.rs"
 [[bin]]
 name = "onion-or-not-the-onion-drinking-game-2-client"
 path = "src/main.rs"
-required-features = ["hydration"]
 
 [dependencies]
 # ui framework
@@ -64,6 +63,7 @@ tokio = { version = "1", default-features = false, features = ["sync"] }
 urlencoding = "2"
 
 [features]
-default = ["hydration"]
+default = []
+render = ["yew/csr"]
 hydration = ["yew/hydration"]
 ssr = ["yew/ssr"]
