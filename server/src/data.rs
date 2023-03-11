@@ -1,5 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
+use once_cell::sync::Lazy;
+
 use crate::model::{QuestionId, RedditSubmissionData};
 
 const RAW_NOT_THE_ONION_BEST: &str = include_str!("../assets/nottheonion.best.max2000.ron");
@@ -7,59 +9,38 @@ const RAW_NOT_THE_ONION_TOP: &str = include_str!("../assets/nottheonion.top.max2
 const RAW_THE_ONION_BEST: &str = include_str!("../assets/theonion.best.max2000.ron");
 const RAW_THE_ONION_TOP: &str = include_str!("../assets/theonion.top.max2000.ron");
 
-lazy_static::lazy_static! {
-    static ref NOT_THE_ONION_BEST: HashMap<QuestionId, RedditSubmissionData> = {
-        parse(RAW_NOT_THE_ONION_BEST)
-    };
+static NOT_THE_ONION_BEST: Lazy<HashMap<QuestionId, RedditSubmissionData>> =
+    Lazy::new(|| parse(RAW_NOT_THE_ONION_BEST));
+static NOT_THE_ONION_TOP: Lazy<HashMap<QuestionId, RedditSubmissionData>> =
+    Lazy::new(|| parse(RAW_NOT_THE_ONION_TOP));
+static THE_ONION_BEST: Lazy<HashMap<QuestionId, RedditSubmissionData>> =
+    Lazy::new(|| parse(RAW_THE_ONION_BEST));
+static THE_ONION_TOP: Lazy<HashMap<QuestionId, RedditSubmissionData>> =
+    Lazy::new(|| parse(RAW_THE_ONION_TOP));
 
-    static ref NOT_THE_ONION_BEST__KEYS: Vec<QuestionId> = {
-        NOT_THE_ONION_BEST.keys().copied().collect()
-    };
+static ALL__KEYS: Lazy<Vec<QuestionId>> = Lazy::new(|| {
+    NOT_THE_ONION_BEST
+        .keys()
+        .copied()
+        .chain(NOT_THE_ONION_TOP.keys().copied())
+        .chain(THE_ONION_BEST.keys().copied())
+        .chain(THE_ONION_BEST.keys().copied())
+        .collect()
+});
 
-    static ref NOT_THE_ONION_TOP: HashMap<QuestionId, RedditSubmissionData> = {
-        parse(RAW_NOT_THE_ONION_TOP)
-    };
-
-    static ref NOT_THE_ONION_TOP__KEYS: Vec<QuestionId> = {
-        NOT_THE_ONION_TOP.keys().copied().collect()
-    };
-
-    static ref THE_ONION_BEST: HashMap<QuestionId, RedditSubmissionData> = {
-        parse(RAW_THE_ONION_BEST)
-    };
-
-    static ref THE_ONION_BEST__KEYS: Vec<QuestionId> = {
-        THE_ONION_BEST.keys().copied().collect()
-    };
-
-    static ref THE_ONION_TOP: HashMap<QuestionId, RedditSubmissionData> = {
-        parse(RAW_THE_ONION_TOP)
-    };
-
-    static ref THE_ONION_TOP__KEYS: Vec<QuestionId> = {
-        THE_ONION_TOP.keys().copied().collect()
-    };
-
-    static ref ALL__KEYS: Vec<QuestionId> = {
-        NOT_THE_ONION_BEST.keys().copied()
-            .chain(NOT_THE_ONION_TOP.keys().copied())
-            .chain(THE_ONION_BEST.keys().copied())
-            .chain(THE_ONION_BEST.keys().copied())
-            .collect()
-    };
-
-    static ref DISTRIBUTION: HashMap<u64, usize> = {
-        crate::data::ALL__KEYS.iter()
-                .map(get)
-                .map(|reddit_submission_data| reddit_submission_data.unwrap().score)
-                .fold(HashMap::new(), |mut output, score| {
-                    output.entry(score)
-                        .and_modify(|count| *count += 1)
-                        .or_insert(1);
-                    output
-                })
-    };
-}
+static DISTRIBUTION: Lazy<HashMap<u64, usize>> = Lazy::new(|| {
+    ALL__KEYS
+        .iter()
+        .map(get)
+        .map(|reddit_submission_data| reddit_submission_data.unwrap().score)
+        .fold(HashMap::new(), |mut output, score| {
+            output
+                .entry(score)
+                .and_modify(|count| *count += 1)
+                .or_insert(1);
+            output
+        })
+});
 
 fn parse(data: &str) -> HashMap<QuestionId, RedditSubmissionData> {
     ron::de::from_str::<Vec<RedditSubmissionData>>(data)

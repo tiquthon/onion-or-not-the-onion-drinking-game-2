@@ -15,10 +15,11 @@ path = "src/lib.rs"
 [[bin]]
 name = "onion-or-not-the-onion-drinking-game-2-client"
 path = "src/main.rs"
+required-features = ["hydration"]
 
 [dependencies]
 # ui framework
-yew = { version = "0.20", features = ["csr"] }
+yew = { version = "0.20" }
 
 # own libraries
 onion-or-not-the-onion-drinking-game-2-shared-library = { path = "../shared-library", features = ["wasm"] }
@@ -61,3 +62,8 @@ futures-util = "0.3"
 itertools = "0.10"
 tokio = { version = "1", default-features = false, features = ["sync"] }
 urlencoding = "2"
+
+[features]
+default = ["hydration"]
+hydration = ["yew/hydration"]
+ssr = ["yew/ssr"]

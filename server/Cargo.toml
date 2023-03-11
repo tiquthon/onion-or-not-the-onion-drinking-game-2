@@ -8,6 +8,7 @@ readme = "README.md"
 repository = "https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2"
 keywords = ["party", "game", "web", "onion", "drinking", "server"]
 publish = false
+build = "build.rs"
 
 [lib]
 path = "src/lib.rs"
@@ -19,10 +20,12 @@ path = "src/main.rs"
 [dependencies]
 # web framework
 actix-web = "4"
+actix-files = "0.6"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync"] }
 actix-ws = "0.2"
 
 # own libraries
+onion-or-not-the-onion-drinking-game-2-client = { path = "../client", default-features = false, features = ["ssr"] }
 onion-or-not-the-onion-drinking-game-2-shared-library = { path = "../shared-library" }
 
 # logging in an async context
@@ -33,6 +36,7 @@ tracing-actix-web = "0.7"
 
 # working with futures
 futures-util = "0.3"
+futures = "0.3"
 
 # configuration
 config = { version = "0.13", default-features = false, features = ["yaml"] }
@@ -49,7 +53,7 @@ serde = { version = "1", features = ["derive"] }
 
 # various
 chrono = "0.4"
-lazy_static = "1"
+once_cell = "1"
 rand = "0.8"
 ron = "0.8"
 uuid = { version = "1", features = ["v4", "serde"] }

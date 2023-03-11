@@ -1,3 +1,5 @@
+pub extern crate yew;
+
 use fluent_templates::LanguageIdentifier;
 
 use unic_langid::langid;
