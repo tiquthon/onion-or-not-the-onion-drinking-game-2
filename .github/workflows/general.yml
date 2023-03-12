@@ -38,6 +38,9 @@ jobs:
         with:
           version: 'latest'
       - uses: Swatinem/rust-cache@v2
+      - name: Run build client for server tests
+        run: trunk build
+        working-directory: client
       - name: Run tests
         run: cargo test
         working-directory: server
@@ -134,6 +137,9 @@ jobs:
         with:
           version: 'latest'
       - uses: Swatinem/rust-cache@v2
+      - name: Run build client for server linting
+        run: trunk build
+        working-directory: client
       - name: Linting
         run: cargo clippy --all-targets -- -D warnings
         working-directory: server

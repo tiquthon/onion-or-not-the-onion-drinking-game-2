@@ -8,7 +8,6 @@ readme = "README.md"
 repository = "https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2"
 keywords = ["party", "game", "web", "onion", "drinking", "server"]
 publish = false
-build = "build.rs"
 
 [lib]
 path = "src/lib.rs"

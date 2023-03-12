@@ -5,10 +5,18 @@ FROM chef as planner
 
 COPY ./shared-library/. /app/shared-library/.
 COPY ./client/. /app/client/.
-COPY ./server/. /app/server/.
+
+
+FROM planner as planner-client
+
+WORKDIR /app/client
+RUN cargo chef prepare --recipe-path recipe.json
+
+
+FROM planner as planner-server
 
 WORKDIR /app/server
-
+COPY ./server/. /app/server/.
 RUN cargo chef prepare --recipe-path recipe.json
 
 
@@ -17,22 +25,25 @@ FROM chef as builder
 RUN rustup target add wasm32-unknown-unknown
 
 # Need to manually install wasm-bindgen-cli, because on arm64 the auto-download of trunk is x86_64
-RUN cargo install --locked wasm-bindgen-cli@0.2.83
-RUN cargo install --locked trunk@0.16.0
-
-COPY --from=planner /app/server/recipe.json /app/server/recipe.json
-
-WORKDIR /app/server
+RUN cargo install --locked wasm-bindgen-cli@~0.2
+RUN cargo install --locked trunk@~0.16
 
 COPY ./shared-library/. /app/shared-library/.
-COPY ./client/. /app/client/.
 
+WORKDIR /app/client
+COPY --from=planner-client /app/client/recipe.json /app/client/recipe.json
+
+RUN cargo chef cook --release --target wasm32-unknown-unknown --recipe-path recipe.json
+
+COPY ./client/. /app/client/.
+ARG BUILD_URL_PATH_PREFIX=/
+RUN trunk build --release --public-url "${BUILD_URL_PATH_PREFIX}"
+
+WORKDIR /app/server
+COPY --from=planner-server /app/server/recipe.json /app/server/recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY ./server/. /app/server/.
-
-ARG BUILD_URL_PATH_PREFIX=/
-ENV ONION2_BUILD_CLIENT_PUBLIC_PATH_PREFIX=$BUILD_URL_PATH_PREFIX
 
 ARG RUN_CLIENT_DIST_DIR=/app/dist
 ENV ONION2_RUN_CLIENT_DIST_DIR=$RUN_CLIENT_DIST_DIR
