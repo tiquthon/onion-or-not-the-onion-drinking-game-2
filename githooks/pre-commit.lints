@@ -38,9 +38,14 @@ function check_directory {
 
 check_directory "shared-library"
 
-check_directory "server"
-
 check_directory "client"
+
+# Need to build and bundle client for server tests
+cd client
+trunk build
+cd ..
+
+check_directory "server"
 
 check_directory "reddit-gatherer"
 
