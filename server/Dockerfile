@@ -1,4 +1,4 @@
-FROM lukemathwalker/cargo-chef:latest-rust-1.66 AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.68 AS chef
 
 
 FROM chef as planner
