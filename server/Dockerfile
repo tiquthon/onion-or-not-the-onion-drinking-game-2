@@ -1,4 +1,4 @@
-FROM lukemathwalker/cargo-chef:latest-rust-1.68 AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.67 AS chef
 
 
 FROM chef as planner
@@ -32,12 +32,11 @@ COPY ./shared-library/. /app/shared-library/.
 
 WORKDIR /app/client
 COPY --from=planner-client /app/client/recipe.json /app/client/recipe.json
-
 RUN cargo chef cook --release --target wasm32-unknown-unknown --recipe-path recipe.json
 
 COPY ./client/. /app/client/.
 ARG BUILD_URL_PATH_PREFIX=/
-RUN trunk build --release --public-url "${BUILD_URL_PATH_PREFIX}"
+RUN trunk build --release --public-url "${BUILD_URL_PATH_PREFIX}" --features hydration
 
 WORKDIR /app/server
 COPY --from=planner-server /app/server/recipe.json /app/server/recipe.json
