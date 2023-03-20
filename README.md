@@ -26,7 +26,8 @@ Before setting up and using "Onion Or Not The Onion Drinking Game 2" you need:
 
 In order to set up and use "Onion Or Not The Onion Drinking Game 2":
 1. **Git Clone** or **Download** the repository
-2. **Execute** `docker compose up -d` within the root of this project
+2. **Execute** `docker compose up -d` within the root of this project\
+   If this app is behind another reverse-proxy and has a path-prefix, the docker build arg `BUILD_URL_PATH_PREFIX` has to be changed from `/` like: `docker compose up --build-arg BUILD_URL_PATH_PREFIX=/onion2/ -d`
 3. Access game at [http://localhost:6362/](http://localhost:6362/).
 
 ## Project Documentation
