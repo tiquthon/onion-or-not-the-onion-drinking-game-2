@@ -24,7 +24,7 @@ https://user-images.githubusercontent.com/61014652/221667398-55690c2d-9979-4986-
 Before setting up and using "Onion Or Not The Onion Drinking Game 2" you need:
 - [Docker](https://www.docker.com/) with [Docker Compose](https://docs.docker.com/compose/)
 
-In order to set up "Onion Or Not The Onion Drinking Game 2":
+In order to set up and use "Onion Or Not The Onion Drinking Game 2":
 1. **Git Clone** or **Download** the repository
 2. **Execute** `docker compose up -d` within the root of this project
 3. Access game at [http://localhost:6362/](http://localhost:6362/).
@@ -46,6 +46,22 @@ Get started in the file [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **Attention:** Whenever you contribute to this project, you agree to provide your work under the same license as this project is provided under.
 See the `LICENSE` file.
+
+### Working with the project
+
+Working on the "\[...\] Reddit Gatherer" does not need any special configuration.
+But working on the "\[...\] Client" and the "\[...\] Server" may need some more steps.
+
+*Usually the "\[...\] Client" gets built before the "\[...\] Server" and gets baked into the "\[...\] Server".*
+*So any code changes made to the "\[...\] Client" may only trigger no recompilation for the "\[...\] Server" and thus no changes get shown on checking in the browser.*
+*For this a **development reverse proxy** is available, which reroutes requests to each software part during development.*
+
+In order to use the setup for "\[...\] Client" and "\[...\] Server":
+1. **Start** the development reverse proxy through docker: `docker compose -f docker-compose.dev.yml up -d`
+2. **Start** the "\[...\] Client" as mentioned within [client/README.md](client/README.md) under the **for development purposes** part.
+3. **Start** the "\[...\] Server" as described in [server/README.md](server/README.md)
+
+The "\[...\] Server" still will bake the "\[...\] Client" into it, but the baked state won't be accessible, because the development reverse proxy will reroute any request to that URL to the served "\[...\] Client". 
 
 ---
 
