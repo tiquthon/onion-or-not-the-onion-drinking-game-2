@@ -26,7 +26,7 @@ pub fn footer_component(props: &FooterProps) -> Html {
 
     html! {
         <footer class={classes!("footer")}>
-            <nav class={classes!("locales-selection", "footer__locales-selection")}>
+            <nav class={classes!("footer__locales-selection")}>
                 {locale_change_buttons}
             </nav>
             <span class={classes!("footer__copyright")}>{"\u{00a9} 2023 Thimo \"Tiquthon\" Neumann"}</span>
