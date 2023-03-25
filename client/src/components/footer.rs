@@ -1,5 +1,7 @@
 use fluent_templates::{LanguageIdentifier, Loader};
 
+use itertools::Itertools;
+
 use yew::{classes, function_component, html, use_context, Callback, Html};
 
 use crate::components::locale::{locale, LOCALES};
@@ -10,6 +12,7 @@ pub fn footer_component(props: &FooterProps) -> Html {
 
     let locale_change_buttons: Vec<Html> = LOCALES
         .locales()
+        .sorted_by_key(|language_identifier| locale("language-name", language_identifier).unwrap_or_default())
         .map(|language_identifier| {
             let on_change_language_identifier = props.on_change_language_identifier.clone();
             let onclick = Callback::from(move |_| {
