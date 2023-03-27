@@ -263,11 +263,21 @@ body {
 }
 
 .player-list-element__players-answer {
+  aspect-ratio: 1;
   height: 1em;
 }
 
 .player-list-element__player-has-answered {
+  aspect-ratio: 1;
   height: 1em;
+}
+
+.player-list-element__player-has-answered--incorrect {
+  color: red;
+}
+
+.player-list-element__player-has-answered--correct {
+  color: green;
 }
 
 .player-list-element__player-name--is-current-user {
@@ -275,6 +285,7 @@ body {
 }
 
 .player-list-element__player-wants-to-skip {
+  aspect-ratio: 1;
   height: 1em;
 }
 

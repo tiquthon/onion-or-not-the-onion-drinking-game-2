@@ -9,6 +9,7 @@ use onion_or_not_the_onion_drinking_game_2_shared_library::model::game::{
 use yew::{classes, function_component, html, use_context, Classes, Html};
 
 use crate::components::locale::{locale_args, LocaleComponent};
+use crate::components::svg::{CORRECT_SVG, FAST_FORWARD_SVG, INCORRECT_SVG, PENCIL_SVG};
 
 #[function_component(PlayerListComponent)]
 pub fn player_list_component(props: &PlayerListProps) -> Html {
@@ -92,7 +93,7 @@ fn view_player_state(game: &Rc<Game>, player: &Player) -> Html {
             let user_has_answered: bool = answers.contains(&player.id);
             if user_has_answered {
                 html! {
-                    <img class={classes!("player-list-element__player-has-answered")} src="pencil_icon.png"/>
+                    <span class={classes!("player-list-element__player-has-answered")}>{PENCIL_SVG}</span>
                 }
             } else {
                 Html::default()
@@ -111,7 +112,7 @@ fn view_player_state(game: &Rc<Game>, player: &Player) -> Html {
             let user_wants_to_skip: bool = skip_request.contains(&player.id);
             let user_wants_to_skip_html = if user_wants_to_skip {
                 html! {
-                    <img class={classes!("player-list-element__player-wants-to-skip")} src="fastforward.png"/>
+                    <span class={classes!("player-list-element__player-wants-to-skip")}>{FAST_FORWARD_SVG}</span>
                 }
             } else {
                 Html::default()
@@ -120,7 +121,7 @@ fn view_player_state(game: &Rc<Game>, player: &Player) -> Html {
             let user_has_answered: bool = answers.contains_key(&player.id);
             let user_has_answered_html = if user_has_answered {
                 html! {
-                    <img class={classes!("player-list-element__player-has-answered")} src="pencil_icon.png"/>
+                    <span class={classes!("player-list-element__player-has-answered")}>{PENCIL_SVG}</span>
                 }
             } else {
                 Html::default()
@@ -132,12 +133,12 @@ fn view_player_state(game: &Rc<Game>, player: &Player) -> Html {
             let user_has_correct_answer_html = match user_has_correct_answer {
                 Some(true) => {
                     html! {
-                        <img class={classes!("player-list-element__players-answer")} src="correct.png"/>
+                        <span class={classes!("player-list-element__players-answer", "player-list-element__player-has-answered--correct")}>{CORRECT_SVG}</span>
                     }
                 }
                 Some(false) => {
                     html! {
-                        <img class={classes!("player-list-element__players-answer")} src="incorrect.png"/>
+                        <span class={classes!("player-list-element__players-answer", "player-list-element__player-has-answered--incorrect")}>{INCORRECT_SVG}</span>
                     }
                 }
                 None => Html::default(),
