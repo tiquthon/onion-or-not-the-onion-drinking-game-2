@@ -49,21 +49,29 @@ ENV ONION2_RUN_CLIENT_DIST_DIR=$RUN_CLIENT_DIST_DIR
 
 RUN cargo build --release
 
+
 FROM debian:stable-slim AS wasm-optimizer
+
+RUN apt update && apt install -y build-essential curl cmake
 
 WORKDIR /app
 
-RUN apt update && apt install -y curl
+RUN curl --output binaryen.tar.gz --location $(curl --silent https://api.github.com/repos/WebAssembly/binaryen/releases/latest | grep --perl-regexp 'https://api.github.com/repos/WebAssembly/binaryen/tarball/.*(?=\")' --only-matching)
+RUN tar --extract --verbose --gzip --file=binaryen.tar.gz
+RUN mv WebAssembly-binaryen-* WebAssembly-binaryen
 
-RUN curl --output binaryen-x86_64-linux.tar.gz --location $(curl --silent https://api.github.com/repos/WebAssembly/binaryen/releases/latest | grep --perl-regexp 'https://github.com/WebAssembly/binaryen/releases/download/.*/binaryen-.*-x86_64-linux.tar.gz(?=\")' --only-matching)
+WORKDIR /app/WebAssembly-binaryen
 
-RUN tar --extract --verbose --gzip --file=binaryen-x86_64-linux.tar.gz
+RUN cmake -DBUILD_TESTS=OFF . && make
+
+WORKDIR /app
 
 COPY --from=builder /app/client/dist/. /app/client/dist/.
 
-RUN $(find . | grep wasm-opt) "$(find client/dist/ | grep "onion-or-not-the-onion-drinking-game-2-client-.*_bg.wasm$")" --output optimized.wasm -Oz
+RUN $(find . | grep "wasm-opt$") "$(find client/dist/ | grep "onion-or-not-the-onion-drinking-game-2-client-.*_bg.wasm$")" --output optimized.wasm -Oz
 
 RUN mv optimized.wasm "$(find client/dist/ | grep "onion-or-not-the-onion-drinking-game-2-client-.*_bg.wasm$")"
+
 
 FROM debian:stable-slim AS runtime
 
