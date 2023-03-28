@@ -1,6 +1,7 @@
 use std::net::TcpListener;
 
 use actix_web::dev::Server;
+use actix_web::middleware::Compress;
 use actix_web::{web, App, HttpServer};
 
 use tracing_actix_web::TracingLogger;
@@ -39,6 +40,7 @@ fn run(tcp_listener: TcpListener) -> anyhow::Result<Server> {
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
+            .wrap(Compress::default())
             .route("/", web::get().to(index))
             .route("/index.html", web::get().to(index))
             .route("/api/create", web::get().to(create_lobby))
