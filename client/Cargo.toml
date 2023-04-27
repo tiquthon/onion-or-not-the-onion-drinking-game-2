@@ -8,6 +8,7 @@ readme = "README.md"
 repository = "https://github.com/tiquthon/onion-or-not-the-onion-drinking-game-2"
 keywords = ["party", "game", "web", "onion", "drinking", "client"]
 publish = false
+build = "build.rs"
 
 [lib]
 path = "src/lib.rs"
@@ -61,12 +62,20 @@ futures-util = "0.3"
 itertools = "0.10"
 tokio = { version = "1", default-features = false, features = ["sync"] }
 urlencoding = "2"
+once_cell = "1"
+tap = "1"
+
+[build-dependencies]
+# ui version
+last-git-commit = { version = "0.2", optional = true }
+chrono = { version = "0.4" }
 
 [features]
-default = []
+default = ["version_in_ui"]
 render = ["yew/csr"]
 hydration = ["yew/hydration"]
 ssr = ["yew/ssr"]
+version_in_ui = ["last-git-commit"]
 
 [profile.release]
 # less code to include into binary

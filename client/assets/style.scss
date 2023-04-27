@@ -115,7 +115,11 @@ body {
 }
 
 .footer__copyright {
-  color: $footer-fg-color;
+  text-align: center;
+}
+
+.footer__build-stamp {
+  font-size: 0.7em;
   text-align: center;
 }
 

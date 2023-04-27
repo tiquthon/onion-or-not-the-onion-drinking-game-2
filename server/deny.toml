@@ -9,4 +9,6 @@ notice = "warn"
 ignore = [
     # Ignoring RUSTSEC-2020-0071 from chrono, because from my perspective it's not that critical (yet)
     "RUSTSEC-2020-0071",
+    # Ignoring RUSTSEC-2023-0003 from last-git-commit, because this crate won't be used to verify remote ssh host keys
+    "RUSTSEC-2023-0003",
 ]

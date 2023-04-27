@@ -24,7 +24,7 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync"] }
 actix-ws = "0.2"
 
 # own libraries
-onion-or-not-the-onion-drinking-game-2-client = { path = "../client", default-features = false, features = ["ssr"] }
+onion-or-not-the-onion-drinking-game-2-client = { path = "../client", features = ["ssr"] }
 onion-or-not-the-onion-drinking-game-2-shared-library = { path = "../shared-library" }
 
 # logging in an async context

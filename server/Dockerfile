@@ -34,6 +34,9 @@ WORKDIR /app/client
 COPY --from=planner-client /app/client/recipe.json /app/client/recipe.json
 RUN cargo chef cook --release --target wasm32-unknown-unknown --recipe-path recipe.json
 
+# Copying git to let client and server retrieve the latest commit information
+COPY ./.git/. /app/.git/.
+
 COPY ./client/. /app/client/.
 ARG BUILD_URL_PATH_PREFIX=/
 RUN trunk build --release --public-url "${BUILD_URL_PATH_PREFIX}" --features hydration
