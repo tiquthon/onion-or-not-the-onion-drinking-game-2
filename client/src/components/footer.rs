@@ -1,10 +1,10 @@
-use chrono::{DateTime, Local, NaiveDateTime, Utc};
+use std::sync::LazyLock;
+
+use chrono::{DateTime, Local, Utc};
 
 use fluent_templates::{LanguageIdentifier, Loader};
 
 use itertools::Itertools;
-
-use tap::{TapFallible, TapOptional};
 
 use yew::{classes, function_component, html, use_context, Callback, Html};
 
@@ -31,6 +31,11 @@ pub fn footer_component(props: &FooterProps) -> Html {
         })
         .collect();
 
+    let timestamp = BUILD_TIMESTAMP
+        .map(|datetime| datetime.with_timezone(&Local))
+        .map(|datetime| datetime.format("%Y-%m-%d %H:%M:%S %Z").to_string())
+        .unwrap_or_else(|| "NO BUILD TIME".to_string());
+
     let build_information = OPTIONAL_BUILD_INFORMATION
         .as_ref()
         .map(|build_information| {
@@ -38,12 +43,13 @@ pub fn footer_component(props: &FooterProps) -> Html {
                 git_commit_id_short,
                 git_commit_timestamp,
                 git_commit_branch,
-                timestamp,
+                git_dirty,
                 ..
             } = build_information;
             format!(
-                "built on {} from commit {git_commit_branch}@{git_commit_id_short} from {}",
-                timestamp.with_timezone(&Local).format("%F %T"),
+                "built on {} from commit {git_commit_branch}@{git_commit_id_short}{} from {}",
+                timestamp,
+                if *git_dirty { "*" } else { "" },
                 git_commit_timestamp.with_timezone(&Local).format("%F %T")
             )
         });
@@ -69,38 +75,41 @@ pub struct FooterProps {
     pub on_change_language_identifier: Callback<LanguageIdentifier>,
 }
 
+static BUILD_TIMESTAMP: LazyLock<Option<DateTime<Utc>>> = LazyLock::new(|| {
+    Some(
+        DateTime::parse_from_rfc3339(option_env!("BUILD_TIMESTAMP")?)
+            .inspect_err(|error| log::warn!("Could not parse BUILD_TIMESTAMP ({error})"))
+            .ok()?
+            .with_timezone(&Utc),
+    )
+});
+
+static OPTIONAL_BUILD_INFORMATION: LazyLock<Option<BuildInformation>> = LazyLock::new(|| {
+    let git_commit_timestamp_seconds = option_env!("BUILD_GIT_COMMIT_TIMESTAMP")?
+        .parse::<i64>()
+        .inspect_err(|error| {
+            log::warn!("Could not parse BUILD_GIT_COMMIT_TIMESTAMP as number ({error}).")
+        })
+        .ok()?;
+    let git_commit_timestamp = DateTime::from_timestamp(git_commit_timestamp_seconds, 0)
+        .or_else(|| {
+            log::warn!("Could not create DateTime from BUILD_GIT_COMMIT_TIMESTAMP {git_commit_timestamp_seconds}");
+            None
+        })?;
+
+    Some(BuildInformation {
+        git_commit_id_short: option_env!("BUILD_GIT_COMMIT_ID_SHORT")?,
+        _git_commit_id_long: option_env!("BUILD_GIT_COMMIT_ID_LONG")?,
+        git_commit_timestamp,
+        git_commit_branch: option_env!("BUILD_GIT_COMMIT_BRANCH")?,
+        git_dirty: option_env!("BUILD_GIT_DIRTY")? == "true",
+    })
+});
+
 struct BuildInformation {
     git_commit_id_short: &'static str,
     _git_commit_id_long: &'static str,
     git_commit_timestamp: DateTime<Utc>,
     git_commit_branch: &'static str,
-    timestamp: DateTime<Utc>,
+    git_dirty: bool,
 }
-
-static OPTIONAL_BUILD_INFORMATION: once_cell::sync::Lazy<Option<BuildInformation>> =
-    once_cell::sync::Lazy::new(|| {
-        let git_commit_timestamp_seconds = option_env!("BUILD_GIT_COMMIT_TIMESTAMP")?
-            .parse::<i64>()
-            .tap_err(|error| {
-                log::warn!("Could not parse BUILD_GIT_COMMIT_TIMESTAMP as number ({error}).")
-            })
-            .ok()?;
-        let git_commit_timestamp = NaiveDateTime::from_timestamp_opt(git_commit_timestamp_seconds, 0)
-        .tap_none(|| log::warn!("Could not create DateTime from BUILD_GIT_COMMIT_TIMESTAMP {git_commit_timestamp_seconds}"))?
-        .and_local_timezone(Utc)
-        .single()
-        .tap_none(|| log::warn!("Could not convert BUILD_GIT_COMMIT_TIMESTAMP NaiveDateTime to DateTime<Utc>"))?;
-
-        let timestamp = DateTime::parse_from_rfc3339(option_env!("BUILD_TIMESTAMP")?)
-            .tap_err(|error| log::warn!("Could not parse BUILD_TIMESTAMP ({error})"))
-            .ok()?
-            .with_timezone(&Utc);
-
-        Some(BuildInformation {
-            git_commit_id_short: option_env!("BUILD_GIT_COMMIT_ID_SHORT")?,
-            _git_commit_id_long: option_env!("BUILD_GIT_COMMIT_ID_LONG")?,
-            git_commit_timestamp,
-            git_commit_branch: option_env!("BUILD_GIT_COMMIT_BRANCH")?,
-            timestamp,
-        })
-    });
