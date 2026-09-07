@@ -12,15 +12,11 @@ pub struct ApplicationConfiguration {
 }
 
 /// The possible runtime environment for the application.
+#[derive(Default)]
 pub enum Environment {
+    #[default]
     Local,
     Production,
-}
-
-impl Default for Environment {
-    fn default() -> Self {
-        Self::Local
-    }
 }
 
 impl Display for Environment {

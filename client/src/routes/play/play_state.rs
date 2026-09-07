@@ -1,5 +1,5 @@
 use std::fmt::{Debug, Formatter};
-use std::sync::Arc;
+use std::rc::Rc;
 use std::task::Poll;
 use std::time::Duration;
 
@@ -30,12 +30,12 @@ pub enum PlayState {
     },
     None,
     Connecting {
-        web_socket_stream: Arc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
-        web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
+        web_socket_stream: Rc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
+        web_socket_sink: Rc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
     },
     Playing {
-        web_socket_stream: Arc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
-        web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
+        web_socket_stream: Rc<tokio::sync::Mutex<Option<SplitStream<WebSocket>>>>,
+        web_socket_sink: Rc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
         game: Box<Game>,
     },
 }
@@ -84,11 +84,11 @@ impl PlayState {
             Ok(web_socket) => {
                 let (sink, stream) = web_socket.split();
 
-                let web_socket_stream = Arc::new(tokio::sync::Mutex::new(Some(stream)));
-                let web_socket_sink = Arc::new(tokio::sync::Mutex::new(Some(sink)));
+                let web_socket_stream = Rc::new(tokio::sync::Mutex::new(Some(stream)));
+                let web_socket_sink = Rc::new(tokio::sync::Mutex::new(Some(sink)));
 
-                let cloned_web_socket_stream = Arc::clone(&web_socket_stream);
-                let cloned_web_socket_sink = Arc::clone(&web_socket_sink);
+                let cloned_web_socket_stream = Rc::clone(&web_socket_stream);
+                let cloned_web_socket_sink = Rc::clone(&web_socket_sink);
 
                 spawn_local(async move {
                     let mut last_game_updated_requested_on = wasm_timer::Instant::now();
@@ -181,8 +181,8 @@ impl PlayState {
                         web_socket_sink,
                         ..
                     } => Some(Self::Playing {
-                        web_socket_stream: Arc::clone(web_socket_stream),
-                        web_socket_sink: Arc::clone(web_socket_sink),
+                        web_socket_stream: Rc::clone(web_socket_stream),
+                        web_socket_sink: Rc::clone(web_socket_sink),
                         game: Box::new(game.clone()),
                     }),
                     Self::ConnectingError { .. } | PlayState::Playing { .. } | PlayState::None => {
@@ -203,8 +203,8 @@ impl PlayState {
                     } => {
                         // log::info!("Received full Game update");
                         Some(Self::Playing {
-                            web_socket_stream: Arc::clone(web_socket_stream),
-                            web_socket_sink: Arc::clone(web_socket_sink),
+                            web_socket_stream: Rc::clone(web_socket_stream),
+                            web_socket_sink: Rc::clone(web_socket_sink),
                             game: Box::new(game_update.clone()),
                         })
                     }
@@ -257,7 +257,7 @@ impl PlayState {
         {
             match game.game_state {
                 GameState::InLobby => {
-                    send_to_server(Arc::clone(web_socket_sink), ClientMessage::StartGame);
+                    send_to_server(Rc::clone(web_socket_sink), ClientMessage::StartGame);
                 }
                 GameState::Playing { .. } | GameState::Aftermath { .. } => {
                     log::error!("There is a wish for game start, but I am not in Playing GameState::InLobby; doing nothing.");
@@ -280,7 +280,7 @@ impl PlayState {
                     ..
                 } => {
                     send_to_server(
-                        Arc::clone(web_socket_sink),
+                        Rc::clone(web_socket_sink),
                         ClientMessage::ChooseAnswer(answer),
                     );
                 }
@@ -312,7 +312,7 @@ impl PlayState {
                     playing_state: PlayingState::Solution { .. },
                     ..
                 } => {
-                    send_to_server(Arc::clone(web_socket_sink), ClientMessage::RequestSkip);
+                    send_to_server(Rc::clone(web_socket_sink), ClientMessage::RequestSkip);
                 }
                 GameState::Playing {
                     playing_state: PlayingState::Question { .. },
@@ -337,7 +337,7 @@ impl PlayState {
                 ..
             } => match game.game_state {
                 GameState::Aftermath { .. } => {
-                    send_to_server(Arc::clone(web_socket_sink), ClientMessage::RequestPlayAgain);
+                    send_to_server(Rc::clone(web_socket_sink), ClientMessage::RequestPlayAgain);
                 }
                 GameState::InLobby | GameState::Playing { .. } => {
                     log::error!("Client wants to play again, but I am not in GameState::Aftermath; doing nothing.");
@@ -361,8 +361,8 @@ impl PlayState {
                 web_socket_sink,
                 ..
             } => {
-                let cloned_websocket_stream = Arc::clone(web_socket_stream);
-                let cloned_web_socket_sink = Arc::clone(web_socket_sink);
+                let cloned_websocket_stream = Rc::clone(web_socket_stream);
+                let cloned_web_socket_sink = Rc::clone(web_socket_sink);
                 spawn_local(async move {
                     let mut locked_cloned_websocket_stream =
                         tokio::sync::Mutex::lock(&cloned_websocket_stream).await;
@@ -438,7 +438,7 @@ impl ConnectingErrorLocaleKeyId {
 }
 
 fn send_to_server(
-    web_socket_sink: Arc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
+    web_socket_sink: Rc<tokio::sync::Mutex<Option<SplitSink<WebSocket, Message>>>>,
     client_message: ClientMessage,
 ) {
     spawn_local(async move {

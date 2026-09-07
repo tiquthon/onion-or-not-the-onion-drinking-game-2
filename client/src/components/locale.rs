@@ -127,10 +127,7 @@ pub fn store_language_identifier_to_persistent_storage_and_log_warnings(
     language_identifier: &LanguageIdentifier,
 ) {
     if let Err(error) = store_language_identifier_to_persistent_storage(language_identifier) {
-        log::warn!(
-            "While storing language identifier \"{}\" ({error}).",
-            language_identifier.to_string()
-        );
+        log::warn!("While storing language identifier \"{language_identifier}\" ({error}).");
     }
 }
 

@@ -90,7 +90,7 @@ pub fn get_random_question_id(
             None => return Err(GetRandomQuestionIdError::NoneFound),
             Some(selected_question_id) => {
                 let has_at_least_minimum_score =
-                    minimum_score_per_question.map_or(true, |min_score| {
+                    minimum_score_per_question.is_none_or(|min_score| {
                         i64::try_from(get(&selected_question_id).unwrap().score).unwrap()
                             >= min_score
                     });
