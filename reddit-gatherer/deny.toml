@@ -70,16 +70,6 @@ feature-depth = 1
 # A list of advisory IDs to ignore. Note that ignored advisories will still
 # output a note when they are encountered.
 ignore = [
-    { id = "RUSTSEC-2025-0022", reason = "TODO Use-After-Free in Md::fetch and Cipher::fetch" },
-    { id = "RUSTSEC-2025-0004", reason = "TODO ssl::select_next_proto use after free" },
-    { id = "RUSTSEC-2024-0357", reason = "TODO MemBio::get_buf has undefined behavior with empty buffers" },
-    { id = "RUSTSEC-2024-0019", reason = "TODO Tokens for named pipes may be delivered after deregistration" },
-    { id = "RUSTSEC-2024-0384", reason = "TODO instant is unmaintained" },
-    { id = "RUSTSEC-2024-0421", reason = "TODO idna accepts Punycode labels that do not produce any non-ASCII when decoded" },
-    { id = "RUSTSEC-2024-0332", reason = "TODO Degradation of service in h2 servers with CONTINUATION Flood" },
-    { id = "RUSTSEC-2024-0003", reason = "TODO Resource exhaustion vulnerability in h2 may lead to Denial of Service (DoS)" },
-    { id = "RUSTSEC-2026-0007", reason = "TODO Integer overflow in BytesMut::reserve" },
-    { id = "RUSTSEC-2025-0056", reason = "TODO adler crate is unmaintained use adler2 instead" },
     #"RUSTSEC-0000-0000",
     #{ id = "RUSTSEC-0000-0000", reason = "you can specify a reason the advisory is ignored" },
     #"a-crate-that-is-yanked@0.1.1", # you can also ignore yanked crate versions if you wish
