@@ -1,9 +1,9 @@
-ARG RUST_VERSION="1.94"
-ARG CARGO_CHEF_VERSION="0.1.77"
-ARG CARGO_BINSTALL_VERSION="1.17.6"
+ARG RUST_VERSION="1.98.0"
+ARG CARGO_CHEF_VERSION="0.1.78"
+ARG CARGO_BINSTALL_VERSION="1.23.0"
 
 ARG TRUNK_VERSION="0.21.14"
-ARG WASM_BINDGEN_VERSION="0.2.104"
+ARG WASM_BINDGEN_VERSION="0.2.128"
 ARG WASM_OPT_VERSION="version_123"
 ARG DART_SASS_VERSION="1.86.0"
 
@@ -31,8 +31,8 @@ RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
 
-# Install openssl dev for later cargo chef prepare wasm part
-RUN apt update && apt install --yes pkg-config openssl libssl-dev
+# Install openssl dev for later cargo chef prepare wasm part because of using libgit2
+RUN apt-get update && apt-get install --yes build-essential pkg-config openssl libssl-dev git
 
 RUN rustup target add wasm32-unknown-unknown
 
